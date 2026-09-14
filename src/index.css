@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+:root {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #0e1117;
+  color: #e6edf3;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* React Flow Canvas in n8n Theme */
+.react-flow__background {
+  background-color: #0d1017 !important;
+}
+
+.react-flow__controls {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: #161922 !important;
+}
+
+.react-flow__controls-button {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #8b949e !important;
+  fill: #8b949e !important;
+}
+
+.react-flow__controls-button:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+.react-flow__minimap {
+  background: #11141d !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+/* n8n Node Handle Styling */
+.n8n-handle {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  border: 2.5px solid #161922 !important;
+  background-color: #58a6ff !important;
+  transition: transform 0.15s ease, background-color 0.15s ease !important;
+}
+
+.n8n-handle:hover {
+  transform: scale(1.35) !important;
+  background-color: #79c0ff !important;
+}
+
+.n8n-handle-target {
+  background-color: #388bfd !important;
+}
+
+.n8n-handle-source {
+  background-color: #2ea043 !important;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0e1117;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #484f58;
+}

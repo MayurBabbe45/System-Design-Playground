@@ -1,0 +1,13 @@
+{
+  "gsdVersion": "1.14.0",
+  "project": "SYSTEM DESIGN PLAYGROUND",
+  "created": "2026-09-14T20:14:00+05:30",
+  "techStack": {
+    "frontend": "React 18+, TypeScript, React Flow (@xyflow/react)",
+    "simulation": "Rust / WASM Discrete Event Simulation (Web Workers)",
+    "crdt": "Yjs (WebSocket real-time collaboration)",
+    "backend": "Node.js (TypeScript) + PostgreSQL (JSONB)",
+    "telemetry": "ClickHouse",
+    "sharing": "LZ-String (Stateless URL Hash)"
+  }
+}
