@@ -111,3 +111,16 @@ export interface ArchitecturePreset {
     data?: Partial<EdgeStreamData>;
   }>;
 }
+
+export type SimulationEngineMode = 'wasm' | 'js';
+
+export interface EngineBenchmarkData {
+  wasmOpsPerSec: number;
+  wasmDurationMs: number;
+  jsOpsPerSec: number;
+  jsDurationMs: number;
+  speedupFactor: number;
+  iterations: number;
+  timestamp: number;
+}
+

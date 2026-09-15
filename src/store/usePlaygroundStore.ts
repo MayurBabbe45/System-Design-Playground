@@ -16,11 +16,14 @@ import {
   SystemMetricsSnapshot,
   TrafficProfile,
   EdgeStreamData,
-  AvailabilityZone
+  AvailabilityZone,
+  SimulationEngineMode,
+  EngineBenchmarkData
 } from '../types/playground';
 import { COMPONENT_CATALOG } from '../config/components';
 import { PRESET_ARCHITECTURES } from '../config/presets';
 import { WorkerSimulationInput, WorkerSimulationOutput } from '../workers/simulationWorker';
+import { benchmarkWasm, benchmarkJs } from '../wasm/wasmEngine';
 
 interface PlaygroundState {
   // React Flow graph state
@@ -90,6 +93,17 @@ interface PlaygroundState {
   setTargetGlobalRps: (rps: number) => void;
   setTrafficProfile: (profile: TrafficProfile) => void;
   tickSimulation: () => void;
+
+  // WebAssembly Simulation Engine & Benchmarks
+  engineMode: SimulationEngineMode;
+  isWasmReady: boolean;
+  computeDurationMs: number;
+  isBenchmarkModalOpen: boolean;
+  benchmarkData: EngineBenchmarkData | null;
+  isBenchmarking: boolean;
+  setEngineMode: (mode: SimulationEngineMode) => void;
+  toggleBenchmarkModal: () => void;
+  runEngineBenchmark: (iterations?: number) => void;
 }
 
 // Instantiate Web Worker
@@ -106,7 +120,15 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
   // Wire up Web Worker message response listener
   if (simWorker) {
     simWorker.onmessage = (e: MessageEvent<WorkerSimulationOutput>) => {
-      const { updatedNodes, updatedEdges, snapshot, bottleneckNodeId, bottleneckReason } = e.data;
+      const { 
+        updatedNodes, 
+        updatedEdges, 
+        snapshot, 
+        bottleneckNodeId, 
+        bottleneckReason,
+        isWasmReady,
+        computeDurationMs
+      } = e.data;
       
       const nextNodes = get().nodes.map((node) => {
         const update = updatedNodes.find((un) => un.id === node.id);
@@ -145,6 +167,8 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
         telemetryHistory: updatedHistory,
         bottleneckNodeId,
         bottleneckReason,
+        isWasmReady,
+        computeDurationMs,
       });
     };
   }
@@ -186,6 +210,14 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
     isCostModalOpen: false,
     isAuditModalOpen: false,
     isExportModalOpen: false,
+    isBenchmarkModalOpen: false,
+
+    // WebAssembly Simulation Engine & Benchmarks
+    engineMode: 'wasm',
+    isWasmReady: false,
+    computeDurationMs: 0,
+    benchmarkData: null,
+    isBenchmarking: false,
 
     bottleneckNodeId: null,
     bottleneckReason: null,
@@ -207,6 +239,38 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
 
     toggleExportModal: () => {
       set({ isExportModalOpen: !get().isExportModalOpen });
+    },
+
+    toggleBenchmarkModal: () => {
+      set({ isBenchmarkModalOpen: !get().isBenchmarkModalOpen });
+    },
+
+    setEngineMode: (mode) => {
+      set({ engineMode: mode });
+    },
+
+    runEngineBenchmark: (iterations = 50000) => {
+      set({ isBenchmarking: true });
+      setTimeout(() => {
+        const wasmRes = benchmarkWasm(iterations);
+        const jsRes = benchmarkJs(iterations);
+        const speedupFactor = jsRes.durationMs > 0 && wasmRes.durationMs > 0
+          ? Number((jsRes.durationMs / wasmRes.durationMs).toFixed(2))
+          : 1.0;
+
+        set({
+          isBenchmarking: false,
+          benchmarkData: {
+            wasmOpsPerSec: wasmRes.opsPerSec,
+            wasmDurationMs: Number(wasmRes.durationMs.toFixed(2)),
+            jsOpsPerSec: jsRes.opsPerSec,
+            jsDurationMs: Number(jsRes.durationMs.toFixed(2)),
+            speedupFactor,
+            iterations,
+            timestamp: Date.now(),
+          },
+        });
+      }, 50);
     },
 
     toggleKillAz: (az) => {
@@ -496,6 +560,7 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
           killedAzs,
           globalInjectedLatencyMs,
           globalPacketDropPercent,
+          engineMode: get().engineMode,
         };
         simWorker.postMessage(input);
       }

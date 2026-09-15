@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build:wasm": "asc src/wasm/assembly/index.ts -o src/wasm/build/sim_engine.wasm --optimize --converge --runtime stub && node -e \"const fs = require('fs'); const b64 = fs.readFileSync('src/wasm/build/sim_engine.wasm').toString('base64'); fs.writeFileSync('src/wasm/build/wasmBytecode.ts', 'export const WASM_BASE64 = \\\"' + b64 + '\\\";\\n');\"",
+    "build": "npm run build:wasm && tsc && vite build",
     "lint": "tsc --noEmit",
     "preview": "vite preview"
   },
@@ -27,6 +28,7 @@
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
+    "assemblyscript": "^0.28.20",
     "autoprefixer": "^10.6.0",
     "postcss": "^8.5.28",
     "tailwindcss": "^4.3.3",

@@ -8,6 +8,7 @@ import { ChaosControlCenter } from './components/ChaosControlCenter';
 import { CloudCostModal } from './components/modals/CloudCostModal';
 import { HealthAuditModal } from './components/modals/HealthAuditModal';
 import { ExportModal } from './components/modals/ExportModal';
+import { WasmBenchmarkModal } from './components/modals/WasmBenchmarkModal';
 
 export const App: React.FC = () => {
   return (
@@ -37,6 +38,7 @@ export const App: React.FC = () => {
       <CloudCostModal />
       <HealthAuditModal />
       <ExportModal />
+      <WasmBenchmarkModal />
     </div>
   );
 };

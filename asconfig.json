@@ -1,0 +1,22 @@
+{
+  "targets": {
+    "release": {
+      "outFile": "src/wasm/build/sim_engine.wasm",
+      "optimizeLevel": 3,
+      "shrinkLevel": 0,
+      "converge": true,
+      "noAssert": true,
+      "runtime": "stub"
+    },
+    "debug": {
+      "outFile": "src/wasm/build/sim_engine.debug.wasm",
+      "optimizeLevel": 0,
+      "sourceMap": true,
+      "debug": true,
+      "runtime": "stub"
+    }
+  },
+  "options": {
+    "bindings": "esm"
+  }
+}

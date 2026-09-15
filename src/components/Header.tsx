@@ -37,8 +37,11 @@ export const Header: React.FC = () => {
     toggleChaosCenter,
     toggleAuditModal,
     toggleExportModal,
+    toggleBenchmarkModal,
     isChaosCenterOpen,
     killedAzs,
+    engineMode,
+    computeDurationMs,
   } = usePlaygroundStore();
 
   // Calculate monthly cost ($/hr * 730 hrs)
@@ -151,8 +154,25 @@ export const Header: React.FC = () => {
         </button>
       </div>
 
-      {/* Right Controls: Health Audit, Chaos, Cost, Share */}
+      {/* Right Controls: WASM, Health Audit, Chaos, Cost, Share */}
       <div className="flex items-center gap-2.5 shrink-0">
+        {/* WASM Engine & Benchmark Pill */}
+        <button
+          onClick={toggleBenchmarkModal}
+          title={`Click to open WebAssembly Benchmark (Engine: ${engineMode.toUpperCase()}, Latency: ${computeDurationMs}ms)`}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer hover:scale-102 ${
+            engineMode === 'wasm'
+              ? 'bg-emerald-950/70 border-emerald-500/50 text-emerald-300 hover:bg-emerald-900/60 shadow-sm shadow-emerald-950/30'
+              : 'bg-blue-950/70 border-blue-500/50 text-blue-300 hover:bg-blue-900/60'
+          }`}
+        >
+          <Zap className={`w-3.5 h-3.5 ${engineMode === 'wasm' ? 'text-emerald-400 fill-emerald-400/30' : 'text-blue-400 fill-blue-400/30'}`} />
+          <span className="font-mono">{engineMode.toUpperCase()}</span>
+          <span className="text-[10px] font-mono px-1 py-0.2 rounded bg-black/30 border border-white/10 opacity-90">
+            {computeDurationMs > 0 ? `${computeDurationMs}ms` : 'ready'}
+          </span>
+        </button>
+
         {/* Architecture Health Audit Button */}
         <button
           onClick={toggleAuditModal}

@@ -4,9 +4,16 @@ import {
   SystemMetricsSnapshot, 
   TrafficProfile,
   AvailabilityZone,
-  CircuitBreakerState
+  CircuitBreakerState,
+  SimulationEngineMode
 } from '../types/playground';
 import { calculateDynamicTrafficRate, solveKendallMMcK } from '../simulation/queueTheory';
+import { initWasmEngine, isWasmReady, solveKendallMMcKWasm } from '../wasm/wasmEngine';
+
+// Pre-initialize WASM engine in background worker
+initWasmEngine().catch((err) => {
+  console.warn('Background WASM initialization:', err);
+});
 
 export interface WorkerSimulationInput {
   nodes: Array<{ id: string; data: InfrastructureNodeData }>;
@@ -17,6 +24,7 @@ export interface WorkerSimulationInput {
   killedAzs: AvailabilityZone[];
   globalInjectedLatencyMs: number;
   globalPacketDropPercent: number;
+  engineMode?: SimulationEngineMode;
 }
 
 export interface WorkerSimulationOutput {
@@ -25,9 +33,13 @@ export interface WorkerSimulationOutput {
   snapshot: SystemMetricsSnapshot;
   bottleneckNodeId: string | null;
   bottleneckReason: string | null;
+  engineMode: SimulationEngineMode;
+  isWasmReady: boolean;
+  computeDurationMs: number;
 }
 
 self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
+  const computeStartTime = performance.now();
   const { 
     nodes, 
     edges, 
@@ -36,7 +48,8 @@ self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
     tickCount,
     killedAzs = [],
     globalInjectedLatencyMs = 0,
-    globalPacketDropPercent = 0
+    globalPacketDropPercent = 0,
+    engineMode = 'wasm'
   } = e.data;
 
   // 1. Dynamic arrival rate
@@ -198,14 +211,23 @@ self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
     const maxQueue = node.data.maxQueueDepth || 500;
     const baseLatency = (node.data.latencyMs || 5) + globalInjectedLatencyMs;
 
-    // Kendall M/M/c/K solution
-    const qResult = solveKendallMMcK(
-      arrivalRate,
-      capacityPerInstance,
-      instances,
-      maxQueue,
-      baseLatency
-    );
+    // Kendall M/M/c/K solution (WebAssembly or JavaScript)
+    const useWasm = engineMode === 'wasm' && isWasmReady();
+    const qResult = useWasm
+      ? solveKendallMMcKWasm(
+          arrivalRate,
+          capacityPerInstance,
+          instances,
+          maxQueue,
+          baseLatency
+        )
+      : solveKendallMMcK(
+          arrivalRate,
+          capacityPerInstance,
+          instances,
+          maxQueue,
+          baseLatency
+        );
 
     const utilizationPercent = Math.round(qResult.rho * 100);
 
@@ -294,12 +316,17 @@ self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
     avgUtilizationPercent: avgUtilization,
   };
 
+  const computeDurationMs = Math.max(0.01, Number((performance.now() - computeStartTime).toFixed(3)));
+
   const output: WorkerSimulationOutput = {
     updatedNodes,
     updatedEdges,
     snapshot,
     bottleneckNodeId,
     bottleneckReason,
+    engineMode,
+    isWasmReady: isWasmReady(),
+    computeDurationMs,
   };
 
   self.postMessage(output);
