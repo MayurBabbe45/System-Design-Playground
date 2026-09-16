@@ -82,18 +82,34 @@ self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
     inDegreeMap.set(n.id, incomingCount);
   });
 
-  // Level-by-level BFS traversal
+  // Level-by-level BFS traversal with cycle-breaker safety
   const queue: string[] = [];
+  const visitedNodes = new Set<string>();
+
   nodes.forEach((n) => {
     if ((inDegreeMap.get(n.id) || 0) === 0) {
       queue.push(n.id);
+      visitedNodes.add(n.id);
     }
   });
 
   const edgeInflows = new Map<string, number>();
   const circuitBreakerUpdates = new Map<string, CircuitBreakerState>();
+  let loopSafeguard = 0;
+  const maxIterations = Math.max(50, nodes.length * 4);
 
-  while (queue.length > 0) {
+  while (loopSafeguard++ < maxIterations) {
+    if (queue.length === 0) {
+      // Check if there are unvisited nodes in disconnected clusters or cyclic loops
+      const unvisited = nodes.filter((n) => !visitedNodes.has(n.id));
+      if (unvisited.length > 0) {
+        queue.push(unvisited[0].id);
+        visitedNodes.add(unvisited[0].id);
+      } else {
+        break; // All nodes processed
+      }
+    }
+
     const currentId = queue.shift()!;
     const currentNode = nodes.find((n) => n.id === currentId);
     if (!currentNode) continue;
@@ -166,8 +182,9 @@ self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
           // Decrement in-degree
           const remaining = (inDegreeMap.get(edge.target) || 1) - 1;
           inDegreeMap.set(edge.target, remaining);
-          if (remaining <= 0) {
+          if (remaining <= 0 && !visitedNodes.has(edge.target)) {
             queue.push(edge.target);
+            visitedNodes.add(edge.target);
           }
         });
       }

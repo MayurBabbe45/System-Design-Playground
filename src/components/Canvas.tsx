@@ -29,6 +29,8 @@ const CanvasInner: React.FC = () => {
     isSimulating,
     simulationSpeed,
     bottleneckReason,
+    selectedNodeId,
+    deleteNode,
   } = usePlaygroundStore();
 
   const reactFlowInstance = useReactFlow();
@@ -36,6 +38,24 @@ const CanvasInner: React.FC = () => {
   // Register custom node and edge types
   const nodeTypes = useMemo(() => ({ infrastructure: InfrastructureNode }), []);
   const edgeTypes = useMemo(() => ({ flowEdge: FlowEdge }), []);
+
+  // Keyboard shortcuts: Delete / Backspace to remove selected node, Escape to deselect
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) {
+        return;
+      }
+      if ((e.key === 'Backspace' || e.key === 'Delete') && selectedNodeId) {
+        e.preventDefault();
+        deleteNode(selectedNodeId);
+      } else if (e.key === 'Escape') {
+        setSelectedNodeId(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedNodeId, deleteNode, setSelectedNodeId]);
 
   // Listen to URL hash changes for instant URL architecture loading
   useEffect(() => {
