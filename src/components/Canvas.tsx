@@ -31,6 +31,7 @@ const CanvasInner: React.FC = () => {
     bottleneckReason,
     selectedNodeId,
     deleteNode,
+    theme,
   } = usePlaygroundStore();
 
   const reactFlowInstance = useReactFlow();
@@ -99,7 +100,7 @@ const CanvasInner: React.FC = () => {
 
   return (
     <div
-      className="flex-1 h-[calc(100vh-3.5rem)] relative bg-[#0e1117]"
+      className="flex-1 h-[calc(100vh-3.5rem)] relative bg-[var(--canvas-bg)]"
       onDragOver={onDragOver}
       onDrop={onDrop}
       onClick={(e) => {
@@ -131,7 +132,7 @@ const CanvasInner: React.FC = () => {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView
-        colorMode="dark"
+        colorMode={theme}
         defaultEdgeOptions={{
           type: 'flowEdge',
           animated: true,
@@ -142,7 +143,7 @@ const CanvasInner: React.FC = () => {
           variant={BackgroundVariant.Dots} 
           gap={24} 
           size={1.5} 
-          color="#222634" 
+          color={theme === 'dark' ? '#222634' : '#cbd5e1'} 
         />
         <Controls />
         <MiniMap
@@ -154,7 +155,7 @@ const CanvasInner: React.FC = () => {
             if (data?.status === 'warning') return '#f59e0b';
             return '#388bfd';
           }}
-          maskColor="rgba(14, 17, 23, 0.75)"
+          maskColor={theme === 'dark' ? 'rgba(14, 17, 23, 0.75)' : 'rgba(241, 245, 249, 0.75)'}
         />
       </ReactFlow>
     </div>

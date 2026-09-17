@@ -26,39 +26,39 @@ export const Sidebar: React.FC = () => {
   );
 
   return (
-    <aside className="w-64 h-[calc(100vh-3.5rem)] bg-[#161922] border-r border-white/10 flex flex-col z-20 select-none">
+    <aside className="w-64 h-[calc(100vh-3.5rem)] bg-[var(--bg-surface)] border-r border-[var(--border-subtle)] flex flex-col z-20 select-none transition-colors duration-200">
       {/* Sidebar Header & Search */}
-      <div className="p-3.5 border-b border-white/10 space-y-2.5">
+      <div className="p-3.5 border-b border-[var(--border-subtle)] space-y-2.5">
         <div className="flex items-center justify-between">
-          <div className="text-xs font-bold text-neutral-200 uppercase tracking-wider flex items-center gap-1.5">
+          <div className="text-xs font-bold text-[var(--text-main)] uppercase tracking-wider flex items-center gap-1.5">
             <Icons.Layers className="w-3.5 h-3.5 text-orange-500" />
             Component Palette
           </div>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0e1117] text-neutral-400 font-mono border border-white/5">
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-pill)] text-[var(--text-muted)] font-mono border border-[var(--border-subtle)]">
             {catalogItems.length} Nodes
           </span>
         </div>
         <div className="relative">
-          <Icons.Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-neutral-500" />
+          <Icons.Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-neutral-400" />
           <input
             type="text"
             placeholder="Search nodes..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[#0e1117] border border-white/10 rounded-lg pl-8 pr-3 py-1.5 text-xs text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-orange-500/80 transition-colors"
+            className="w-full bg-[var(--bg-pill)] border border-[var(--border-subtle)] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[var(--text-main)] placeholder-[var(--text-muted)] focus:outline-none focus:border-orange-500/80 transition-colors"
           />
         </div>
       </div>
 
       {/* Grouped Component List */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-4">
+      <div className="flex-1 overflow-y-auto p-3 space-y-4 custom-scrollbar">
         {CATEGORIES.map((cat) => {
           const itemsInCat = catalogItems.filter((item) => item.category === cat.id);
           if (itemsInCat.length === 0) return null;
 
           return (
             <div key={cat.id} className="space-y-1.5">
-              <div className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider px-1">
+              <div className="text-[10px] font-semibold text-[var(--text-muted)] uppercase tracking-wider px-1">
                 {cat.name}
               </div>
               <div className="space-y-1.5">
@@ -71,7 +71,7 @@ export const Sidebar: React.FC = () => {
                       key={item.typeId}
                       draggable
                       onDragStart={(e) => handleDragStart(e, item.typeId)}
-                      className="group flex items-center justify-between p-2 rounded-lg bg-[#1e2230] hover:bg-[#252a3d] border border-white/5 hover:border-white/20 cursor-grab active:cursor-grabbing transition-all shadow-sm"
+                      className="group flex items-center justify-between p-2 rounded-lg bg-[var(--bg-panel)] hover:border-orange-500/40 border border-[var(--border-subtle)] cursor-grab active:cursor-grabbing transition-all shadow-sm"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div
@@ -81,15 +81,15 @@ export const Sidebar: React.FC = () => {
                           <IconComp className="w-3.5 h-3.5" />
                         </div>
                         <div className="min-w-0">
-                          <div className="text-xs font-medium text-neutral-200 group-hover:text-white truncate">
+                          <div className="text-xs font-medium text-[var(--text-main)] truncate">
                             {item.name}
                           </div>
-                          <div className="text-[10px] text-neutral-400 font-mono">
+                          <div className="text-[10px] text-[var(--text-muted)] font-mono">
                             {item.defaultCapacityRps.toLocaleString()} RPS max
                           </div>
                         </div>
                       </div>
-                      <Icons.GripVertical className="w-3.5 h-3.5 text-neutral-600 group-hover:text-neutral-400 shrink-0" />
+                      <Icons.GripVertical className="w-3.5 h-3.5 text-neutral-400 group-hover:text-orange-500 shrink-0" />
                     </div>
                   );
                 })}
@@ -100,7 +100,7 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Footer Helper */}
-      <div className="p-3 border-t border-white/10 bg-[#0e1117] text-[10px] text-neutral-400 text-center font-medium">
+      <div className="p-3 border-t border-[var(--border-subtle)] bg-[var(--bg-pill)] text-[10px] text-[var(--text-muted)] text-center font-medium">
         Drag and drop to canvas
       </div>
     </aside>

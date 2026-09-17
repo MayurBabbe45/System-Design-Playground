@@ -50,28 +50,28 @@ export const TelemetryDrawer: React.FC = () => {
     <div className={`fixed bottom-0 left-64 right-80 z-20 transition-all duration-300 ${isOpen ? 'h-52' : 'h-9'}`}>
       {/* Toggle Header Bar */}
       <div 
-        className="h-9 bg-[#161922] border-t border-x border-white/10 px-4 flex items-center justify-between cursor-pointer select-none shadow-md" 
+        className="h-9 bg-[var(--bg-surface)] border-t border-x border-[var(--border-subtle)] px-4 flex items-center justify-between cursor-pointer select-none shadow-md transition-colors duration-200" 
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex items-center gap-4 text-xs">
-          <div className="flex items-center gap-1.5 font-bold text-neutral-200">
+          <div className="flex items-center gap-1.5 font-bold text-[var(--text-main)]">
             <Activity className="w-3.5 h-3.5 text-blue-400" />
             <span>REAL-TIME SYSTEM METRICS</span>
           </div>
 
           {/* Quick Stat Badges */}
           <div className="flex items-center gap-4 font-mono text-xs">
-            <span className="text-neutral-400">
+            <span className="text-[var(--text-muted)]">
               Throughput: <strong className="text-emerald-400 font-semibold">{latest.totalProcessedRps.toLocaleString()} RPS</strong>
             </span>
-            <span className="text-neutral-400">
+            <span className="text-[var(--text-muted)]">
               p95 Latency: <strong className="text-amber-400 font-semibold">{latest.p95LatencyMs} ms</strong>
             </span>
-            <span className="text-neutral-400">
+            <span className="text-[var(--text-muted)]">
               Avg Load: <strong className={latest.avgUtilizationPercent > 85 ? 'text-red-400 font-bold' : 'text-cyan-400 font-semibold'}>{latest.avgUtilizationPercent}%</strong>
             </span>
-            <span className="text-neutral-400">
-              Queue: <strong className={latest.activeQueueTotal > 50 ? 'text-red-400 font-bold' : 'text-neutral-300 font-semibold'}>{latest.activeQueueTotal} req</strong>
+            <span className="text-[var(--text-muted)]">
+              Queue: <strong className={latest.activeQueueTotal > 50 ? 'text-red-400 font-bold' : 'text-neutral-400 font-semibold'}>{latest.activeQueueTotal} req</strong>
             </span>
             {latest.totalDroppedRps > 0 && (
               <span className="text-red-400 font-bold flex items-center gap-1 animate-pulse">
@@ -82,23 +82,23 @@ export const TelemetryDrawer: React.FC = () => {
           </div>
         </div>
 
-        <button className="text-neutral-400 hover:text-white p-1 rounded transition-colors">
+        <button className="text-[var(--text-muted)] hover:text-[var(--text-main)] p-1 rounded transition-colors cursor-pointer">
           {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
         </button>
       </div>
 
       {/* Drawer Chart Area */}
       {isOpen && (
-        <div className="h-[calc(13rem-2.25rem)] bg-[#0d1017] border-x border-white/10 p-3 flex flex-col justify-between">
+        <div className="h-[calc(13rem-2.25rem)] bg-[var(--bg-panel)] border-x border-[var(--border-subtle)] p-3 flex flex-col justify-between transition-colors duration-200">
           {/* Tabs */}
           <div className="flex items-center justify-between mb-1.5">
             <div className="flex gap-1.5">
               <button
                 onClick={() => setActiveTab('throughput')}
-                className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'throughput'
-                    ? 'bg-[#1e2230] text-emerald-400 border border-emerald-500/40 shadow-sm'
-                    : 'text-neutral-400 hover:text-neutral-200'
+                    ? 'bg-[var(--bg-surface)] text-emerald-400 border border-emerald-500/40 shadow-sm'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                 }`}
               >
                 <BarChart3 className="w-3.5 h-3.5" />
@@ -106,10 +106,10 @@ export const TelemetryDrawer: React.FC = () => {
               </button>
               <button
                 onClick={() => setActiveTab('latency')}
-                className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'latency'
-                    ? 'bg-[#1e2230] text-amber-400 border border-amber-500/40 shadow-sm'
-                    : 'text-neutral-400 hover:text-neutral-200'
+                    ? 'bg-[var(--bg-surface)] text-amber-400 border border-amber-500/40 shadow-sm'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                 }`}
               >
                 <Clock className="w-3.5 h-3.5" />
@@ -117,10 +117,10 @@ export const TelemetryDrawer: React.FC = () => {
               </button>
               <button
                 onClick={() => setActiveTab('utilization')}
-                className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'utilization'
-                    ? 'bg-[#1e2230] text-cyan-400 border border-cyan-500/40 shadow-sm'
-                    : 'text-neutral-400 hover:text-neutral-200'
+                    ? 'bg-[var(--bg-surface)] text-cyan-400 border border-cyan-500/40 shadow-sm'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                 }`}
               >
                 <Gauge className="w-3.5 h-3.5" />

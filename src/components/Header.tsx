@@ -10,7 +10,9 @@ import {
   TrendingUp, 
   AlertTriangle, 
   Flame,
-  ShieldCheck
+  ShieldCheck,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { usePlaygroundStore } from '../store/usePlaygroundStore';
 import { PRESET_ARCHITECTURES } from '../config/presets';
@@ -42,6 +44,8 @@ export const Header: React.FC = () => {
     killedAzs,
     engineMode,
     computeDurationMs,
+    theme,
+    toggleTheme,
   } = usePlaygroundStore();
 
   // Calculate monthly cost ($/hr * 730 hrs)
@@ -57,15 +61,16 @@ export const Header: React.FC = () => {
 
   const getGradeBadge = () => {
     switch (auditResult.grade) {
-      case 'A': return 'bg-emerald-950 text-emerald-400 border-emerald-700';
-      case 'B': return 'bg-blue-950 text-blue-400 border-blue-700';
-      case 'C': return 'bg-amber-950 text-amber-400 border-amber-700';
+      case 'A': return 'bg-emerald-950/80 text-emerald-300 border-emerald-600';
+      case 'B': return 'bg-cyan-950/80 text-cyan-300 border-cyan-600';
+      case 'C': return 'bg-amber-950/80 text-amber-300 border-amber-600';
+      case 'D': return 'bg-orange-950/80 text-orange-300 border-orange-600';
       default: return 'bg-red-950 text-red-400 border-red-700';
     }
   };
 
   return (
-    <header className="h-14 bg-[#161922] border-b border-white/10 px-5 flex items-center justify-between z-30 select-none shadow-sm">
+    <header className="h-14 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)] px-5 flex items-center justify-between z-30 select-none shadow-sm transition-colors duration-200">
       {/* Brand Title */}
       <div className="flex items-center gap-3 shrink-0">
         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-md shadow-orange-500/20 text-white">
@@ -73,7 +78,7 @@ export const Header: React.FC = () => {
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-bold tracking-tight text-white">
+            <span className="text-sm font-bold tracking-tight text-[var(--text-main)]">
               System Design Playground
             </span>
             <span className="text-[10px] px-1.5 py-0.2 rounded bg-neutral-800 text-neutral-400 font-mono border border-neutral-700">
@@ -90,36 +95,36 @@ export const Header: React.FC = () => {
       {/* Center Controls: Presets, Traffic Profile, Load Slider, Play/Pause */}
       <div className="flex items-center gap-3">
         {/* Preset Selector */}
-        <div className="flex items-center gap-1.5 bg-[#0e1117] px-3 py-1.5 rounded-lg border border-white/10 hover:border-white/20 transition-colors">
+        <div className="flex items-center gap-1.5 bg-[var(--bg-pill)] px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] hover:border-white/20 transition-colors">
           <Layers className="w-3.5 h-3.5 text-purple-400" />
           <select
             value={activePresetId}
             onChange={(e) => loadPreset(e.target.value)}
-            className="bg-transparent text-xs text-neutral-200 focus:outline-none cursor-pointer font-medium"
+            className="bg-transparent text-xs text-[var(--text-main)] focus:outline-none cursor-pointer font-medium"
           >
             {PRESET_ARCHITECTURES.map((preset) => (
-              <option key={preset.id} value={preset.id} className="bg-[#161922] text-neutral-200">
+              <option key={preset.id} value={preset.id} className="bg-[var(--bg-surface)] text-[var(--text-main)]">
                 {preset.name}
               </option>
             ))}
-            <option value="custom" className="bg-[#161922] text-neutral-200" disabled>
+            <option value="custom" className="bg-[var(--bg-surface)] text-[var(--text-main)]" disabled>
               Custom Architecture
             </option>
           </select>
         </div>
 
         {/* Traffic Profile Selector */}
-        <div className="flex items-center gap-1.5 bg-[#0e1117] px-3 py-1.5 rounded-lg border border-white/10 hover:border-white/20 transition-colors">
+        <div className="flex items-center gap-1.5 bg-[var(--bg-pill)] px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] hover:border-white/20 transition-colors">
           <TrendingUp className="w-3.5 h-3.5 text-cyan-400" />
           <select
             value={trafficProfile}
             onChange={(e) => setTrafficProfile(e.target.value as TrafficProfile)}
-            className="bg-transparent text-xs text-neutral-200 focus:outline-none cursor-pointer font-medium"
+            className="bg-transparent text-xs text-[var(--text-main)] focus:outline-none cursor-pointer font-medium"
           >
-            <option value="steady" className="bg-[#161922] text-neutral-200">Steady Load</option>
-            <option value="poisson" className="bg-[#161922] text-neutral-200">Poisson Arrivals</option>
-            <option value="spike" className="bg-[#161922] text-neutral-200">Flash Sale Spike</option>
-            <option value="diurnal" className="bg-[#161922] text-neutral-200">Diurnal 24h Cycle</option>
+            <option value="steady" className="bg-[var(--bg-surface)] text-[var(--text-main)]">Steady Load</option>
+            <option value="poisson" className="bg-[var(--bg-surface)] text-[var(--text-main)]">Poisson Arrivals</option>
+            <option value="spike" className="bg-[var(--bg-surface)] text-[var(--text-main)]">Flash Sale Spike</option>
+            <option value="diurnal" className="bg-[var(--bg-surface)] text-[var(--text-main)]">Diurnal 24h Cycle</option>
           </select>
         </div>
 
@@ -230,11 +235,24 @@ export const Header: React.FC = () => {
           <span>Share</span>
         </button>
 
+        {/* Theme Toggle Button (Light/Dark) */}
+        <button
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          className="p-1.5 rounded-lg border border-[var(--border-subtle)] hover:border-white/20 transition-all text-[var(--text-muted)] hover:text-[var(--text-main)] bg-[var(--bg-pill)] hover:opacity-90 cursor-pointer shadow-sm"
+        >
+          {theme === 'dark' ? (
+            <Sun className="w-4 h-4 text-amber-400 hover:rotate-45 transition-transform" />
+          ) : (
+            <Moon className="w-4 h-4 text-indigo-500 hover:-rotate-12 transition-transform" />
+          )}
+        </button>
+
         {/* Clear Button */}
         <button
           onClick={clearCanvas}
           title="Clear Canvas"
-          className="p-1.5 rounded-lg text-neutral-400 hover:text-red-400 hover:bg-red-500/10 transition-colors border border-transparent hover:border-red-500/30"
+          className="p-1.5 rounded-lg text-neutral-400 hover:text-red-400 hover:bg-red-500/10 transition-colors border border-transparent hover:border-red-500/30 cursor-pointer"
         >
           <Trash2 className="w-4 h-4" />
         </button>

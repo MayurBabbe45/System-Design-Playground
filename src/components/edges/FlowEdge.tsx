@@ -96,7 +96,7 @@ export const FlowEdge: React.FC<EdgeProps> = memo(({
               transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
               pointerEvents: 'all',
             }}
-            className="nodrag nopan px-2 py-0.5 rounded-full bg-[#0d121d]/90 backdrop-blur-md border border-white/10 text-[9px] font-mono text-gray-300 shadow-md flex items-center gap-1 select-none"
+            className="nodrag nopan px-2 py-0.5 rounded-full bg-[var(--bg-surface)]/90 backdrop-blur-md border border-[var(--border-subtle)] text-[9px] font-mono text-[var(--text-main)] shadow-md flex items-center gap-1 select-none"
           >
             <span
               className="w-1.5 h-1.5 rounded-full"

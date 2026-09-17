@@ -12,7 +12,7 @@ import { WasmBenchmarkModal } from './components/modals/WasmBenchmarkModal';
 
 export const App: React.FC = () => {
   return (
-    <div className="flex flex-col h-screen w-screen bg-[#0e1117] overflow-hidden text-neutral-100 antialiased font-sans">
+    <div className="flex flex-col h-screen w-screen bg-[var(--bg-app)] text-[var(--text-main)] overflow-hidden antialiased font-sans transition-colors duration-200">
       {/* Top Header */}
       <Header />
 

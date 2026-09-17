@@ -86,7 +86,7 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
     if (nodeData.status === 'warning') {
       return 'border-amber-500/60 shadow-[0_0_16px_rgba(245,158,11,0.2)]';
     }
-    return 'border-white/10 hover:border-white/25 shadow-lg shadow-black/40';
+    return 'border-[var(--border-card)] hover:border-blue-400/40 shadow-md shadow-black/20';
   };
 
   const utilPercent = nodeData.utilizationPercent || 0;
@@ -94,7 +94,7 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
   return (
     <div
       onClick={() => setSelectedNodeId(id)}
-      className={`relative w-[270px] bg-[#161922] rounded-xl border p-3.5 cursor-pointer transition-all duration-150 ${getCardBorder()}`}
+      className={`relative w-[270px] bg-[var(--bg-surface)] rounded-xl border p-3.5 cursor-pointer transition-all duration-150 ${getCardBorder()}`}
     >
       {/* Target Connection Handle (Left) */}
       {!isClient && (
@@ -115,7 +115,7 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
             <IconComponent className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <div className="text-xs font-semibold text-neutral-100 truncate">
+            <div className="text-xs font-semibold text-[var(--text-main)] truncate">
               {nodeData.label}
             </div>
             <div className="text-[10px] text-neutral-400 font-medium flex items-center gap-1.5">
@@ -132,7 +132,7 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
       </div>
 
       {/* Metrics Row: 3 cleanly separated stat pills */}
-      <div className="grid grid-cols-3 gap-1.5 bg-[#0e1117] rounded-lg p-2 text-center mb-2.5 border border-white/5">
+      <div className="grid grid-cols-3 gap-1.5 bg-[var(--bg-pill)] rounded-lg p-2 text-center mb-2.5 border border-[var(--border-subtle)]">
         <div>
           <div className="text-[9px] text-neutral-400 uppercase tracking-wider font-semibold">Throughput</div>
           <div className="text-xs font-bold font-mono text-blue-400">

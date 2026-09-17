@@ -35,12 +35,12 @@ export const Inspector: React.FC = () => {
 
   if (!selectedNode) {
     return (
-      <aside className="w-80 h-[calc(100vh-3.5rem)] bg-[#161922] border-l border-white/10 p-6 flex flex-col items-center justify-center text-center z-20 select-none">
-        <div className="w-12 h-12 rounded-xl bg-[#0e1117] border border-white/10 flex items-center justify-center text-neutral-500 mb-3 shadow-inner">
+      <aside className="w-80 h-[calc(100vh-3.5rem)] bg-[var(--bg-surface)] border-l border-[var(--border-subtle)] p-6 flex flex-col items-center justify-center text-center z-20 select-none transition-colors duration-200">
+        <div className="w-12 h-12 rounded-xl bg-[var(--bg-pill)] border border-[var(--border-subtle)] flex items-center justify-center text-neutral-400 mb-3 shadow-inner">
           <Sliders className="w-5 h-5" />
         </div>
-        <div className="text-sm font-semibold text-neutral-200">No Node Selected</div>
-        <div className="text-xs text-neutral-400 mt-1 max-w-[200px] leading-relaxed">
+        <div className="text-sm font-semibold text-[var(--text-main)]">No Node Selected</div>
+        <div className="text-xs text-[var(--text-muted)] mt-1 max-w-[200px] leading-relaxed">
           Select any node on the canvas to configure capacity, resilience, and test failure scenarios.
         </div>
       </aside>
@@ -52,9 +52,9 @@ export const Inspector: React.FC = () => {
   const isClient = data.typeId === 'traffic_generator';
 
   return (
-    <aside className="w-80 h-[calc(100vh-3.5rem)] bg-[#161922] border-l border-white/10 flex flex-col z-20 select-none overflow-y-auto">
+    <aside className="w-80 h-[calc(100vh-3.5rem)] bg-[var(--bg-surface)] border-l border-[var(--border-subtle)] flex flex-col z-20 select-none overflow-y-auto custom-scrollbar transition-colors duration-200">
       {/* Header */}
-      <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#13161f]">
+      <div className="p-4 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[var(--bg-panel)]">
         <div className="flex items-center gap-2.5 min-w-0">
           <div
             className="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0"
@@ -63,13 +63,13 @@ export const Inspector: React.FC = () => {
             <Cpu className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <div className="text-xs font-bold text-neutral-100 truncate">Node Configuration</div>
-            <div className="text-[10px] text-neutral-400 font-medium">{meta?.name}</div>
+            <div className="text-xs font-bold text-[var(--text-main)] truncate">Node Configuration</div>
+            <div className="text-[10px] text-[var(--text-muted)] font-medium">{meta?.name}</div>
           </div>
         </div>
         <button
           onClick={() => setSelectedNodeId(null)}
-          className="p-1 rounded-md text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+          className="p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-white/10 transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -79,14 +79,14 @@ export const Inspector: React.FC = () => {
       <div className="p-4 space-y-5 flex-1">
         {/* Node Label */}
         <div>
-          <label className="text-[11px] font-semibold text-neutral-300 uppercase tracking-wider block mb-1.5">
+          <label className="text-[11px] font-semibold text-[var(--text-main)] uppercase tracking-wider block mb-1.5">
             Display Label
           </label>
           <input
             type="text"
             value={data.label}
             onChange={(e) => updateNodeData(selectedNode.id, { label: e.target.value })}
-            className="w-full bg-[#0e1117] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-neutral-100 font-medium focus:outline-none focus:border-blue-500/80 transition-colors"
+            className="w-full bg-[var(--bg-pill)] border border-[var(--border-subtle)] rounded-lg px-3 py-1.5 text-xs text-[var(--text-main)] font-medium focus:outline-none focus:border-blue-500/80 transition-colors"
           />
         </div>
 

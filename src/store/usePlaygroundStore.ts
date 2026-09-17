@@ -94,6 +94,10 @@ interface PlaygroundState {
   setTrafficProfile: (profile: TrafficProfile) => void;
   tickSimulation: () => void;
 
+  // Theme State
+  theme: 'dark' | 'light';
+  toggleTheme: () => void;
+
   // WebAssembly Simulation Engine & Benchmarks
   engineMode: SimulationEngineMode;
   isWasmReady: boolean;
@@ -114,6 +118,26 @@ try {
   });
 } catch (err) {
   console.warn('Web Worker initialization fallback to main thread:', err);
+}
+
+const getInitialTheme = (): 'dark' | 'light' => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('spd_theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+  }
+  return 'dark';
+};
+
+const initialTheme = getInitialTheme();
+if (typeof document !== 'undefined') {
+  document.documentElement.setAttribute('data-theme', initialTheme);
+  if (initialTheme === 'light') {
+    document.documentElement.classList.add('light');
+    document.documentElement.classList.remove('dark');
+  } else {
+    document.documentElement.classList.add('dark');
+    document.documentElement.classList.remove('light');
+  }
 }
 
 export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
@@ -243,6 +267,26 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
 
     toggleBenchmarkModal: () => {
       set({ isBenchmarkModalOpen: !get().isBenchmarkModalOpen });
+    },
+
+    // Theme State
+    theme: initialTheme,
+    toggleTheme: () => {
+      const nextTheme = get().theme === 'dark' ? 'light' : 'dark';
+      if (typeof document !== 'undefined') {
+        document.documentElement.setAttribute('data-theme', nextTheme);
+        if (nextTheme === 'light') {
+          document.documentElement.classList.add('light');
+          document.documentElement.classList.remove('dark');
+        } else {
+          document.documentElement.classList.add('dark');
+          document.documentElement.classList.remove('light');
+        }
+      }
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('spd_theme', nextTheme);
+      }
+      set({ theme: nextTheme });
     },
 
     setEngineMode: (mode) => {

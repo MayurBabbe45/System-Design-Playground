@@ -3,48 +3,80 @@
 :root {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color-scheme: dark;
+
+  --bg-app: #0e1117;
+  --bg-surface: #161922;
+  --bg-panel: #11141c;
+  --bg-card: #161922;
+  --bg-pill: #0e1117;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-card: rgba(255, 255, 255, 0.12);
+  --text-main: #f3f4f6;
+  --text-muted: #9ca3af;
+  --canvas-bg: #0d1017;
+  --canvas-dots: #222634;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-app: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-panel: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-pill: #f1f5f9;
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-card: rgba(0, 0, 0, 0.12);
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --canvas-bg: #f8fafc;
+  --canvas-dots: #cbd5e1;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: #0e1117;
-  color: #e6edf3;
+  background-color: var(--bg-app);
+  color: var(--text-main);
   overflow: hidden;
   user-select: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* React Flow Canvas in n8n Theme */
+/* React Flow Canvas Theme overrides */
 .react-flow__background {
-  background-color: #0d1017 !important;
+  background-color: var(--canvas-bg) !important;
+  transition: background-color 0.2s ease;
 }
 
 .react-flow__controls {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
   border-radius: 8px !important;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  background: #161922 !important;
+  border: 1px solid var(--border-card) !important;
+  background: var(--bg-surface) !important;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .react-flow__controls-button {
   background: transparent !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  color: #8b949e !important;
-  fill: #8b949e !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  color: var(--text-muted) !important;
+  fill: var(--text-muted) !important;
 }
 
 .react-flow__controls-button:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
-  color: #ffffff !important;
-  fill: #ffffff !important;
+  background: rgba(125, 125, 125, 0.1) !important;
+  color: var(--text-main) !important;
+  fill: var(--text-main) !important;
 }
 
 .react-flow__minimap {
-  background: #11141d !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: var(--bg-panel) !important;
+  border: 1px solid var(--border-card) !important;
   border-radius: 8px !important;
   overflow: hidden;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 /* n8n Node Handle Styling */
@@ -88,3 +120,15 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #484f58;
 }
+
+/* Theme utility classes */
+.theme-bg-app { background-color: var(--bg-app); }
+.theme-bg-surface { background-color: var(--bg-surface); }
+.theme-bg-card { background-color: var(--bg-card); }
+.theme-bg-panel { background-color: var(--bg-panel); }
+.theme-bg-pill { background-color: var(--bg-pill); }
+.theme-border { border-color: var(--border-subtle); }
+.theme-border-card { border-color: var(--border-card); }
+.theme-text-main { color: var(--text-main); }
+.theme-text-muted { color: var(--text-muted); }
+
