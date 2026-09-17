@@ -9,6 +9,7 @@ import { CloudCostModal } from './components/modals/CloudCostModal';
 import { HealthAuditModal } from './components/modals/HealthAuditModal';
 import { ExportModal } from './components/modals/ExportModal';
 import { WasmBenchmarkModal } from './components/modals/WasmBenchmarkModal';
+import { CollabModal } from './components/modals/CollabModal';
 
 export const App: React.FC = () => {
   return (
@@ -39,6 +40,7 @@ export const App: React.FC = () => {
       <HealthAuditModal />
       <ExportModal />
       <WasmBenchmarkModal />
+      <CollabModal />
     </div>
   );
 };

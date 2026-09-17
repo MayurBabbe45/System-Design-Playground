@@ -8,6 +8,7 @@
     "build:wasm": "asc src/wasm/assembly/index.ts -o src/wasm/build/sim_engine.wasm --optimize --converge --runtime stub && node -e \"const fs = require('fs'); const b64 = fs.readFileSync('src/wasm/build/sim_engine.wasm').toString('base64'); fs.writeFileSync('src/wasm/build/wasmBytecode.ts', 'export const WASM_BASE64 = \\\"' + b64 + '\\\";\\n');\"",
     "build": "npm run build:wasm && tsc && vite build",
     "lint": "tsc --noEmit",
+    "server:collab": "node server/collabServer.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -18,7 +19,10 @@
     "lz-string": "^1.5.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "recharts": "^2.15.0"
+    "recharts": "^2.15.0",
+    "ws": "^8.21.3",
+    "y-websocket": "^3.1.0",
+    "yjs": "^13.6.32"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
@@ -27,6 +31,7 @@
     "@types/node": "^22.10.2",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
+    "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^4.3.4",
     "assemblyscript": "^0.28.20",
     "autoprefixer": "^10.6.0",

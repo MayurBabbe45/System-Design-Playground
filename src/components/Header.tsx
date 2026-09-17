@@ -12,12 +12,15 @@ import {
   Flame,
   ShieldCheck,
   Sun,
-  Moon
+  Moon,
+  Users
 } from 'lucide-react';
 import { usePlaygroundStore } from '../store/usePlaygroundStore';
 import { PRESET_ARCHITECTURES } from '../config/presets';
 import { TrafficProfile } from '../types/playground';
 import { auditArchitecture } from '../simulation/architectureLinter';
+import { collabManager } from '../collab/collabManager';
+import { CollabConnectionStatus } from '../collab/types';
 
 export const Header: React.FC = () => {
   const {
@@ -39,6 +42,7 @@ export const Header: React.FC = () => {
     toggleChaosCenter,
     toggleAuditModal,
     toggleExportModal,
+    toggleCollabModal,
     toggleBenchmarkModal,
     isChaosCenterOpen,
     killedAzs,
@@ -47,6 +51,18 @@ export const Header: React.FC = () => {
     theme,
     toggleTheme,
   } = usePlaygroundStore();
+
+  const [peerCount, setPeerCount] = React.useState(0);
+  const [collabStatus, setCollabStatus] = React.useState<CollabConnectionStatus>(collabManager.getStatus());
+
+  React.useEffect(() => {
+    const unsubP = collabManager.onPeersChange((peers) => setPeerCount(peers.length));
+    const unsubS = collabManager.onStatusChange((s) => setCollabStatus(s));
+    return () => {
+      unsubP();
+      unsubS();
+    };
+  }, []);
 
   // Calculate monthly cost ($/hr * 730 hrs)
   const hourlyTotal = nodes.reduce((sum, node) => {
@@ -202,6 +218,39 @@ export const Header: React.FC = () => {
             <span className="hidden xl:inline">Bottleneck</span>
           </button>
         )}
+
+        {/* Multiplayer Real-Time Collaboration Pill */}
+        <button
+          onClick={toggleCollabModal}
+          title={`Real-Time Multiplayer (${collabStatus === 'connected' ? `${peerCount} other peer(s) connected` : collabStatus})`}
+          className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+            collabStatus === 'connected'
+              ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-400 hover:bg-indigo-500/25 shadow-sm shadow-indigo-500/10'
+              : collabStatus === 'connecting'
+              ? 'bg-amber-500/15 border-amber-500/40 text-amber-400 hover:bg-amber-500/25'
+              : 'bg-[var(--bg-pill)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
+          }`}
+        >
+          <div className="relative flex items-center justify-center">
+            <Users className="w-3.5 h-3.5" />
+            <span
+              className={`absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full ${
+                collabStatus === 'connected'
+                  ? 'bg-emerald-400 animate-pulse'
+                  : collabStatus === 'connecting'
+                  ? 'bg-amber-400 animate-ping'
+                  : 'bg-zinc-500'
+              }`}
+            />
+          </div>
+          <span className="hidden xl:inline">
+            {collabStatus === 'connected'
+              ? `${peerCount + 1} Online`
+              : collabStatus === 'connecting'
+              ? 'Syncing...'
+              : 'Collab'}
+          </span>
+        </button>
 
         {/* Chaos Mode Toggle Button */}
         <button

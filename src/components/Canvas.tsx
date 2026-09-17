@@ -14,6 +14,8 @@ import { usePlaygroundStore } from '../store/usePlaygroundStore';
 import { InfrastructureNode } from './nodes/InfrastructureNode';
 import { FlowEdge } from './edges/FlowEdge';
 import { ComponentTypeId } from '../types/playground';
+import { MultiplayerCursors } from './MultiplayerCursors';
+import { collabManager } from '../collab/collabManager';
 
 const CanvasInner: React.FC = () => {
   const {
@@ -100,9 +102,19 @@ const CanvasInner: React.FC = () => {
 
   return (
     <div
-      className="flex-1 h-[calc(100vh-3.5rem)] relative bg-[var(--canvas-bg)]"
+      className="flex-1 h-[calc(100vh-3.5rem)] relative bg-[var(--canvas-bg)] overflow-hidden"
       onDragOver={onDragOver}
       onDrop={onDrop}
+      onPointerMove={(e) => {
+        const flowPos = reactFlowInstance.screenToFlowPosition({
+          x: e.clientX,
+          y: e.clientY,
+        });
+        collabManager.updateCursor(flowPos);
+      }}
+      onPointerLeave={() => {
+        collabManager.updateCursor(null);
+      }}
       onClick={(e) => {
         // Deselect if clicking on raw canvas background
         if ((e.target as HTMLElement).classList.contains('react-flow__pane')) {
@@ -110,6 +122,9 @@ const CanvasInner: React.FC = () => {
         }
       }}
     >
+      {/* Real-time Multiplayer Cursors Layer */}
+      <MultiplayerCursors />
+
       {/* Sleek Floating Bottleneck Warning Banner */}
       {bottleneckReason && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-xl bg-red-950/90 border border-red-700/80 shadow-2xl shadow-red-950/50 flex items-center gap-2.5 backdrop-blur-md">
@@ -131,6 +146,7 @@ const CanvasInner: React.FC = () => {
         onConnect={onConnect}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
+        nodesDraggable={true}
         fitView
         colorMode={theme}
         defaultEdgeOptions={{
@@ -145,7 +161,7 @@ const CanvasInner: React.FC = () => {
           size={1.5} 
           color={theme === 'dark' ? '#222634' : '#cbd5e1'} 
         />
-        <Controls style={{ marginBottom: '38px' }} />
+        <Controls showInteractive={false} style={{ marginBottom: '38px' }} />
         <MiniMap
           style={{ marginBottom: '38px' }}
           nodeColor={(n) => {

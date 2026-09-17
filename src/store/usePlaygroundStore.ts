@@ -18,12 +18,14 @@ import {
   EdgeStreamData,
   AvailabilityZone,
   SimulationEngineMode,
-  EngineBenchmarkData
+  EngineBenchmarkData,
+  NodeHealthStatus
 } from '../types/playground';
 import { COMPONENT_CATALOG } from '../config/components';
 import { PRESET_ARCHITECTURES } from '../config/presets';
 import { WorkerSimulationInput, WorkerSimulationOutput } from '../workers/simulationWorker';
 import { benchmarkWasm, benchmarkJs } from '../wasm/wasmEngine';
+import { collabManager } from '../collab/collabManager';
 
 interface PlaygroundState {
   // React Flow graph state
@@ -60,6 +62,10 @@ interface PlaygroundState {
   // Export Modal State
   isExportModalOpen: boolean;
   toggleExportModal: () => void;
+
+  // Real-Time Collaboration Modal State
+  isCollabModalOpen: boolean;
+  toggleCollabModal: () => void;
 
   // Bottleneck Diagnostics
   bottleneckNodeId: string | null;
@@ -234,6 +240,7 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
     isCostModalOpen: false,
     isAuditModalOpen: false,
     isExportModalOpen: false,
+    isCollabModalOpen: false,
     isBenchmarkModalOpen: false,
 
     // WebAssembly Simulation Engine & Benchmarks
@@ -263,6 +270,10 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
 
     toggleExportModal: () => {
       set({ isExportModalOpen: !get().isExportModalOpen });
+    },
+
+    toggleCollabModal: () => {
+      set({ isCollabModalOpen: !get().isCollabModalOpen });
     },
 
     toggleBenchmarkModal: () => {
@@ -351,15 +362,29 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
     },
 
     onNodesChange: (changes) => {
-      set({
-        nodes: applyNodeChanges(changes, get().nodes) as Node<InfrastructureNodeData>[],
-      });
+      const nextNodes = applyNodeChanges(changes, get().nodes) as Node<InfrastructureNodeData>[];
+      set({ nodes: nextNodes });
+
+      // Synchronize changes to Yjs CRDT
+      for (const change of changes) {
+        if (change.type === 'position' && change.position) {
+          const updatedNode = nextNodes.find((n) => n.id === change.id);
+          if (updatedNode) collabManager.syncSingleNode(updatedNode);
+        } else if (change.type === 'remove') {
+          collabManager.syncNodeDeletion(change.id);
+        }
+      }
     },
 
     onEdgesChange: (changes) => {
-      set({
-        edges: applyEdgeChanges(changes, get().edges),
-      });
+      const nextEdges = applyEdgeChanges(changes, get().edges);
+      set({ edges: nextEdges });
+
+      for (const change of changes) {
+        if (change.type === 'remove') {
+          collabManager.syncEdgeDeletion(change.id);
+        }
+      }
     },
 
     onConnect: (connection) => {
@@ -377,10 +402,12 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
       set({
         edges: addEdge(newEdge, get().edges),
       });
+      collabManager.syncSingleEdge(newEdge);
     },
 
     setSelectedNodeId: (id) => {
       set({ selectedNodeId: id });
+      collabManager.updateSelection(id);
     },
 
     addNodeFromPalette: (typeId, position) => {
@@ -421,45 +448,48 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
         nodes: [...get().nodes, newNode],
         selectedNodeId: id,
       });
+      collabManager.syncSingleNode(newNode);
     },
 
     updateNodeData: (id, partialData) => {
-      set({
-        nodes: get().nodes.map((node) => {
-          if (node.id === id) {
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                ...partialData,
-              },
-            };
-          }
-          return node;
-        }),
+      const updatedNodes = get().nodes.map((node) => {
+        if (node.id === id) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              ...partialData,
+            },
+          };
+        }
+        return node;
       });
+      set({ nodes: updatedNodes });
+      const target = updatedNodes.find((n) => n.id === id);
+      if (target) collabManager.syncSingleNode(target);
     },
 
     toggleNodeKillSwitch: (id) => {
-      set({
-        nodes: get().nodes.map((node) => {
-          if (node.id === id) {
-            const nextKilledState = !node.data.isKilled;
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                isKilled: nextKilledState,
-                status: nextKilledState ? 'dead' : 'healthy',
-                currentRps: nextKilledState ? 0 : node.data.currentRps,
-                currentQueue: nextKilledState ? 0 : node.data.currentQueue,
-                utilizationPercent: nextKilledState ? 0 : node.data.utilizationPercent,
-              },
-            };
-          }
-          return node;
-        }),
+      const updatedNodes = get().nodes.map((node) => {
+        if (node.id === id) {
+          const nextKilledState = !node.data.isKilled;
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              isKilled: nextKilledState,
+              status: (nextKilledState ? 'dead' : 'healthy') as NodeHealthStatus,
+              currentRps: nextKilledState ? 0 : node.data.currentRps,
+              currentQueue: nextKilledState ? 0 : node.data.currentQueue,
+              utilizationPercent: nextKilledState ? 0 : node.data.utilizationPercent,
+            },
+          };
+        }
+        return node;
       });
+      set({ nodes: updatedNodes });
+      const target = updatedNodes.find((n) => n.id === id);
+      if (target) collabManager.syncSingleNode(target);
     },
 
     deleteNode: (id) => {
@@ -468,37 +498,43 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
         edges: get().edges.filter((e) => e.source !== id && e.target !== id),
         selectedNodeId: get().selectedNodeId === id ? null : get().selectedNodeId,
       });
+      collabManager.syncNodeDeletion(id);
     },
 
     loadPreset: (presetId) => {
       const preset = PRESET_ARCHITECTURES.find((p) => p.id === presetId);
       if (!preset) return;
 
+      const loadedNodes = preset.nodes.map((n) => ({
+        ...n,
+        data: {
+          ...n.data,
+          utilizationPercent: 0,
+          isBottleneck: false,
+        },
+      })) as Node<InfrastructureNodeData>[];
+
+      const loadedEdges = preset.edges.map((e) => ({
+        ...e,
+        type: 'flowEdge',
+        data: {
+          currentFlowRps: 1000,
+          latencyMs: 5,
+          errorRatePercent: 0,
+          animated: true,
+        },
+      }));
+
       set({
-        nodes: preset.nodes.map((n) => ({
-          ...n,
-          data: {
-            ...n.data,
-            utilizationPercent: 0,
-            isBottleneck: false,
-          },
-        })) as Node<InfrastructureNodeData>[],
-        edges: preset.edges.map((e) => ({
-          ...e,
-          type: 'flowEdge',
-          data: {
-            currentFlowRps: 1000,
-            latencyMs: 5,
-            errorRatePercent: 0,
-            animated: true,
-          },
-        })),
+        nodes: loadedNodes,
+        edges: loadedEdges,
         activePresetId: presetId,
         selectedNodeId: null,
         bottleneckNodeId: null,
         bottleneckReason: null,
         killedAzs: [],
       });
+      collabManager.syncLocalCanvas(loadedNodes, loadedEdges);
     },
 
     clearCanvas: () => {
@@ -511,6 +547,7 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
         bottleneckReason: null,
         killedAzs: [],
       });
+      collabManager.syncLocalCanvas([], []);
     },
 
     getCompressedShareUrl: () => {
@@ -611,3 +648,39 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
     },
   };
 });
+
+// Register Remote Graph Listener from Yjs CRDT
+collabManager.onRemoteGraphChange((remoteNodes, remoteEdges) => {
+  const currentNodes = usePlaygroundStore.getState().nodes;
+  const mergedNodes = remoteNodes.map((rn) => {
+    const existing = currentNodes.find((cn) => cn.id === rn.id);
+    if (existing) {
+      return {
+        ...rn,
+        data: {
+          ...rn.data,
+          currentRps: existing.data.currentRps,
+          currentQueue: existing.data.currentQueue,
+          currentLatency: existing.data.currentLatency,
+          status: rn.data.isKilled ? 'dead' : existing.data.status,
+          utilizationPercent: existing.data.utilizationPercent,
+          isBottleneck: existing.data.isBottleneck,
+        },
+      };
+    }
+    return rn;
+  });
+
+  usePlaygroundStore.setState({
+    nodes: mergedNodes,
+    edges: remoteEdges,
+  });
+});
+
+// Auto-connect to room from URL or default room
+if (typeof window !== 'undefined') {
+  const params = new URLSearchParams(window.location.search);
+  const room = params.get('room') || 'main-architecture-canvas';
+  collabManager.connect(room);
+}
+
