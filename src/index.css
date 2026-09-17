@@ -56,6 +56,7 @@ body {
   border: 1px solid var(--border-card) !important;
   background: var(--bg-surface) !important;
   transition: background 0.2s ease, border-color 0.2s ease;
+  margin-bottom: 38px !important;
 }
 
 .react-flow__controls-button {
@@ -77,6 +78,7 @@ body {
   border-radius: 8px !important;
   overflow: hidden;
   transition: background 0.2s ease, border-color 0.2s ease;
+  margin-bottom: 38px !important;
 }
 
 /* n8n Node Handle Styling */

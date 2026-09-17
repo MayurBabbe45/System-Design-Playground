@@ -145,8 +145,9 @@ const CanvasInner: React.FC = () => {
           size={1.5} 
           color={theme === 'dark' ? '#222634' : '#cbd5e1'} 
         />
-        <Controls />
+        <Controls style={{ marginBottom: '38px' }} />
         <MiniMap
+          style={{ marginBottom: '38px' }}
           nodeColor={(n) => {
             const data = n.data as any;
             if (data?.isKilled) return '#ef4444';
