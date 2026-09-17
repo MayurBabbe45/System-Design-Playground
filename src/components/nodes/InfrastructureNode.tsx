@@ -94,7 +94,7 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
   return (
     <div
       onClick={() => setSelectedNodeId(id)}
-      className={`relative w-[270px] bg-[var(--bg-surface)] rounded-xl border p-3.5 cursor-pointer transition-all duration-150 ${getCardBorder()}`}
+      className={`relative w-[245px] bg-[var(--bg-surface)] rounded-xl border p-3 cursor-pointer transition-all duration-150 shadow-sm ${getCardBorder()}`}
     >
       {/* Target Connection Handle (Left) */}
       {!isClient && (
@@ -106,22 +106,22 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
       )}
 
       {/* Header: Icon, Title, AZ Pill, Status */}
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <div className="flex items-center gap-2.5 min-w-0">
+      <div className="flex items-start justify-between gap-2 mb-2.5">
+        <div className="flex items-center gap-2 min-w-0">
           <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm"
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0 shadow-xs"
             style={{ backgroundColor: `${meta?.color || '#3b82f6'}25`, color: meta?.color || '#3b82f6' }}
           >
-            <IconComponent className="w-4 h-4" />
+            <IconComponent className="w-3.5 h-3.5" />
           </div>
           <div className="min-w-0">
             <div className="text-xs font-semibold text-[var(--text-main)] truncate">
               {nodeData.label}
             </div>
-            <div className="text-[10px] text-neutral-400 font-medium flex items-center gap-1.5">
-              <span>{nodeData.instanceCount > 1 ? `${nodeData.instanceCount}x Instances` : meta?.name}</span>
+            <div className="text-[10px] text-[var(--text-muted)] font-medium flex items-center gap-1.5">
+              <span>{nodeData.instanceCount > 1 ? `${nodeData.instanceCount}x` : meta?.name}</span>
               {nodeData.availabilityZone && (
-                <span className="px-1 py-0.2 rounded bg-neutral-800 text-[9px] font-mono text-neutral-300 border border-neutral-700">
+                <span className="px-1 py-0.2 rounded bg-[var(--bg-pill)] text-[9px] font-mono text-[var(--text-muted)] border border-[var(--border-subtle)]">
                   {nodeData.availabilityZone.replace('us-east-', '')}
                 </span>
               )}
@@ -132,22 +132,22 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
       </div>
 
       {/* Metrics Row: 3 cleanly separated stat pills */}
-      <div className="grid grid-cols-3 gap-1.5 bg-[var(--bg-pill)] rounded-lg p-2 text-center mb-2.5 border border-[var(--border-subtle)]">
+      <div className="grid grid-cols-3 gap-1 bg-[var(--bg-pill)] rounded-lg py-1.5 px-1 text-center mb-2 border border-[var(--border-subtle)]">
         <div>
-          <div className="text-[9px] text-neutral-400 uppercase tracking-wider font-semibold">Throughput</div>
-          <div className="text-xs font-bold font-mono text-blue-400">
+          <div className="text-[8px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Throughput</div>
+          <div className="text-[11px] font-bold font-mono text-blue-500 dark:text-blue-400">
             {isEffectivelyDead ? '0' : nodeData.currentRps.toLocaleString()}
           </div>
         </div>
         <div>
-          <div className="text-[9px] text-neutral-400 uppercase tracking-wider font-semibold">Latency</div>
-          <div className="text-xs font-bold font-mono text-amber-400">
+          <div className="text-[8px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Latency</div>
+          <div className="text-[11px] font-bold font-mono text-amber-500 dark:text-amber-400">
             {isEffectivelyDead ? '0ms' : `${nodeData.currentLatency}ms`}
           </div>
         </div>
         <div>
-          <div className="text-[9px] text-neutral-400 uppercase tracking-wider font-semibold">Queue</div>
-          <div className={`text-xs font-bold font-mono ${nodeData.currentQueue > 50 ? 'text-red-400' : 'text-neutral-300'}`}>
+          <div className="text-[8px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Queue</div>
+          <div className={`text-[11px] font-bold font-mono ${nodeData.currentQueue > 50 ? 'text-red-500' : 'text-[var(--text-main)]'}`}>
             {isEffectivelyDead ? '0' : nodeData.currentQueue}
           </div>
         </div>
@@ -155,14 +155,14 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
 
       {/* Utilization Bar (for non-clients) */}
       {!isClient && !isEffectivelyDead && (
-        <div className="space-y-1">
-          <div className="flex items-center justify-between text-[10px] font-mono">
-            <span className="text-neutral-400">Capacity Load:</span>
-            <span className={`font-bold ${utilPercent >= 90 ? 'text-red-400' : utilPercent >= 75 ? 'text-amber-400' : 'text-emerald-400'}`}>
+        <div className="space-y-0.5">
+          <div className="flex items-center justify-between text-[9px] font-mono">
+            <span className="text-[var(--text-muted)]">Capacity:</span>
+            <span className={`font-bold ${utilPercent >= 90 ? 'text-red-500' : utilPercent >= 75 ? 'text-amber-500' : 'text-emerald-500 dark:text-emerald-400'}`}>
               {utilPercent}%
             </span>
           </div>
-          <div className="w-full bg-[#0e1117] rounded-full h-1.5 overflow-hidden border border-white/5">
+          <div className="w-full bg-[var(--bg-pill)] rounded-full h-1.5 overflow-hidden border border-[var(--border-subtle)]">
             <div
               className={`h-full rounded-full transition-all duration-200 ${
                 utilPercent >= 90

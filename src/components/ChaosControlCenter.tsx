@@ -26,6 +26,7 @@ export const ChaosControlCenter: React.FC = () => {
     globalPacketDropPercent,
     setGlobalPacketDropPercent,
     nodes,
+    selectedNodeId,
   } = usePlaygroundStore();
 
   if (!isChaosCenterOpen) return null;
@@ -36,7 +37,7 @@ export const ChaosControlCenter: React.FC = () => {
   ).length;
 
   return (
-    <div className="absolute top-16 right-84 z-20 w-80 bg-[var(--bg-surface)]/95 backdrop-blur-xl border border-red-500/30 rounded-xl shadow-2xl p-4 text-[var(--text-main)] select-none animate-in fade-in zoom-in-95 duration-150">
+    <div className={`absolute top-4 ${selectedNodeId ? 'right-84' : 'right-4'} z-20 w-80 bg-[var(--bg-surface)]/95 backdrop-blur-xl border border-red-500/30 rounded-xl shadow-2xl p-4 text-[var(--text-main)] select-none animate-in fade-in zoom-in-95 duration-150 transition-all`}>
       {/* Header */}
       <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3 mb-3">
         <div className="flex items-center gap-2">

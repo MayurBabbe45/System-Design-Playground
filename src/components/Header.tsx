@@ -70,37 +70,27 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="h-14 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)] px-5 flex items-center justify-between z-30 select-none shadow-sm transition-colors duration-200">
-      {/* Brand Title */}
-      <div className="flex items-center gap-3 shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-md shadow-orange-500/20 text-white">
-          <Zap className="w-4 h-4 fill-white" />
-        </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold tracking-tight text-[var(--text-main)]">
-              System Design Playground
-            </span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded bg-neutral-800 text-neutral-400 font-mono border border-neutral-700">
-              SIMULATOR
-            </span>
+    <header className="h-13 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)] px-3 sm:px-4 flex items-center justify-between z-30 select-none shadow-sm transition-colors duration-200">
+      {/* Left: Brand & Preset Selection */}
+      <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-sm shadow-orange-500/20 text-white shrink-0">
+            <Zap className="w-3.5 h-3.5 fill-white" />
           </div>
-          <div className="text-[10px] text-neutral-400 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            Discrete-Event Queue Engine
-          </div>
+          <span className="text-xs sm:text-sm font-bold tracking-tight text-[var(--text-main)] hidden md:inline">
+            System Design Playground
+          </span>
         </div>
-      </div>
 
-      {/* Center Controls: Presets, Traffic Profile, Load Slider, Play/Pause */}
-      <div className="flex items-center gap-3">
+        <div className="h-4 w-px bg-[var(--border-subtle)] hidden sm:block" />
+
         {/* Preset Selector */}
-        <div className="flex items-center gap-1.5 bg-[var(--bg-pill)] px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] hover:border-white/20 transition-colors">
-          <Layers className="w-3.5 h-3.5 text-purple-400" />
+        <div className="flex items-center gap-1 bg-[var(--bg-pill)] px-2 py-1 rounded-lg border border-[var(--border-subtle)] hover:border-white/20 transition-colors">
+          <Layers className="w-3 h-3 text-purple-400 shrink-0" />
           <select
             value={activePresetId}
             onChange={(e) => loadPreset(e.target.value)}
-            className="bg-transparent text-xs text-[var(--text-main)] focus:outline-none cursor-pointer font-medium"
+            className="bg-transparent text-[11px] text-[var(--text-main)] focus:outline-none cursor-pointer font-medium max-w-[140px] sm:max-w-[190px] truncate"
           >
             {PRESET_ARCHITECTURES.map((preset) => (
               <option key={preset.id} value={preset.id} className="bg-[var(--bg-surface)] text-[var(--text-main)]">
@@ -112,25 +102,40 @@ export const Header: React.FC = () => {
             </option>
           </select>
         </div>
+      </div>
+
+      {/* Center: Unified Floating Simulation Capsule */}
+      <div className="flex items-center gap-1.5 bg-[var(--bg-pill)] p-1 rounded-xl border border-[var(--border-subtle)] shadow-inner">
+        {/* Simulation Play / Pause Button */}
+        <button
+          onClick={toggleSimulation}
+          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer ${
+            isSimulating
+              ? 'bg-amber-500/20 text-amber-500 dark:text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
+              : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-emerald-600/20'
+          }`}
+        >
+          {isSimulating ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current" />}
+          <span className="hidden sm:inline">{isSimulating ? 'Pause' : 'Simulate'}</span>
+        </button>
 
         {/* Traffic Profile Selector */}
-        <div className="flex items-center gap-1.5 bg-[var(--bg-pill)] px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] hover:border-white/20 transition-colors">
-          <TrendingUp className="w-3.5 h-3.5 text-cyan-400" />
+        <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+          <TrendingUp className="w-3 h-3 text-cyan-500 dark:text-cyan-400 shrink-0" />
           <select
             value={trafficProfile}
             onChange={(e) => setTrafficProfile(e.target.value as TrafficProfile)}
-            className="bg-transparent text-xs text-[var(--text-main)] focus:outline-none cursor-pointer font-medium"
+            className="bg-transparent text-[11px] text-[var(--text-main)] focus:outline-none cursor-pointer font-medium"
           >
-            <option value="steady" className="bg-[var(--bg-surface)] text-[var(--text-main)]">Steady Load</option>
-            <option value="poisson" className="bg-[var(--bg-surface)] text-[var(--text-main)]">Poisson Arrivals</option>
-            <option value="spike" className="bg-[var(--bg-surface)] text-[var(--text-main)]">Flash Sale Spike</option>
-            <option value="diurnal" className="bg-[var(--bg-surface)] text-[var(--text-main)]">Diurnal 24h Cycle</option>
+            <option value="steady" className="bg-[var(--bg-surface)] text-[var(--text-main)]">Steady</option>
+            <option value="poisson" className="bg-[var(--bg-surface)] text-[var(--text-main)]">Poisson</option>
+            <option value="spike" className="bg-[var(--bg-surface)] text-[var(--text-main)]">Spike</option>
+            <option value="diurnal" className="bg-[var(--bg-surface)] text-[var(--text-main)]">Diurnal</option>
           </select>
         </div>
 
-        {/* Load Slider */}
-        <div className="flex items-center gap-2.5 bg-[#0e1117] px-3 py-1.5 rounded-lg border border-white/10">
-          <span className="text-[11px] text-neutral-400 font-medium">Load:</span>
+        {/* Compact Load Slider */}
+        <div className="flex items-center gap-1.5 pl-1 pr-2">
           <input
             type="range"
             min="100"
@@ -138,101 +143,91 @@ export const Header: React.FC = () => {
             step="100"
             value={targetGlobalRps}
             onChange={(e) => setTargetGlobalRps(Number(e.target.value))}
-            className="w-24 accent-blue-500 cursor-pointer h-1.5 bg-neutral-800 rounded-lg"
+            className="w-16 sm:w-20 accent-blue-500 cursor-pointer h-1.5 bg-neutral-300 dark:bg-neutral-800 rounded-lg"
+            title={`Global Traffic: ${targetGlobalRps.toLocaleString()} RPS`}
           />
-          <span className="text-xs font-mono font-bold text-blue-400 min-w-[70px] text-right">
-            {targetGlobalRps.toLocaleString()} RPS
+          <span className="text-[11px] font-mono font-bold text-blue-500 dark:text-blue-400 min-w-[50px] text-right">
+            {targetGlobalRps >= 1000 ? `${(targetGlobalRps / 1000).toFixed(1)}k` : targetGlobalRps} RPS
           </span>
         </div>
-
-        {/* Simulation Play / Pause Button */}
-        <button
-          onClick={toggleSimulation}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-all ${
-            isSimulating
-              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
-              : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-emerald-600/20'
-          }`}
-        >
-          {isSimulating ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
-          <span>{isSimulating ? 'Pause' : 'Simulate'}</span>
-        </button>
       </div>
 
-      {/* Right Controls: WASM, Health Audit, Chaos, Cost, Share */}
-      <div className="flex items-center gap-2.5 shrink-0">
-        {/* WASM Engine & Benchmark Pill */}
-        <button
-          onClick={toggleBenchmarkModal}
-          title={`Click to open WebAssembly Benchmark (Engine: ${engineMode.toUpperCase()}, Latency: ${computeDurationMs}ms)`}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer hover:scale-102 ${
-            engineMode === 'wasm'
-              ? 'bg-emerald-950/70 border-emerald-500/50 text-emerald-300 hover:bg-emerald-900/60 shadow-sm shadow-emerald-950/30'
-              : 'bg-blue-950/70 border-blue-500/50 text-blue-300 hover:bg-blue-900/60'
-          }`}
-        >
-          <Zap className={`w-3.5 h-3.5 ${engineMode === 'wasm' ? 'text-emerald-400 fill-emerald-400/30' : 'text-blue-400 fill-blue-400/30'}`} />
-          <span className="font-mono">{engineMode.toUpperCase()}</span>
-          <span className="text-[10px] font-mono px-1 py-0.2 rounded bg-black/30 border border-white/10 opacity-90">
-            {computeDurationMs > 0 ? `${computeDurationMs}ms` : 'ready'}
-          </span>
-        </button>
-
-        {/* Architecture Health Audit Button */}
+      {/* Right: Metrics & Action Utility Bar */}
+      <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+        {/* Architecture Health Audit Pill */}
         <button
           onClick={toggleAuditModal}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all hover:scale-102 ${getGradeBadge()}`}
+          title={`Architecture Resilience: Grade ${auditResult.grade} (${auditResult.score}/100)`}
+          className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer hover:scale-102 ${getGradeBadge()}`}
         >
-          <ShieldCheck className="w-3.5 h-3.5" />
-          <span>Health: {auditResult.grade} ({auditResult.score}%)</span>
+          <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+          <span>{auditResult.grade} ({auditResult.score}%)</span>
         </button>
-
-        {/* Chaos Mode Toggle */}
-        <button
-          onClick={toggleChaosCenter}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
-            isChaosActive
-              ? 'bg-red-950/90 text-red-300 border-red-600 shadow-md shadow-red-950/40'
-              : 'bg-[#0e1117] text-neutral-300 border-white/10 hover:border-red-500/40'
-          }`}
-        >
-          <Flame className={`w-3.5 h-3.5 ${isChaosActive ? 'text-red-400 animate-bounce' : 'text-orange-400'}`} />
-          <span>Chaos</span>
-          {killedAzs.length > 0 && (
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-          )}
-        </button>
-
-        {/* Saturated Bottleneck focus button */}
-        {bottleneckNodeId && (
-          <button
-            onClick={() => setSelectedNodeId(bottleneckNodeId)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-950/80 border border-red-700/80 text-red-300 text-xs font-semibold animate-pulse hover:bg-red-900/80 transition-colors"
-            title={bottleneckReason || ''}
-          >
-            <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
-            <span>Bottleneck</span>
-          </button>
-        )}
 
         {/* Cloud Cost Pill */}
         <button
           onClick={toggleCostModal}
-          title="Click to view detailed itemized Cloud Cost Breakdown"
-          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#0e1117] hover:bg-[#1e2230] border border-white/10 hover:border-emerald-500/40 text-xs font-mono transition-colors cursor-pointer group shadow-sm"
+          title="Itemized Cloud Cost Breakdown"
+          className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--bg-pill)] hover:opacity-85 border border-[var(--border-subtle)] text-[11px] font-mono transition-all cursor-pointer group shadow-sm"
         >
-          <DollarSign className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
-          <span className="text-neutral-400">Est:</span>
-          <span className="text-emerald-400 font-bold">${monthlyTotal.toLocaleString()}/mo</span>
+          <DollarSign className="w-3 h-3 text-emerald-500 dark:text-emerald-400 group-hover:scale-110 transition-transform shrink-0" />
+          <span className="text-emerald-500 dark:text-emerald-400 font-bold">
+            ${monthlyTotal >= 1000 ? `${(monthlyTotal / 1000).toFixed(1)}k` : monthlyTotal}/mo
+          </span>
+        </button>
+
+        {/* WASM Engine Pill */}
+        <button
+          onClick={toggleBenchmarkModal}
+          title={`WebAssembly Simulation Engine (${engineMode.toUpperCase()} mode, ${computeDurationMs > 0 ? `${computeDurationMs}ms` : 'ready'})`}
+          className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-mono font-semibold border transition-all cursor-pointer hover:scale-102 ${
+            engineMode === 'wasm'
+              ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-600 dark:text-emerald-300'
+              : 'bg-blue-500/15 border-blue-500/40 text-blue-600 dark:text-blue-300'
+          }`}
+        >
+          <Zap className="w-3 h-3 shrink-0" />
+          <span className="hidden xl:inline">{engineMode.toUpperCase()}</span>
+          <span className="text-[10px] opacity-80">{computeDurationMs > 0 ? `${computeDurationMs}ms` : '0.1ms'}</span>
+        </button>
+
+        {/* Saturated Bottleneck alert button (conditional) */}
+        {bottleneckNodeId && (
+          <button
+            onClick={() => setSelectedNodeId(bottleneckNodeId)}
+            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-950/80 border border-red-700/80 text-red-300 text-[11px] font-semibold animate-pulse hover:bg-red-900/80 transition-colors cursor-pointer"
+            title={bottleneckReason || 'Bottleneck Detected'}
+          >
+            <AlertTriangle className="w-3 h-3 text-red-400 shrink-0" />
+            <span className="hidden xl:inline">Bottleneck</span>
+          </button>
+        )}
+
+        {/* Chaos Mode Toggle Button */}
+        <button
+          onClick={toggleChaosCenter}
+          title={isChaosActive ? 'Chaos Engineering Active (Outages simulated)' : 'Open Chaos Engineering Simulator'}
+          className={`flex items-center gap-1 p-1.5 sm:px-2 sm:py-1 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${
+            isChaosActive
+              ? 'bg-red-950/90 text-red-300 border-red-600 shadow-md shadow-red-950/40'
+              : 'bg-[var(--bg-pill)] text-[var(--text-main)] border-[var(--border-subtle)] hover:border-red-500/40'
+          }`}
+        >
+          <Flame className={`w-3.5 h-3.5 ${isChaosActive ? 'text-red-400 animate-bounce' : 'text-orange-400'}`} />
+          <span className="hidden xl:inline">Chaos</span>
+          {killedAzs.length > 0 && (
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
+          )}
         </button>
 
         {/* Share Button (Opens Export & Share Modal) */}
         <button
           onClick={toggleExportModal}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#ff6d5a] hover:bg-[#ff5740] text-white text-xs font-semibold shadow-sm shadow-orange-500/20 transition-all"
+          title="Share & Export Architecture"
+          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#ff6d5a] hover:bg-[#ff5740] text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
         >
-          <Share2 className="w-3.5 h-3.5" />
-          <span>Share</span>
+          <Share2 className="w-3 h-3 shrink-0" />
+          <span className="hidden md:inline">Share</span>
         </button>
 
         {/* Theme Toggle Button (Light/Dark) */}
@@ -242,19 +237,19 @@ export const Header: React.FC = () => {
           className="p-1.5 rounded-lg border border-[var(--border-subtle)] hover:border-white/20 transition-all text-[var(--text-muted)] hover:text-[var(--text-main)] bg-[var(--bg-pill)] hover:opacity-90 cursor-pointer shadow-sm"
         >
           {theme === 'dark' ? (
-            <Sun className="w-4 h-4 text-amber-400 hover:rotate-45 transition-transform" />
+            <Sun className="w-3.5 h-3.5 text-amber-400 hover:rotate-45 transition-transform" />
           ) : (
-            <Moon className="w-4 h-4 text-indigo-500 hover:-rotate-12 transition-transform" />
+            <Moon className="w-3.5 h-3.5 text-indigo-500 hover:-rotate-12 transition-transform" />
           )}
         </button>
 
-        {/* Clear Button */}
+        {/* Clear Canvas Button */}
         <button
           onClick={clearCanvas}
           title="Clear Canvas"
-          className="p-1.5 rounded-lg text-neutral-400 hover:text-red-400 hover:bg-red-500/10 transition-colors border border-transparent hover:border-red-500/30 cursor-pointer"
+          className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-500 hover:bg-red-500/10 transition-colors border border-transparent hover:border-red-500/30 cursor-pointer"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="w-3.5 h-3.5" />
         </button>
       </div>
     </header>

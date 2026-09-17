@@ -33,18 +33,18 @@ export const Inspector: React.FC = () => {
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId);
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedNodeId(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [setSelectedNodeId]);
+
   if (!selectedNode) {
-    return (
-      <aside className="w-80 h-[calc(100vh-3.5rem)] bg-[var(--bg-surface)] border-l border-[var(--border-subtle)] p-6 flex flex-col items-center justify-center text-center z-20 select-none transition-colors duration-200">
-        <div className="w-12 h-12 rounded-xl bg-[var(--bg-pill)] border border-[var(--border-subtle)] flex items-center justify-center text-neutral-400 mb-3 shadow-inner">
-          <Sliders className="w-5 h-5" />
-        </div>
-        <div className="text-sm font-semibold text-[var(--text-main)]">No Node Selected</div>
-        <div className="text-xs text-[var(--text-muted)] mt-1 max-w-[200px] leading-relaxed">
-          Select any node on the canvas to configure capacity, resilience, and test failure scenarios.
-        </div>
-      </aside>
-    );
+    return null;
   }
 
   const data = selectedNode.data;
@@ -52,7 +52,7 @@ export const Inspector: React.FC = () => {
   const isClient = data.typeId === 'traffic_generator';
 
   return (
-    <aside className="w-80 h-[calc(100vh-3.5rem)] bg-[var(--bg-surface)] border-l border-[var(--border-subtle)] flex flex-col z-20 select-none overflow-y-auto custom-scrollbar transition-colors duration-200">
+    <aside className="w-80 h-[calc(100vh-3.25rem)] bg-[var(--bg-surface)] border-l border-[var(--border-subtle)] flex flex-col z-20 select-none overflow-y-auto custom-scrollbar shadow-2xl animate-in slide-in-from-right-8 duration-200 transition-colors">
       {/* Header */}
       <div className="p-4 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[var(--bg-panel)]">
         <div className="flex items-center gap-2.5 min-w-0">

@@ -21,10 +21,11 @@ import {
 import { usePlaygroundStore } from '../store/usePlaygroundStore';
 
 export const TelemetryDrawer: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'throughput' | 'latency' | 'queue' | 'utilization'>('throughput');
   
   const telemetryHistory = usePlaygroundStore((state) => state.telemetryHistory);
+  const selectedNodeId = usePlaygroundStore((state) => state.selectedNodeId);
 
   // Format data for Recharts
   const chartData = telemetryHistory.map((pt, idx) => ({
@@ -47,44 +48,49 @@ export const TelemetryDrawer: React.FC = () => {
   };
 
   return (
-    <div className={`fixed bottom-0 left-64 right-80 z-20 transition-all duration-300 ${isOpen ? 'h-52' : 'h-9'}`}>
+    <div className={`fixed bottom-0 left-0 lg:left-64 ${selectedNodeId ? 'lg:right-80' : 'right-0'} z-20 transition-all duration-300 ${isOpen ? 'h-52' : 'h-8'}`}>
       {/* Toggle Header Bar */}
       <div 
-        className="h-9 bg-[var(--bg-surface)] border-t border-x border-[var(--border-subtle)] px-4 flex items-center justify-between cursor-pointer select-none shadow-md transition-colors duration-200" 
+        className="h-8 bg-[var(--bg-surface)] border-t border-[var(--border-subtle)] px-3 sm:px-4 flex items-center justify-between cursor-pointer select-none shadow-md transition-colors duration-200" 
         onClick={() => setIsOpen(!isOpen)}
       >
-        <div className="flex items-center gap-4 text-xs">
-          <div className="flex items-center gap-1.5 font-bold text-[var(--text-main)]">
-            <Activity className="w-3.5 h-3.5 text-blue-400" />
-            <span>REAL-TIME SYSTEM METRICS</span>
+        <div className="flex items-center gap-3 text-xs overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1.5 font-bold text-[var(--text-main)] shrink-0">
+            <Activity className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
+            <span className="text-[11px] uppercase tracking-wider">Telemetry</span>
           </div>
 
+          <div className="h-3 w-px bg-[var(--border-subtle)] shrink-0" />
+
           {/* Quick Stat Badges */}
-          <div className="flex items-center gap-4 font-mono text-xs">
+          <div className="flex items-center gap-3 font-mono text-[11px] shrink-0">
             <span className="text-[var(--text-muted)]">
-              Throughput: <strong className="text-emerald-400 font-semibold">{latest.totalProcessedRps.toLocaleString()} RPS</strong>
+              Throughput: <strong className="text-emerald-500 dark:text-emerald-400 font-semibold">{latest.totalProcessedRps.toLocaleString()} RPS</strong>
             </span>
             <span className="text-[var(--text-muted)]">
-              p95 Latency: <strong className="text-amber-400 font-semibold">{latest.p95LatencyMs} ms</strong>
+              p95: <strong className="text-amber-500 dark:text-amber-400 font-semibold">{latest.p95LatencyMs}ms</strong>
             </span>
             <span className="text-[var(--text-muted)]">
-              Avg Load: <strong className={latest.avgUtilizationPercent > 85 ? 'text-red-400 font-bold' : 'text-cyan-400 font-semibold'}>{latest.avgUtilizationPercent}%</strong>
+              Load: <strong className={latest.avgUtilizationPercent > 85 ? 'text-red-500 font-bold' : 'text-cyan-500 dark:text-cyan-400 font-semibold'}>{latest.avgUtilizationPercent}%</strong>
             </span>
             <span className="text-[var(--text-muted)]">
-              Queue: <strong className={latest.activeQueueTotal > 50 ? 'text-red-400 font-bold' : 'text-neutral-400 font-semibold'}>{latest.activeQueueTotal} req</strong>
+              Queue: <strong className={latest.activeQueueTotal > 50 ? 'text-red-500 font-bold' : 'text-[var(--text-main)] font-semibold'}>{latest.activeQueueTotal}</strong>
             </span>
             {latest.totalDroppedRps > 0 && (
-              <span className="text-red-400 font-bold flex items-center gap-1 animate-pulse">
+              <span className="text-red-500 font-bold flex items-center gap-1 animate-pulse">
                 <AlertOctagon className="w-3 h-3" />
-                {latest.totalDroppedRps.toLocaleString()} RPS Dropped!
+                {latest.totalDroppedRps.toLocaleString()} Drop!
               </span>
             )}
           </div>
         </div>
 
-        <button className="text-[var(--text-muted)] hover:text-[var(--text-main)] p-1 rounded transition-colors cursor-pointer">
-          {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-        </button>
+        <div className="flex items-center gap-1.5 text-[10px] font-medium text-[var(--text-muted)] hover:text-[var(--text-main)] shrink-0">
+          <span>{isOpen ? 'Hide Charts' : 'Show Charts'}</span>
+          <button className="p-0.5 rounded transition-colors cursor-pointer">
+            {isOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+          </button>
+        </div>
       </div>
 
       {/* Drawer Chart Area */}
