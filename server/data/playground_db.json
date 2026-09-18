@@ -1,0 +1,79 @@
+{
+  "users": [],
+  "architectures": [
+    {
+      "id": "arch_773453b0d221f452",
+      "user_id": "usr_local_architect",
+      "name": "Production Microservices MeshProduction Microservices Mesh",
+      "description": "",
+      "nodes_json": "[{\"id\":\"traffic-1\",\"type\":\"infrastructure\",\"position\":{\"x\":50,\"y\":240},\"data\":{\"label\":\"Client Traffic Generator\",\"typeId\":\"traffic_generator\",\"category\":\"CLIENT\",\"instanceCount\":1,\"capacityRps\":5000,\"latencyMs\":0,\"maxQueueDepth\":0,\"failureRate\":0,\"costPerHour\":0,\"isKilled\":false,\"currentRps\":2488,\"currentQueue\":0,\"currentLatency\":5,\"status\":\"healthy\",\"availabilityZone\":\"us-east-1a\",\"utilizationPercent\":50,\"isBottleneck\":false,\"circuitBreakerState\":\"CLOSED\"},\"measured\":{\"width\":245,\"height\":117}},{\"id\":\"alb-1\",\"type\":\"infrastructure\",\"position\":{\"x\":380,\"y\":240},\"data\":{\"label\":\"Application Load Balancer\",\"typeId\":\"load_balancer\",\"category\":\"NETWORK\",\"instanceCount\":2,\"capacityRps\":15000,\"latencyMs\":5,\"maxQueueDepth\":1000,\"failureRate\":0,\"costPerHour\":0.16,\"isKilled\":false,\"currentRps\":2488,\"currentQueue\":0,\"currentLatency\":5,\"status\":\"healthy\",\"availabilityZone\":\"us-east-1a\",\"lbAlgorithm\":\"round_robin\",\"circuitBreakerEnabled\":true,\"circuitBreakerState\":\"CLOSED\",\"utilizationPercent\":8,\"isBottleneck\":false},\"measured\":{\"width\":245,\"height\":138}},{\"id\":\"web-1\",\"type\":\"infrastructure\",\"position\":{\"x\":730,\"y\":120},\"data\":{\"label\":\"App Server #1 (Node.js)\",\"typeId\":\"web_server\",\"category\":\"COMPUTE\",\"instanceCount\":3,\"capacityRps\":2400,\"latencyMs\":35,\"maxQueueDepth\":200,\"failureRate\":0,\"costPerHour\":0.36,\"isKilled\":false,\"currentRps\":1244,\"currentQueue\":0,\"currentLatency\":35,\"status\":\"healthy\",\"availabilityZone\":\"us-east-1a\",\"utilizationPercent\":17,\"isBottleneck\":false,\"circuitBreakerState\":\"CLOSED\"},\"measured\":{\"width\":245,\"height\":138}},{\"id\":\"web-2\",\"type\":\"infrastructure\",\"position\":{\"x\":730,\"y\":360},\"data\":{\"label\":\"App Server #2 (Node.js)\",\"typeId\":\"web_server\",\"category\":\"COMPUTE\",\"instanceCount\":3,\"capacityRps\":2400,\"latencyMs\":35,\"maxQueueDepth\":200,\"failureRate\":0,\"costPerHour\":0.36,\"isKilled\":false,\"currentRps\":1244,\"currentQueue\":0,\"currentLatency\":35,\"status\":\"healthy\",\"availabilityZone\":\"us-east-1b\",\"utilizationPercent\":17,\"isBottleneck\":false,\"circuitBreakerState\":\"CLOSED\"},\"measured\":{\"width\":245,\"height\":138}},{\"id\":\"cache-1\",\"type\":\"infrastructure\",\"position\":{\"x\":1080,\"y\":120},\"data\":{\"label\":\"Redis Cache Cluster\",\"typeId\":\"cache\",\"category\":\"STORAGE\",\"instanceCount\":2,\"capacityRps\":30000,\"latencyMs\":2,\"maxQueueDepth\":1000,\"failureRate\":0,\"costPerHour\":0.4,\"isKilled\":false,\"currentRps\":2488,\"currentQueue\":0,\"currentLatency\":2,\"status\":\"healthy\",\"availabilityZone\":\"us-east-1a\",\"hitRatePercent\":85,\"memoryGb\":16,\"evictionPolicy\":\"LRU\",\"utilizationPercent\":4,\"isBottleneck\":false,\"circuitBreakerState\":\"CLOSED\"},\"measured\":{\"width\":245,\"height\":138}},{\"id\":\"db-1\",\"type\":\"infrastructure\",\"position\":{\"x\":1080,\"y\":360},\"data\":{\"label\":\"PostgreSQL Primary DB\",\"typeId\":\"relational_db\",\"category\":\"STORAGE\",\"instanceCount\":2,\"capacityRps\":1500,\"latencyMs\":40,\"maxQueueDepth\":300,\"failureRate\":0,\"costPerHour\":0.45,\"isKilled\":false,\"currentRps\":373,\"currentQueue\":0,\"currentLatency\":40,\"status\":\"healthy\",\"availabilityZone\":\"us-east-1b\",\"readRatioPercent\":80,\"connectionPoolSize\":200,\"utilizationPercent\":12,\"isBottleneck\":false,\"circuitBreakerState\":\"CLOSED\"},\"measured\":{\"width\":245,\"height\":138}}]",
+      "edges_json": "[{\"id\":\"e1\",\"source\":\"traffic-1\",\"target\":\"alb-1\",\"label\":\"HTTP Inbound\",\"type\":\"flowEdge\",\"data\":{\"currentFlowRps\":2488,\"latencyMs\":5,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e2\",\"source\":\"alb-1\",\"target\":\"web-1\",\"label\":\"AZ-1a Flow\",\"type\":\"flowEdge\",\"data\":{\"currentFlowRps\":1244,\"latencyMs\":5,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e3\",\"source\":\"alb-1\",\"target\":\"web-2\",\"label\":\"AZ-1b Flow\",\"type\":\"flowEdge\",\"data\":{\"currentFlowRps\":1244,\"latencyMs\":5,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e4\",\"source\":\"web-1\",\"target\":\"cache-1\",\"label\":\"Cache Read\",\"type\":\"flowEdge\",\"data\":{\"currentFlowRps\":1244,\"latencyMs\":35,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e5\",\"source\":\"web-2\",\"target\":\"cache-1\",\"label\":\"Cache Read\",\"type\":\"flowEdge\",\"data\":{\"currentFlowRps\":1244,\"latencyMs\":35,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e6\",\"source\":\"cache-1\",\"target\":\"db-1\",\"label\":\"Miss (15%)\",\"type\":\"flowEdge\",\"data\":{\"currentFlowRps\":373,\"latencyMs\":2,\"errorRatePercent\":0,\"animated\":true}}]",
+      "chaos_json": "{}",
+      "grade": "A",
+      "monthly_cost": 0,
+      "is_public": true,
+      "version": 1,
+      "fork_of_id": null,
+      "created_at": "2026-09-18T17:27:39.323Z",
+      "updated_at": "2026-09-18T17:27:39.323Z"
+    },
+    {
+      "id": "arch_69c40db9cffe4d0a",
+      "user_id": "usr_local_architect",
+      "name": "Fintech Ledger (Staging Fork)",
+      "description": "Forked from High-Throughput Fintech Ledger. Zero-downtime distributed banking core with Kafka and Multi-AZ PostgreSQL",
+      "nodes_json": "[{\"id\":\"n1\",\"type\":\"infrastructure\",\"position\":{\"x\":100,\"y\":100},\"data\":{\"label\":\"API Gateway\"}}]",
+      "edges_json": "[{\"id\":\"e1\",\"source\":\"n1\",\"target\":\"n2\"}]",
+      "chaos_json": "{}",
+      "grade": "A",
+      "monthly_cost": 4500,
+      "is_public": true,
+      "version": 1,
+      "fork_of_id": null,
+      "created_at": "2026-09-18T17:19:05.763Z",
+      "updated_at": "2026-09-18T17:19:05.763Z"
+    },
+    {
+      "id": "arch_d992f76906996bc3",
+      "user_id": "usr_local_architect",
+      "name": "High-Throughput Fintech Ledger",
+      "description": "Zero-downtime distributed banking core with Kafka and Multi-AZ PostgreSQL",
+      "nodes_json": "[{\"id\":\"n1\",\"type\":\"infrastructure\",\"position\":{\"x\":100,\"y\":100},\"data\":{\"label\":\"API Gateway\"}}]",
+      "edges_json": "[{\"id\":\"e1\",\"source\":\"n1\",\"target\":\"n2\"}]",
+      "chaos_json": "{}",
+      "grade": "A",
+      "monthly_cost": 4500,
+      "is_public": true,
+      "version": 1,
+      "fork_of_id": null,
+      "created_at": "2026-09-18T17:19:05.742Z",
+      "updated_at": "2026-09-18T17:19:05.742Z"
+    }
+  ],
+  "revisions": [
+    {
+      "id": "rev_543d8c644be06b74",
+      "architecture_id": "arch_d992f76906996bc3",
+      "version": 1,
+      "nodes_json": "[{\"id\":\"n1\",\"type\":\"infrastructure\",\"position\":{\"x\":100,\"y\":100},\"data\":{\"label\":\"API Gateway\"}}]",
+      "edges_json": "[{\"id\":\"e1\",\"source\":\"n1\",\"target\":\"n2\"}]",
+      "created_at": "2026-09-18T17:19:05.742Z"
+    },
+    {
+      "id": "rev_3cd0dc6556627c47",
+      "architecture_id": "arch_69c40db9cffe4d0a",
+      "version": 1,
+      "nodes_json": "[{\"id\":\"n1\",\"type\":\"infrastructure\",\"position\":{\"x\":100,\"y\":100},\"data\":{\"label\":\"API Gateway\"}}]",
+      "edges_json": "[{\"id\":\"e1\",\"source\":\"n1\",\"target\":\"n2\"}]",
+      "created_at": "2026-09-18T17:19:05.763Z"
+    },
+    {
+      "id": "rev_d442a35f7bb8e5d5",
+      "architecture_id": "arch_773453b0d221f452",
+      "version": 1,
+      "nodes_json": "[{\"id\":\"traffic-1\",\"type\":\"infrastructure\",\"position\":{\"x\":50,\"y\":240},\"data\":{\"label\":\"Client Traffic Generator\",\"typeId\":\"traffic_generator\",\"category\":\"CLIENT\",\"instanceCount\":1,\"capacityRps\":5000,\"latencyMs\":0,\"maxQueueDepth\":0,\"failureRate\":0,\"costPerHour\":0,\"isKilled\":false,\"currentRps\":2488,\"currentQueue\":0,\"currentLatency\":5,\"status\":\"healthy\",\"availabilityZone\":\"us-east-1a\",\"utilizationPercent\":50,\"isBottleneck\":false,\"circuitBreakerState\":\"CLOSED\"},\"measured\":{\"width\":245,\"height\":117}},{\"id\":\"alb-1\",\"type\":\"infrastructure\",\"position\":{\"x\":380,\"y\":240},\"data\":{\"label\":\"Application Load Balancer\",\"typeId\":\"load_balancer\",\"category\":\"NETWORK\",\"instanceCount\":2,\"capacityRps\":15000,\"latencyMs\":5,\"maxQueueDepth\":1000,\"failureRate\":0,\"costPerHour\":0.16,\"isKilled\":false,\"currentRps\":2488,\"currentQueue\":0,\"currentLatency\":5,\"status\":\"healthy\",\"availabilityZone\":\"us-east-1a\",\"lbAlgorithm\":\"round_robin\",\"circuitBreakerEnabled\":true,\"circuitBreakerState\":\"CLOSED\",\"utilizationPercent\":8,\"isBottleneck\":false},\"measured\":{\"width\":245,\"height\":138}},{\"id\":\"web-1\",\"type\":\"infrastructure\",\"position\":{\"x\":730,\"y\":120},\"data\":{\"label\":\"App Server #1 (Node.js)\",\"typeId\":\"web_server\",\"category\":\"COMPUTE\",\"instanceCount\":3,\"capacityRps\":2400,\"latencyMs\":35,\"maxQueueDepth\":200,\"failureRate\":0,\"costPerHour\":0.36,\"isKilled\":false,\"currentRps\":1244,\"currentQueue\":0,\"currentLatency\":35,\"status\":\"healthy\",\"availabilityZone\":\"us-east-1a\",\"utilizationPercent\":17,\"isBottleneck\":false,\"circuitBreakerState\":\"CLOSED\"},\"measured\":{\"width\":245,\"height\":138}},{\"id\":\"web-2\",\"type\":\"infrastructure\",\"position\":{\"x\":730,\"y\":360},\"data\":{\"label\":\"App Server #2 (Node.js)\",\"typeId\":\"web_server\",\"category\":\"COMPUTE\",\"instanceCount\":3,\"capacityRps\":2400,\"latencyMs\":35,\"maxQueueDepth\":200,\"failureRate\":0,\"costPerHour\":0.36,\"isKilled\":false,\"currentRps\":1244,\"currentQueue\":0,\"currentLatency\":35,\"status\":\"healthy\",\"availabilityZone\":\"us-east-1b\",\"utilizationPercent\":17,\"isBottleneck\":false,\"circuitBreakerState\":\"CLOSED\"},\"measured\":{\"width\":245,\"height\":138}},{\"id\":\"cache-1\",\"type\":\"infrastructure\",\"position\":{\"x\":1080,\"y\":120},\"data\":{\"label\":\"Redis Cache Cluster\",\"typeId\":\"cache\",\"category\":\"STORAGE\",\"instanceCount\":2,\"capacityRps\":30000,\"latencyMs\":2,\"maxQueueDepth\":1000,\"failureRate\":0,\"costPerHour\":0.4,\"isKilled\":false,\"currentRps\":2488,\"currentQueue\":0,\"currentLatency\":2,\"status\":\"healthy\",\"availabilityZone\":\"us-east-1a\",\"hitRatePercent\":85,\"memoryGb\":16,\"evictionPolicy\":\"LRU\",\"utilizationPercent\":4,\"isBottleneck\":false,\"circuitBreakerState\":\"CLOSED\"},\"measured\":{\"width\":245,\"height\":138}},{\"id\":\"db-1\",\"type\":\"infrastructure\",\"position\":{\"x\":1080,\"y\":360},\"data\":{\"label\":\"PostgreSQL Primary DB\",\"typeId\":\"relational_db\",\"category\":\"STORAGE\",\"instanceCount\":2,\"capacityRps\":1500,\"latencyMs\":40,\"maxQueueDepth\":300,\"failureRate\":0,\"costPerHour\":0.45,\"isKilled\":false,\"currentRps\":373,\"currentQueue\":0,\"currentLatency\":40,\"status\":\"healthy\",\"availabilityZone\":\"us-east-1b\",\"readRatioPercent\":80,\"connectionPoolSize\":200,\"utilizationPercent\":12,\"isBottleneck\":false,\"circuitBreakerState\":\"CLOSED\"},\"measured\":{\"width\":245,\"height\":138}}]",
+      "edges_json": "[{\"id\":\"e1\",\"source\":\"traffic-1\",\"target\":\"alb-1\",\"label\":\"HTTP Inbound\",\"type\":\"flowEdge\",\"data\":{\"currentFlowRps\":2488,\"latencyMs\":5,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e2\",\"source\":\"alb-1\",\"target\":\"web-1\",\"label\":\"AZ-1a Flow\",\"type\":\"flowEdge\",\"data\":{\"currentFlowRps\":1244,\"latencyMs\":5,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e3\",\"source\":\"alb-1\",\"target\":\"web-2\",\"label\":\"AZ-1b Flow\",\"type\":\"flowEdge\",\"data\":{\"currentFlowRps\":1244,\"latencyMs\":5,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e4\",\"source\":\"web-1\",\"target\":\"cache-1\",\"label\":\"Cache Read\",\"type\":\"flowEdge\",\"data\":{\"currentFlowRps\":1244,\"latencyMs\":35,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e5\",\"source\":\"web-2\",\"target\":\"cache-1\",\"label\":\"Cache Read\",\"type\":\"flowEdge\",\"data\":{\"currentFlowRps\":1244,\"latencyMs\":35,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e6\",\"source\":\"cache-1\",\"target\":\"db-1\",\"label\":\"Miss (15%)\",\"type\":\"flowEdge\",\"data\":{\"currentFlowRps\":373,\"latencyMs\":2,\"errorRatePercent\":0,\"animated\":true}}]",
+      "created_at": "2026-09-18T17:27:39.323Z"
+    }
+  ]
+}

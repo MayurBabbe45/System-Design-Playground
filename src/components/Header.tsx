@@ -13,7 +13,8 @@ import {
   ShieldCheck,
   Sun,
   Moon,
-  Users
+  Users,
+  Cloud
 } from 'lucide-react';
 import { usePlaygroundStore } from '../store/usePlaygroundStore';
 import { PRESET_ARCHITECTURES } from '../config/presets';
@@ -43,6 +44,7 @@ export const Header: React.FC = () => {
     toggleAuditModal,
     toggleExportModal,
     toggleCollabModal,
+    toggleLibraryModal,
     toggleBenchmarkModal,
     isChaosCenterOpen,
     killedAzs,
@@ -267,6 +269,16 @@ export const Header: React.FC = () => {
           {killedAzs.length > 0 && (
             <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
           )}
+        </button>
+
+        {/* Cloud Saves Library Button (PostgreSQL & ClickHouse) */}
+        <button
+          onClick={toggleLibraryModal}
+          title="Cloud Architecture Hub (PostgreSQL & ClickHouse)"
+          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/40 text-blue-400 text-xs font-semibold shadow-sm transition-all cursor-pointer"
+        >
+          <Cloud className="w-3.5 h-3.5 shrink-0" />
+          <span className="hidden xl:inline">Cloud Saves</span>
         </button>
 
         {/* Share Button (Opens Export & Share Modal) */}

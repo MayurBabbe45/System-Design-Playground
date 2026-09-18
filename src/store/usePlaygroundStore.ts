@@ -26,6 +26,7 @@ import { PRESET_ARCHITECTURES } from '../config/presets';
 import { WorkerSimulationInput, WorkerSimulationOutput } from '../workers/simulationWorker';
 import { benchmarkWasm, benchmarkJs } from '../wasm/wasmEngine';
 import { collabManager } from '../collab/collabManager';
+import { apiClient, SavedArchitecture } from '../api/client';
 
 interface PlaygroundState {
   // React Flow graph state
@@ -66,6 +67,12 @@ interface PlaygroundState {
   // Real-Time Collaboration Modal State
   isCollabModalOpen: boolean;
   toggleCollabModal: () => void;
+
+  // Cloud Architecture Library Modal State (PostgreSQL & ClickHouse)
+  isLibraryModalOpen: boolean;
+  toggleLibraryModal: () => void;
+  activeCloudArchitectureId: string | null;
+  loadSavedArchitecture: (arch: SavedArchitecture) => void;
 
   // Bottleneck Diagnostics
   bottleneckNodeId: string | null;
@@ -191,6 +198,25 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
       const currentHistory = get().telemetryHistory;
       const updatedHistory = [...currentHistory.slice(-29), snapshot];
 
+      // Stream high-frequency simulation metrics to ClickHouse batch buffer
+      if (snapshot) {
+        const errorRate = snapshot.totalTargetRps > 0 
+          ? Number(((snapshot.totalDroppedRps / snapshot.totalTargetRps) * 100).toFixed(1))
+          : 0;
+
+        apiClient.bufferTelemetryTick({
+          timestamp: snapshot.timestamp || Date.now(),
+          architectureId: get().activeCloudArchitectureId || get().activePresetId || 'main',
+          sessionId: collabManager.getRoomName(),
+          rps: snapshot.totalProcessedRps,
+          p95LatencyMs: snapshot.p95LatencyMs,
+          queueDepth: snapshot.activeQueueTotal,
+          errorRate,
+          bottleneckNode: bottleneckNodeId || undefined,
+          engineMode: get().engineMode,
+        });
+      }
+
       set({
         nodes: nextNodes,
         edges: nextEdges,
@@ -274,6 +300,26 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
 
     toggleCollabModal: () => {
       set({ isCollabModalOpen: !get().isCollabModalOpen });
+    },
+
+    // Cloud Architecture Library State & Actions (PostgreSQL)
+    isLibraryModalOpen: false,
+    activeCloudArchitectureId: null,
+    toggleLibraryModal: () => {
+      set({ isLibraryModalOpen: !get().isLibraryModalOpen });
+    },
+    loadSavedArchitecture: (arch) => {
+      set({
+        nodes: arch.nodes,
+        edges: arch.edges,
+        activePresetId: 'custom',
+        activeCloudArchitectureId: arch.id,
+        selectedNodeId: null,
+        bottleneckNodeId: null,
+        bottleneckReason: null,
+        killedAzs: [],
+      });
+      collabManager.syncLocalCanvas(arch.nodes, arch.edges);
     },
 
     toggleBenchmarkModal: () => {
