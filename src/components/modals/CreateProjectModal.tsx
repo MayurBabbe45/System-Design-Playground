@@ -2,14 +2,12 @@ import React, { useState } from 'react';
 import { 
   X, 
   Plus, 
-  Sparkles, 
   Layers, 
-  ShoppingCart, 
-  Network, 
   Server, 
+  Compass,
+  Database,
   Loader2, 
-  ArrowRight,
-  Database
+  ArrowRight
 } from 'lucide-react';
 import { usePlaygroundStore } from '../../store/usePlaygroundStore';
 
@@ -32,28 +30,28 @@ const TEMPLATES: TemplateOption[] = [
     id: 'blank',
     name: 'Blank Canvas',
     description: 'Start from scratch with a clean, empty distributed system canvas.',
-    icon: <Plus className="w-5 h-5 text-cyan-400" />,
+    icon: <Plus className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
     tag: 'Custom',
   },
   {
     id: 'classic-web-app',
     name: 'Multi-AZ Web Application',
     description: '3-tier high availability web app with ALB, web nodes, Redis, and Postgres.',
-    icon: <Server className="w-5 h-5 text-emerald-400" />,
+    icon: <Server className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
     tag: 'Recommended',
   },
   {
     id: 'flash-sale-ecommerce',
     name: 'Flash Sale E-Commerce Pipeline',
     description: 'Surge traffic pipeline with CDN, Rate-Limited Gateway, Kafka queue & replicas.',
-    icon: <ShoppingCart className="w-5 h-5 text-amber-400" />,
+    icon: <Compass className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
     tag: 'High Throughput',
   },
   {
     id: 'microservices-mesh',
     name: 'CQRS & Event-Driven Services',
     description: 'Decoupled event streaming topology with background workers and partitioned stores.',
-    icon: <Database className="w-5 h-5 text-indigo-400" />,
+    icon: <Database className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
     tag: 'Distributed',
   },
 ];
@@ -101,18 +99,18 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
         {/* Header */}
         <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[var(--bg-panel)]/50">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-md">
+            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-sm">
               <Layers className="w-4 h-4 text-white" />
             </div>
             <div>
               <h2 className="text-sm font-bold text-[var(--text-main)]">Create New Architecture Project</h2>
-              <p className="text-[11px] text-[var(--text-muted)]">Set up your distributed system playground</p>
+              <p className="text-[11px] text-[var(--text-muted)]">Set up your distributed system canvas</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-pill)] transition-colors"
+            className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-pill)] transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -122,7 +120,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
         <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto flex-1">
           <div>
             <label className="block text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1.5">
-              Project Name <span className="text-rose-400">*</span>
+              Project Name <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
@@ -130,8 +128,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Global Payment Gateway, Order Ingest Service"
-              className="w-full px-3.5 py-2.5 bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-xl text-xs text-[var(--text-main)] placeholder-[var(--text-muted)]/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/40 focus:border-cyan-500 transition-all"
+              placeholder="e.g. Payment Gateway, Order Ingest Service"
+              className="w-full px-3.5 py-2.5 bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-xl text-xs text-[var(--text-main)] placeholder-[var(--text-muted)]/60 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all"
             />
           </div>
 
@@ -144,7 +142,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief description of the architecture requirements and traffic goals..."
-              className="w-full px-3.5 py-2 bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-xl text-xs text-[var(--text-main)] placeholder-[var(--text-muted)]/60 focus:outline-none focus:ring-2 focus:ring-cyan-500/40 focus:border-cyan-500 transition-all resize-none"
+              className="w-full px-3.5 py-2 bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-xl text-xs text-[var(--text-main)] placeholder-[var(--text-muted)]/60 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all resize-none"
             />
           </div>
 
@@ -161,7 +159,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                     onClick={() => setSelectedTemplate(tmpl.id)}
                     className={`p-3 rounded-xl border cursor-pointer transition-all flex flex-col justify-between ${
                       isSelected
-                        ? 'border-cyan-500 bg-cyan-500/10 shadow-sm shadow-cyan-500/10 ring-1 ring-cyan-500/40'
+                        ? 'border-blue-500 bg-blue-500/10 shadow-sm ring-1 ring-blue-500/40'
                         : 'border-[var(--border-subtle)] bg-[var(--bg-panel)] hover:bg-[var(--bg-pill)]'
                     }`}
                   >
@@ -181,7 +179,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                         {tmpl.tag}
                       </span>
                       {isSelected && (
-                        <span className="text-[10px] text-cyan-600 dark:text-cyan-400 font-semibold flex items-center gap-1">
+                        <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1">
                           Selected
                         </span>
                       )}
@@ -197,14 +195,14 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-pill)] transition-colors"
+              className="px-4 py-2 rounded-xl text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-pill)] transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !name.trim()}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white text-xs font-semibold shadow-lg shadow-cyan-500/20 flex items-center gap-2 transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-md shadow-blue-600/20 flex items-center gap-2 transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {isSubmitting ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

@@ -68,7 +68,7 @@ export const Sidebar: React.FC = () => {
       <div className="p-3 border-b border-[var(--border-subtle)] space-y-2">
         <div className="flex items-center justify-between">
           <div className="text-xs font-bold text-[var(--text-main)] uppercase tracking-wider flex items-center gap-1.5">
-            <Icons.Layers className="w-3.5 h-3.5 text-orange-500" />
+            <Icons.Layers className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             Component Palette
           </div>
           <div className="flex items-center gap-1">
@@ -91,7 +91,7 @@ export const Sidebar: React.FC = () => {
             placeholder="Search components..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[var(--bg-pill)] border border-[var(--border-subtle)] rounded-lg pl-8 pr-2.5 py-1 text-xs text-[var(--text-main)] placeholder-[var(--text-muted)] focus:outline-none focus:border-orange-500/80 transition-colors"
+            className="w-full bg-[var(--bg-pill)] border border-[var(--border-subtle)] rounded-lg pl-8 pr-2.5 py-1 text-xs text-[var(--text-main)] placeholder-[var(--text-muted)] focus:outline-none focus:border-blue-500 transition-colors"
           />
         </div>
       </div>
@@ -117,7 +117,7 @@ export const Sidebar: React.FC = () => {
                       key={item.typeId}
                       draggable
                       onDragStart={(e) => handleDragStart(e, item.typeId)}
-                      className="group flex items-center justify-between p-1.5 rounded-lg bg-[var(--bg-panel)] hover:border-orange-500/40 border border-[var(--border-subtle)] cursor-grab active:cursor-grabbing transition-all shadow-xs"
+                      className="group flex items-center justify-between p-1.5 rounded-lg bg-[var(--bg-panel)] hover:border-blue-500/40 border border-[var(--border-subtle)] cursor-grab active:cursor-grabbing transition-all shadow-xs"
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <div
@@ -135,7 +135,7 @@ export const Sidebar: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      <Icons.GripVertical className="w-3 h-3 text-[var(--text-muted)] group-hover:text-orange-500 shrink-0" />
+                      <Icons.GripVertical className="w-3 h-3 text-[var(--text-muted)] group-hover:text-blue-500 shrink-0" />
                     </div>
                   );
                 })}

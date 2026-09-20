@@ -11,7 +11,7 @@ export const COMPONENT_CATALOG: Record<ComponentTypeId, ComponentMetadata> = {
     defaultLatencyMs: 0,
     defaultCostPerHour: 0.0,
     defaultQueueDepth: 0,
-    color: '#3b82f6', // Blue
+    color: '#2563eb', // Clean Technical Blue
   },
   cdn: {
     typeId: 'cdn',
@@ -23,7 +23,7 @@ export const COMPONENT_CATALOG: Record<ComponentTypeId, ComponentMetadata> = {
     defaultLatencyMs: 15,
     defaultCostPerHour: 0.25,
     defaultQueueDepth: 1000,
-    color: '#06b6d4', // Cyan
+    color: '#0284c7', // Sky / Edge
   },
   api_gateway: {
     typeId: 'api_gateway',
@@ -35,7 +35,7 @@ export const COMPONENT_CATALOG: Record<ComponentTypeId, ComponentMetadata> = {
     defaultLatencyMs: 5,
     defaultCostPerHour: 0.15,
     defaultQueueDepth: 500,
-    color: '#8b5cf6', // Purple
+    color: '#4f46e5', // Deep Indigo
   },
   load_balancer: {
     typeId: 'load_balancer',
@@ -47,7 +47,7 @@ export const COMPONENT_CATALOG: Record<ComponentTypeId, ComponentMetadata> = {
     defaultLatencyMs: 8,
     defaultCostPerHour: 0.08,
     defaultQueueDepth: 1000,
-    color: '#a855f7', // Deep Purple
+    color: '#3b82f6', // Cobalt Blue
   },
   web_server: {
     typeId: 'web_server',
@@ -59,7 +59,7 @@ export const COMPONENT_CATALOG: Record<ComponentTypeId, ComponentMetadata> = {
     defaultLatencyMs: 45,
     defaultCostPerHour: 0.12,
     defaultQueueDepth: 200,
-    color: '#10b981', // Emerald Green
+    color: '#2563eb', // Primary Compute Blue
   },
   cache: {
     typeId: 'cache',
@@ -71,7 +71,7 @@ export const COMPONENT_CATALOG: Record<ComponentTypeId, ComponentMetadata> = {
     defaultLatencyMs: 2,
     defaultCostPerHour: 0.20,
     defaultQueueDepth: 1000,
-    color: '#f59e0b', // Amber/Gold
+    color: '#0284c7', // Fast Cache Sky
   },
   relational_db: {
     typeId: 'relational_db',
@@ -83,7 +83,7 @@ export const COMPONENT_CATALOG: Record<ComponentTypeId, ComponentMetadata> = {
     defaultLatencyMs: 35,
     defaultCostPerHour: 0.45,
     defaultQueueDepth: 300,
-    color: '#ef4444', // Red
+    color: '#334155', // Slate Steel
   },
   nosql_db: {
     typeId: 'nosql_db',
@@ -95,7 +95,7 @@ export const COMPONENT_CATALOG: Record<ComponentTypeId, ComponentMetadata> = {
     defaultLatencyMs: 18,
     defaultCostPerHour: 0.35,
     defaultQueueDepth: 400,
-    color: '#f97316', // Orange
+    color: '#475569', // Muted Slate
   },
   message_queue: {
     typeId: 'message_queue',
@@ -107,7 +107,7 @@ export const COMPONENT_CATALOG: Record<ComponentTypeId, ComponentMetadata> = {
     defaultLatencyMs: 10,
     defaultCostPerHour: 0.28,
     defaultQueueDepth: 5000,
-    color: '#ec4899', // Pink
+    color: '#6366f1', // Stream Indigo
   },
   object_storage: {
     typeId: 'object_storage',
@@ -119,6 +119,6 @@ export const COMPONENT_CATALOG: Record<ComponentTypeId, ComponentMetadata> = {
     defaultLatencyMs: 60,
     defaultCostPerHour: 0.05,
     defaultQueueDepth: 1000,
-    color: '#64748b', // Slate
+    color: '#64748b', // Cool Slate
   },
 };

@@ -14,8 +14,6 @@ import { usePlaygroundStore } from '../store/usePlaygroundStore';
 import { InfrastructureNode } from './nodes/InfrastructureNode';
 import { FlowEdge } from './edges/FlowEdge';
 import { ComponentTypeId } from '../types/playground';
-import { MultiplayerCursors } from './MultiplayerCursors';
-import { collabManager } from '../collab/collabManager';
 
 const CanvasInner: React.FC = () => {
   const {
@@ -102,19 +100,9 @@ const CanvasInner: React.FC = () => {
 
   return (
     <div
-      className="flex-1 h-[calc(100vh-3.5rem)] relative bg-[var(--canvas-bg)] overflow-hidden"
+      className="flex-1 h-[calc(100vh-3.25rem)] relative bg-[var(--canvas-bg)] overflow-hidden"
       onDragOver={onDragOver}
       onDrop={onDrop}
-      onPointerMove={(e) => {
-        const flowPos = reactFlowInstance.screenToFlowPosition({
-          x: e.clientX,
-          y: e.clientY,
-        });
-        collabManager.updateCursor(flowPos);
-      }}
-      onPointerLeave={() => {
-        collabManager.updateCursor(null);
-      }}
       onClick={(e) => {
         // Deselect if clicking on raw canvas background
         if ((e.target as HTMLElement).classList.contains('react-flow__pane')) {
@@ -122,17 +110,14 @@ const CanvasInner: React.FC = () => {
         }
       }}
     >
-      {/* Real-time Multiplayer Cursors Layer */}
-      <MultiplayerCursors />
-
-      {/* Sleek Floating Bottleneck Warning Banner */}
+      {/* Floating Bottleneck Warning Banner */}
       {bottleneckReason && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-xl bg-red-950/90 border border-red-700/80 shadow-2xl shadow-red-950/50 flex items-center gap-2.5 backdrop-blur-md">
-          <div className="w-6 h-6 rounded-lg bg-red-900/60 flex items-center justify-center text-red-400 shrink-0">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-xl bg-rose-950/90 border border-rose-700/80 shadow-2xl shadow-rose-950/50 flex items-center gap-2.5 backdrop-blur-md">
+          <div className="w-6 h-6 rounded-lg bg-rose-900/60 flex items-center justify-center text-rose-400 shrink-0">
             <AlertTriangle className="w-3.5 h-3.5" />
           </div>
-          <div className="text-xs text-red-200">
-            <span className="font-bold text-red-300">Bottleneck Detected: </span>
+          <div className="text-xs text-rose-200">
+            <span className="font-bold text-rose-300">Bottleneck: </span>
             <span>{bottleneckReason}</span>
           </div>
         </div>
@@ -154,7 +139,7 @@ const CanvasInner: React.FC = () => {
           animated: true,
         }}
       >
-        {/* n8n-style dot grid background */}
+        {/* Dot grid background */}
         <Background 
           variant={BackgroundVariant.Dots} 
           gap={24} 
@@ -170,7 +155,7 @@ const CanvasInner: React.FC = () => {
             if (data?.isBottleneck) return '#ef4444';
             if (data?.status === 'critical') return '#ef4444';
             if (data?.status === 'warning') return '#f59e0b';
-            return '#388bfd';
+            return '#2563eb';
           }}
           maskColor={theme === 'dark' ? 'rgba(14, 17, 23, 0.75)' : 'rgba(241, 245, 249, 0.75)'}
         />

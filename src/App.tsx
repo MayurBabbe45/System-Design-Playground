@@ -7,10 +7,6 @@ import { TelemetryDrawer } from './components/TelemetryDrawer';
 import { ChaosControlCenter } from './components/ChaosControlCenter';
 import { CloudCostModal } from './components/modals/CloudCostModal';
 import { HealthAuditModal } from './components/modals/HealthAuditModal';
-import { ExportModal } from './components/modals/ExportModal';
-import { WasmBenchmarkModal } from './components/modals/WasmBenchmarkModal';
-import { CollabModal } from './components/modals/CollabModal';
-import { CloudLibraryModal } from './components/modals/CloudLibraryModal';
 import { AuthScreen } from './components/auth/AuthScreen';
 import { DashboardView } from './components/dashboard/DashboardView';
 import { useAuthStore } from './store/useAuthStore';
@@ -49,8 +45,8 @@ export const App: React.FC = () => {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-[var(--bg-app)] text-[var(--text-muted)] select-none">
         <div className="flex flex-col items-center gap-3 text-xs">
-          <div className="w-8 h-8 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin" />
-          <span className="font-medium tracking-wide">Initializing Workspace...</span>
+          <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+          <span className="font-medium tracking-wide">Loading Playground...</span>
         </div>
       </div>
     );
@@ -63,13 +59,7 @@ export const App: React.FC = () => {
 
   // If in Home Dashboard view
   if (appView === 'dashboard') {
-    return (
-      <>
-        <DashboardView />
-        <CloudLibraryModal />
-        <WasmBenchmarkModal />
-      </>
-    );
+    return <DashboardView />;
   }
 
   // Default: Interactive Playground Simulation Canvas
@@ -83,7 +73,7 @@ export const App: React.FC = () => {
         {/* Left Drag & Drop Component Palette */}
         <Sidebar />
 
-        {/* Center Interactive Infinite Canvas */}
+        {/* Center Interactive Canvas */}
         <Canvas />
 
         {/* Floating Chaos Control Center */}
@@ -96,13 +86,9 @@ export const App: React.FC = () => {
         <TelemetryDrawer />
       </div>
 
-      {/* Modals */}
+      {/* Essential Modals */}
       <CloudCostModal />
       <HealthAuditModal />
-      <ExportModal />
-      <WasmBenchmarkModal />
-      <CollabModal />
-      <CloudLibraryModal />
     </div>
   );
 };

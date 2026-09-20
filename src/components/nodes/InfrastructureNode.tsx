@@ -135,19 +135,19 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
       <div className="grid grid-cols-3 gap-1 bg-[var(--bg-pill)] rounded-lg py-1.5 px-1 text-center mb-2 border border-[var(--border-subtle)]">
         <div>
           <div className="text-[8px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Throughput</div>
-          <div className="text-[11px] font-bold font-mono text-blue-500 dark:text-blue-400">
+          <div className="text-[11px] font-bold font-mono text-blue-600 dark:text-blue-400">
             {isEffectivelyDead ? '0' : nodeData.currentRps.toLocaleString()}
           </div>
         </div>
         <div>
           <div className="text-[8px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Latency</div>
-          <div className="text-[11px] font-bold font-mono text-amber-500 dark:text-amber-400">
+          <div className={`text-[11px] font-bold font-mono ${nodeData.currentLatency > 100 ? 'text-amber-500 dark:text-amber-400' : 'text-[var(--text-main)]'}`}>
             {isEffectivelyDead ? '0ms' : `${nodeData.currentLatency}ms`}
           </div>
         </div>
         <div>
           <div className="text-[8px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Queue</div>
-          <div className={`text-[11px] font-bold font-mono ${nodeData.currentQueue > 50 ? 'text-red-500' : 'text-[var(--text-main)]'}`}>
+          <div className={`text-[11px] font-bold font-mono ${nodeData.currentQueue > 50 ? 'text-rose-500 font-bold' : 'text-[var(--text-main)]'}`}>
             {isEffectivelyDead ? '0' : nodeData.currentQueue}
           </div>
         </div>
