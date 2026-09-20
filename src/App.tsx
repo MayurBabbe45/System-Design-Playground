@@ -7,6 +7,7 @@ import { TelemetryDrawer } from './components/TelemetryDrawer';
 import { ChaosControlCenter } from './components/ChaosControlCenter';
 import { CloudCostModal } from './components/modals/CloudCostModal';
 import { HealthAuditModal } from './components/modals/HealthAuditModal';
+import { ShareModal } from './components/modals/ShareModal';
 import { AuthScreen } from './components/auth/AuthScreen';
 import { DashboardView } from './components/dashboard/DashboardView';
 import { useAuthStore } from './store/useAuthStore';
@@ -14,7 +15,7 @@ import { usePlaygroundStore } from './store/usePlaygroundStore';
 
 export const App: React.FC = () => {
   const { isAuthenticated, isGuest, isLoading, checkSession } = useAuthStore();
-  const { appView, setAppView, openProjectById } = usePlaygroundStore();
+  const { appView, setAppView, openProjectById, loadFromUrlHash, isViewOnly, setIsViewOnly } = usePlaygroundStore();
 
   // Validate session on startup
   useEffect(() => {
@@ -27,9 +28,21 @@ export const App: React.FC = () => {
       const params = new URLSearchParams(window.location.search);
       const projectId = params.get('project');
       const view = params.get('view');
+      const mode = params.get('mode');
+      const hash = window.location.hash;
+      const isView = mode === 'view' || hash.includes('mode=view');
+
+      if (isView) {
+        setIsViewOnly(true);
+      } else if (view === 'dashboard') {
+        setIsViewOnly(false);
+      }
 
       if (projectId && view === 'playground') {
-        openProjectById(projectId);
+        openProjectById(projectId, isView);
+      } else if (hash.includes('architecture=')) {
+        loadFromUrlHash(hash);
+        setAppView('playground');
       } else if (view === 'dashboard' || view === 'playground') {
         setAppView(view);
       }
@@ -38,7 +51,7 @@ export const App: React.FC = () => {
     handleUrlState();
     window.addEventListener('popstate', handleUrlState);
     return () => window.removeEventListener('popstate', handleUrlState);
-  }, [openProjectById, setAppView]);
+  }, [openProjectById, loadFromUrlHash, setAppView, setIsViewOnly]);
 
   // Initial loading splash
   if (isLoading) {
@@ -52,8 +65,15 @@ export const App: React.FC = () => {
     );
   }
 
-  // If user is neither authenticated nor in guest mode, show Auth Screen
-  if (!isAuthenticated && !isGuest) {
+  // Check if viewing a shared view-only architecture link
+  const isViewMode =
+    typeof window !== 'undefined' &&
+    (window.location.search.includes('mode=view') ||
+      window.location.hash.includes('mode=view') ||
+      isViewOnly);
+
+  // If user is neither authenticated nor in guest mode, show Auth Screen (unless viewing a shared view-only link)
+  if (!isAuthenticated && !isGuest && !isViewMode) {
     return <AuthScreen onSuccess={() => setAppView('dashboard')} />;
   }
 
@@ -89,6 +109,7 @@ export const App: React.FC = () => {
       {/* Essential Modals */}
       <CloudCostModal />
       <HealthAuditModal />
+      <ShareModal />
     </div>
   );
 };

@@ -41,8 +41,8 @@ interface PlaygroundState {
   appView: 'auth' | 'dashboard' | 'playground';
   setAppView: (view: 'auth' | 'dashboard' | 'playground') => void;
   activeProject: ActiveProjectSummary | null;
-  openProject: (arch: SavedArchitecture) => void;
-  openProjectById: (id: string) => Promise<boolean>;
+  openProject: (arch: SavedArchitecture, viewOnly?: boolean) => void;
+  openProjectById: (id: string, viewOnly?: boolean) => Promise<boolean>;
   returnToDashboard: () => Promise<void>;
   renameActiveProject: (newName: string) => Promise<void>;
   createNewProject: (name: string, description?: string, presetId?: string) => Promise<string | null>;
@@ -51,6 +51,12 @@ interface PlaygroundState {
   nodes: Node<InfrastructureNodeData>[];
   edges: Edge<EdgeStreamData>[];
   selectedNodeId: string | null;
+  
+  // View-Only Interactive Simulation State
+  isViewOnly: boolean;
+  setIsViewOnly: (viewOnly: boolean) => void;
+  forkActiveProject: () => Promise<string | null>;
+  getShareableLink: () => string;
   
   // Simulation Controls
   isSimulating: boolean;
@@ -297,6 +303,8 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
       },
     })),
     selectedNodeId: null,
+    isViewOnly: false,
+    setIsViewOnly: (viewOnly: boolean) => set({ isViewOnly: viewOnly }),
     
     isSimulating: true,
     simulationSpeed: 1,
@@ -364,7 +372,7 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
       }
       set({ appView: view });
     },
-    openProject: (arch) => {
+    openProject: (arch, viewOnly = false) => {
       set({
         nodes: arch.nodes,
         edges: arch.edges,
@@ -377,6 +385,7 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
           isPublic: arch.isPublic,
         },
         appView: 'playground',
+        isViewOnly: viewOnly,
         selectedNodeId: null,
         bottleneckNodeId: null,
         bottleneckReason: null,
@@ -387,14 +396,19 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
         const url = new URL(window.location.href);
         url.searchParams.set('view', 'playground');
         url.searchParams.set('project', arch.id);
+        if (viewOnly) {
+          url.searchParams.set('mode', 'view');
+        } else {
+          url.searchParams.delete('mode');
+        }
         window.history.pushState({}, '', url.toString());
       }
     },
-    openProjectById: async (id: string) => {
+    openProjectById: async (id: string, viewOnly = false) => {
       try {
         const arch = await apiClient.getArchitecture(id);
         if (!arch) return false;
-        get().openProject(arch);
+        get().openProject(arch, viewOnly);
         return true;
       } catch (err) {
         console.error('Failed to open project by id:', err);
@@ -403,7 +417,7 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
     },
     returnToDashboard: async () => {
       const activeProj = get().activeProject;
-      if (activeProj) {
+      if (activeProj && !get().isViewOnly) {
         try {
           const audit = auditArchitecture(get().nodes, get().edges);
           const monthlyCost = Math.round(get().nodes.reduce((acc, n) => acc + (n.data.costPerHour || 0) * 730, 0));
@@ -418,7 +432,61 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
           console.warn('[Auto-Save] Error saving project before dashboard transition:', err);
         }
       }
+      set({ isViewOnly: false });
       get().setAppView('dashboard');
+    },
+    forkActiveProject: async () => {
+      const activeProj = get().activeProject;
+      const currentNodes = get().nodes;
+      const currentEdges = get().edges;
+      const newName = activeProj ? `${activeProj.name} (Fork)` : 'Shared Architecture (Fork)';
+
+      try {
+        if (activeProj?.id && activeProj.id !== 'shared') {
+          const forked = await apiClient.forkArchitecture(activeProj.id, newName);
+          get().openProject(forked, false);
+          return forked.id;
+        }
+      } catch (err) {
+        console.warn('Backend fork failed or unavailable, creating clone from current canvas:', err);
+      }
+
+      // Clone current nodes & edges directly into a new project
+      try {
+        const audit = auditArchitecture(currentNodes, currentEdges);
+        const monthlyCost = Math.round(currentNodes.reduce((acc, n) => acc + (n.data.costPerHour || 0) * 730, 0));
+        const saved = await apiClient.saveArchitecture({
+          name: newName,
+          nodes: currentNodes,
+          edges: currentEdges,
+          grade: audit.grade,
+          monthlyCost,
+          isPublic: true,
+        });
+        get().openProject(saved, false);
+        return saved.id;
+      } catch (err) {
+        console.warn('Failed to save forked architecture to backend, keeping local clone:', err);
+        set({
+          activeProject: {
+            id: `local_fork_${Date.now()}`,
+            name: newName,
+          },
+          nodes: currentNodes,
+          edges: currentEdges,
+          isViewOnly: false,
+        });
+        return null;
+      }
+    },
+    getShareableLink: () => {
+      const activeProj = get().activeProject;
+      if (typeof window === 'undefined') return '';
+      const baseUrl = window.location.origin;
+      if (activeProj?.id && activeProj.id !== 'shared') {
+        return `${baseUrl}/?view=playground&project=${activeProj.id}&mode=view`;
+      }
+      return get().getCompressedShareUrl();
     },
     renameActiveProject: async (newName: string) => {
       const activeProj = get().activeProject;
@@ -804,6 +872,7 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
 
     getCompressedShareUrl: () => {
       const stateToExport = {
+        name: get().activeProject?.name || 'Shared Architecture',
         nodes: get().nodes.map((n) => ({
           id: n.id,
           type: n.type,
@@ -814,15 +883,16 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
       };
       const jsonString = JSON.stringify(stateToExport);
       const compressed = LZString.compressToEncodedURIComponent(jsonString);
-      const url = new URL(window.location.href);
-      url.hash = `architecture=${compressed}`;
-      return url.toString();
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+      return `${baseUrl}/?view=playground&mode=view#architecture=${compressed}`;
     },
 
     loadFromUrlHash: (hashStr) => {
       try {
         if (!hashStr.includes('architecture=')) return false;
-        const compressed = hashStr.split('architecture=')[1];
+        const hashPayload = hashStr.includes('#') ? hashStr.split('#')[1] : hashStr;
+        const match = hashPayload.match(/architecture=([^&]+)/);
+        const compressed = match ? match[1] : null;
         if (!compressed) return false;
         
         const jsonString = LZString.decompressFromEncodedURIComponent(compressed);
@@ -830,6 +900,7 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
 
         const parsed = JSON.parse(jsonString);
         if (Array.isArray(parsed.nodes) && Array.isArray(parsed.edges)) {
+          const isView = hashStr.includes('mode=view') || (typeof window !== 'undefined' && window.location.search.includes('mode=view'));
           set({
             nodes: parsed.nodes.map((n: any) => ({
               ...n,
@@ -841,6 +912,11 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
               data: { currentFlowRps: 1000, latencyMs: 5, errorRatePercent: 0, animated: true },
             })),
             activePresetId: 'shared-url',
+            activeProject: {
+              id: 'shared',
+              name: parsed.name || 'Shared Architecture',
+            },
+            isViewOnly: isView,
           });
           return true;
         }

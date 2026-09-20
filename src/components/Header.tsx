@@ -16,7 +16,10 @@ import {
   Check,
   LogOut,
   Box,
-  Activity
+  Activity,
+  Eye,
+  GitFork,
+  Share2
 } from 'lucide-react';
 import { usePlaygroundStore } from '../store/usePlaygroundStore';
 import { useAuthStore } from '../store/useAuthStore';
@@ -50,6 +53,9 @@ export const Header: React.FC = () => {
     returnToDashboard,
     renameActiveProject,
     setAppView,
+    isViewOnly,
+    forkActiveProject,
+    toggleExportModal,
   } = usePlaygroundStore();
 
   const { user, logout } = useAuthStore();
@@ -99,9 +105,15 @@ export const Header: React.FC = () => {
 
         <span className="text-[var(--border-subtle)] font-bold text-xs">/</span>
 
-        {/* Project Title with Inline Rename */}
+        {/* Project Title */}
         <div className="flex items-center">
-          {isEditingTitle ? (
+          {isViewOnly ? (
+            <div className="flex items-center px-2 py-1">
+              <span className="text-xs font-bold text-[var(--text-main)] max-w-[130px] sm:max-w-[200px] md:max-w-[260px] truncate">
+                {activeProject?.name || 'Shared Architecture'}
+              </span>
+            </div>
+          ) : isEditingTitle ? (
             <form onSubmit={handleTitleSubmit} className="flex items-center gap-1">
               <input
                 type="text"
@@ -132,11 +144,29 @@ export const Header: React.FC = () => {
           )}
         </div>
 
-        {/* Cloud Sync Status Indicator */}
-        <div className="hidden lg:flex items-center gap-1.5 pl-1.5 border-l border-[var(--border-subtle)]" title="Project saved automatically">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-          <span className="text-[10px] text-[var(--text-muted)] font-medium">Saved</span>
-        </div>
+        {/* View-Only Badge & Fork Button OR Saved Indicator */}
+        {isViewOnly ? (
+          <div className="flex items-center gap-2 pl-1.5 border-l border-[var(--border-subtle)]">
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:text-blue-400 text-xs font-semibold">
+              <Eye className="w-3 h-3" />
+              <span className="hidden sm:inline">View-Only</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => forkActiveProject()}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
+              title="Clone this architecture to your account to edit and customize"
+            >
+              <GitFork className="w-3 h-3" />
+              <span>Fork to Edit</span>
+            </button>
+          </div>
+        ) : (
+          <div className="hidden lg:flex items-center gap-1.5 pl-1.5 border-l border-[var(--border-subtle)]" title="Project saved automatically">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+            <span className="text-[10px] text-[var(--text-muted)] font-medium">Saved</span>
+          </div>
+        )}
       </div>
 
       {/* Center: Mode Switcher & Simulation Capsule */}
@@ -286,14 +316,27 @@ export const Header: React.FC = () => {
           )}
         </button>
 
-        {/* Clear Canvas Button */}
+        {/* Share Button (Generates View-Only Link) */}
         <button
-          onClick={clearCanvas}
-          title="Clear Canvas"
-          className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-rose-500 hover:bg-rose-500/10 transition-colors border border-transparent hover:border-rose-500/30 cursor-pointer"
+          type="button"
+          onClick={toggleExportModal}
+          title="Share interactive view-only architecture simulation"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
         >
-          <Trash2 className="w-3.5 h-3.5" />
+          <Share2 className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Share</span>
         </button>
+
+        {/* Clear Canvas Button (Disabled in View-Only mode) */}
+        {!isViewOnly && (
+          <button
+            onClick={clearCanvas}
+            title="Clear Canvas"
+            className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-rose-500 hover:bg-rose-500/10 transition-colors border border-transparent hover:border-rose-500/30 cursor-pointer"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        )}
 
         {/* User Account Avatar & Dropdown */}
         <div className="relative border-l border-[var(--border-subtle)] pl-2">

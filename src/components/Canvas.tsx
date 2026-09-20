@@ -32,6 +32,7 @@ const CanvasInner: React.FC = () => {
     selectedNodeId,
     deleteNode,
     theme,
+    isViewOnly,
   } = usePlaygroundStore();
 
   const reactFlowInstance = useReactFlow();
@@ -40,13 +41,13 @@ const CanvasInner: React.FC = () => {
   const nodeTypes = useMemo(() => ({ infrastructure: InfrastructureNode }), []);
   const edgeTypes = useMemo(() => ({ flowEdge: FlowEdge }), []);
 
-  // Keyboard shortcuts: Delete / Backspace to remove selected node, Escape to deselect
+  // Keyboard shortcuts: Delete / Backspace to remove selected node (disabled in view-only), Escape to deselect
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) {
         return;
       }
-      if ((e.key === 'Backspace' || e.key === 'Delete') && selectedNodeId) {
+      if ((e.key === 'Backspace' || e.key === 'Delete') && selectedNodeId && !isViewOnly) {
         e.preventDefault();
         deleteNode(selectedNodeId);
       } else if (e.key === 'Escape') {
@@ -56,7 +57,7 @@ const CanvasInner: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedNodeId, deleteNode, setSelectedNodeId]);
+  }, [selectedNodeId, deleteNode, setSelectedNodeId, isViewOnly]);
 
   // Listen to URL hash changes for instant URL architecture loading
   useEffect(() => {
@@ -84,6 +85,7 @@ const CanvasInner: React.FC = () => {
   const onDrop = useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
+      if (isViewOnly) return;
 
       const typeId = event.dataTransfer.getData('application/reactflow') as ComponentTypeId;
       if (!typeId) return;
@@ -95,7 +97,7 @@ const CanvasInner: React.FC = () => {
 
       addNodeFromPalette(typeId, position);
     },
-    [reactFlowInstance, addNodeFromPalette]
+    [reactFlowInstance, addNodeFromPalette, isViewOnly]
   );
 
   return (
@@ -128,7 +130,8 @@ const CanvasInner: React.FC = () => {
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
+        onConnect={isViewOnly ? undefined : onConnect}
+        nodesConnectable={!isViewOnly}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         nodesDraggable={true}
