@@ -55,18 +55,33 @@ export interface TelemetryAnalyticsResult {
 let telemetryQueue: TelemetryTickInput[] = [];
 let flushInterval: ReturnType<typeof setInterval> | null = null;
 
+function getHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
+  const headers: Record<string, string> = { ...extraHeaders };
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('sdp_auth_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+  return headers;
+}
+
 export const apiClient = {
   // --- Architecture CRUD ---
 
   async listArchitectures(publicOnly: boolean = false): Promise<SavedArchitecture[]> {
-    const res = await fetch(`/api/architectures${publicOnly ? '?publicOnly=true' : ''}`);
+    const res = await fetch(`/api/architectures${publicOnly ? '?publicOnly=true' : ''}`, {
+      headers: getHeaders(),
+    });
     if (!res.ok) throw new Error(`Failed to list architectures: ${res.statusText}`);
     const data = await res.json();
     return data.architectures || [];
   },
 
   async getArchitecture(id: string): Promise<SavedArchitecture> {
-    const res = await fetch(`/api/architectures/${id}`);
+    const res = await fetch(`/api/architectures/${id}`, {
+      headers: getHeaders(),
+    });
     if (!res.ok) throw new Error(`Failed to get architecture: ${res.statusText}`);
     const data = await res.json();
     return data.architecture;
@@ -84,7 +99,7 @@ export const apiClient = {
   }): Promise<SavedArchitecture> {
     const res = await fetch('/api/architectures', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error(`Failed to save architecture: ${res.statusText}`);
@@ -107,7 +122,7 @@ export const apiClient = {
   ): Promise<SavedArchitecture> {
     const res = await fetch(`/api/architectures/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error(`Failed to update architecture: ${res.statusText}`);
@@ -116,14 +131,17 @@ export const apiClient = {
   },
 
   async deleteArchitecture(id: string): Promise<boolean> {
-    const res = await fetch(`/api/architectures/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/architectures/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
     return res.ok;
   },
 
   async forkArchitecture(id: string, newName?: string): Promise<SavedArchitecture> {
     const res = await fetch(`/api/architectures/${id}/fork`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ newName }),
     });
     if (!res.ok) throw new Error(`Failed to fork architecture: ${res.statusText}`);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Play, 
   Pause, 
@@ -9,14 +9,20 @@ import {
   Trash2, 
   TrendingUp, 
   AlertTriangle, 
-  Flame,
-  ShieldCheck,
-  Sun,
-  Moon,
-  Users,
-  Cloud
+  Flame, 
+  ShieldCheck, 
+  Sun, 
+  Moon, 
+  Users, 
+  Cloud,
+  ArrowLeft,
+  Edit2,
+  Check,
+  LogOut,
+  User as UserIcon
 } from 'lucide-react';
 import { usePlaygroundStore } from '../store/usePlaygroundStore';
+import { useAuthStore } from '../store/useAuthStore';
 import { PRESET_ARCHITECTURES } from '../config/presets';
 import { TrafficProfile } from '../types/playground';
 import { auditArchitecture } from '../simulation/architectureLinter';
@@ -52,10 +58,19 @@ export const Header: React.FC = () => {
     computeDurationMs,
     theme,
     toggleTheme,
+    activeProject,
+    returnToDashboard,
+    renameActiveProject,
+    setAppView,
   } = usePlaygroundStore();
+
+  const { user, logout } = useAuthStore();
 
   const [peerCount, setPeerCount] = React.useState(0);
   const [collabStatus, setCollabStatus] = React.useState<CollabConnectionStatus>(collabManager.getStatus());
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [tempTitle, setTempTitle] = useState('');
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   React.useEffect(() => {
     const unsubP = collabManager.onPeersChange((peers) => setPeerCount(peers.length));
@@ -66,14 +81,19 @@ export const Header: React.FC = () => {
     };
   }, []);
 
-  // Calculate monthly cost ($/hr * 730 hrs)
-  const hourlyTotal = nodes.reduce((sum, node) => {
-    return sum + (node.data.costPerHour || 0) * (node.data.instanceCount || 1);
-  }, 0);
-  const monthlyTotal = Math.round(hourlyTotal * 730);
+  const handleTitleSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (tempTitle.trim()) {
+      renameActiveProject(tempTitle.trim());
+    }
+    setIsEditingTitle(false);
+  };
 
-  // Evaluate Architecture Health
-  const auditResult = auditArchitecture(nodes, edges);
+  const auditResult = React.useMemo(() => auditArchitecture(nodes, edges), [nodes, edges]);
+  const monthlyTotal = React.useMemo(() => {
+    const hourly = nodes.reduce((acc, n) => acc + (n.data.costPerHour || 0) * (n.data.instanceCount || 1), 0);
+    return Math.round(hourly * 730);
+  }, [nodes]);
 
   const isChaosActive = isChaosCenterOpen || killedAzs.length > 0;
 
@@ -89,36 +109,58 @@ export const Header: React.FC = () => {
 
   return (
     <header className="h-13 bg-[var(--bg-surface)] border-b border-[var(--border-subtle)] px-3 sm:px-4 flex items-center justify-between z-30 select-none shadow-sm transition-colors duration-200">
-      {/* Left: Brand & Preset Selection */}
-      <div className="flex items-center gap-2.5 shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-sm shadow-orange-500/20 text-white shrink-0">
-            <Zap className="w-3.5 h-3.5 fill-white" />
-          </div>
-          <span className="text-xs sm:text-sm font-bold tracking-tight text-[var(--text-main)] hidden md:inline">
-            System Design Playground
-          </span>
+      {/* Left: n8n-Style Breadcrumb Navigation */}
+      <div className="flex items-center gap-2 shrink-0">
+        {/* Return to Dashboard Button */}
+        <button
+          type="button"
+          onClick={returnToDashboard}
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--bg-pill)] hover:bg-[var(--bg-panel)] border border-[var(--border-subtle)] text-[var(--text-main)] text-xs font-semibold transition-all hover:-translate-x-0.5"
+          title="Return to Projects Workspace"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 text-cyan-400" />
+          <span className="hidden sm:inline">Projects</span>
+        </button>
+
+        <span className="text-[var(--border-subtle)] font-bold text-xs">/</span>
+
+        {/* Project Title with Inline Rename */}
+        <div className="flex items-center">
+          {isEditingTitle ? (
+            <form onSubmit={handleTitleSubmit} className="flex items-center gap-1">
+              <input
+                type="text"
+                autoFocus
+                value={tempTitle}
+                onChange={(e) => setTempTitle(e.target.value)}
+                onBlur={() => handleTitleSubmit()}
+                className="px-2 py-0.5 bg-[var(--bg-panel)] border border-cyan-500 rounded-lg text-xs font-bold text-[var(--text-main)] focus:outline-none max-w-[180px]"
+              />
+              <button type="submit" className="p-1 text-emerald-400 hover:text-emerald-300">
+                <Check className="w-3 h-3" />
+              </button>
+            </form>
+          ) : (
+            <div
+              onClick={() => {
+                setTempTitle(activeProject?.name || 'Untitled Architecture');
+                setIsEditingTitle(true);
+              }}
+              className="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-[var(--bg-pill)] cursor-pointer group"
+              title="Click to rename architecture"
+            >
+              <span className="text-xs font-bold text-[var(--text-main)] max-w-[130px] sm:max-w-[200px] md:max-w-[260px] truncate">
+                {activeProject?.name || 'Untitled Architecture'}
+              </span>
+              <Edit2 className="w-2.5 h-2.5 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+            </div>
+          )}
         </div>
 
-        <div className="h-4 w-px bg-[var(--border-subtle)] hidden sm:block" />
-
-        {/* Preset Selector */}
-        <div className="flex items-center gap-1 bg-[var(--bg-pill)] px-2 py-1 rounded-lg border border-[var(--border-subtle)] hover:border-white/20 transition-colors">
-          <Layers className="w-3 h-3 text-purple-400 shrink-0" />
-          <select
-            value={activePresetId}
-            onChange={(e) => loadPreset(e.target.value)}
-            className="bg-transparent text-[11px] text-[var(--text-main)] focus:outline-none cursor-pointer font-medium max-w-[140px] sm:max-w-[190px] truncate"
-          >
-            {PRESET_ARCHITECTURES.map((preset) => (
-              <option key={preset.id} value={preset.id} className="bg-[var(--bg-surface)] text-[var(--text-main)]">
-                {preset.name}
-              </option>
-            ))}
-            <option value="custom" className="bg-[var(--bg-surface)] text-[var(--text-main)]" disabled>
-              Custom Architecture
-            </option>
-          </select>
+        {/* Cloud Sync Status Indicator */}
+        <div className="hidden lg:flex items-center gap-1.5 pl-1.5 border-l border-[var(--border-subtle)]" title="Project synchronized with database">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50 inline-block" />
+          <span className="text-[10px] text-[var(--text-muted)] font-medium">Saved</span>
         </div>
       </div>
 
@@ -312,6 +354,50 @@ export const Header: React.FC = () => {
         >
           <Trash2 className="w-3.5 h-3.5" />
         </button>
+
+        {/* User Account Avatar & Dropdown */}
+        <div className="relative border-l border-[var(--border-subtle)] pl-2">
+          <button
+            type="button"
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className="w-7 h-7 rounded-lg bg-gradient-to-tr from-cyan-500/20 to-indigo-500/20 border border-cyan-500/40 text-cyan-400 font-bold text-xs flex items-center justify-center hover:bg-cyan-500/30 transition-colors shadow-sm cursor-pointer"
+            title={user?.name || 'Account'}
+          >
+            {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
+          </button>
+
+          {showUserMenu && (
+            <div className="absolute right-0 top-9 w-44 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-2xl py-1.5 z-50 animate-fadeIn text-xs">
+              <div className="px-3 py-1.5 border-b border-[var(--border-subtle)]">
+                <div className="font-semibold text-[var(--text-main)] truncate">{user?.name || 'Architect'}</div>
+                <div className="text-[10px] text-[var(--text-muted)] truncate">{user?.email || 'local@playground'}</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowUserMenu(false);
+                  returnToDashboard();
+                }}
+                className="w-full px-3 py-1.5 text-left text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-panel)] flex items-center gap-2"
+              >
+                <Layers className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Back to Projects</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowUserMenu(false);
+                  logout();
+                  setAppView('auth');
+                }}
+                className="w-full px-3 py-1.5 text-left text-rose-400 hover:bg-rose-500/10 flex items-center gap-2"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

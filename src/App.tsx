@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { Canvas } from './components/Canvas';
@@ -11,11 +11,71 @@ import { ExportModal } from './components/modals/ExportModal';
 import { WasmBenchmarkModal } from './components/modals/WasmBenchmarkModal';
 import { CollabModal } from './components/modals/CollabModal';
 import { CloudLibraryModal } from './components/modals/CloudLibraryModal';
+import { AuthScreen } from './components/auth/AuthScreen';
+import { DashboardView } from './components/dashboard/DashboardView';
+import { useAuthStore } from './store/useAuthStore';
+import { usePlaygroundStore } from './store/usePlaygroundStore';
 
 export const App: React.FC = () => {
+  const { isAuthenticated, isGuest, isLoading, checkSession } = useAuthStore();
+  const { appView, setAppView, openProjectById } = usePlaygroundStore();
+
+  // Validate session on startup
+  useEffect(() => {
+    checkSession();
+  }, [checkSession]);
+
+  // Deep linking and browser Back/Forward (popstate) synchronization
+  useEffect(() => {
+    const handleUrlState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const projectId = params.get('project');
+      const view = params.get('view');
+
+      if (projectId && view === 'playground') {
+        openProjectById(projectId);
+      } else if (view === 'dashboard' || view === 'playground') {
+        setAppView(view);
+      }
+    };
+
+    handleUrlState();
+    window.addEventListener('popstate', handleUrlState);
+    return () => window.removeEventListener('popstate', handleUrlState);
+  }, [openProjectById, setAppView]);
+
+  // Initial loading splash
+  if (isLoading) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-[var(--bg-app)] text-[var(--text-muted)] select-none">
+        <div className="flex flex-col items-center gap-3 text-xs">
+          <div className="w-8 h-8 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin" />
+          <span className="font-medium tracking-wide">Initializing Workspace...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is neither authenticated nor in guest mode, show Auth Screen
+  if (!isAuthenticated && !isGuest) {
+    return <AuthScreen onSuccess={() => setAppView('dashboard')} />;
+  }
+
+  // If in Home Dashboard view
+  if (appView === 'dashboard') {
+    return (
+      <>
+        <DashboardView />
+        <CloudLibraryModal />
+        <WasmBenchmarkModal />
+      </>
+    );
+  }
+
+  // Default: Interactive Playground Simulation Canvas
   return (
     <div className="flex flex-col h-screen w-screen bg-[var(--bg-app)] text-[var(--text-main)] overflow-hidden antialiased font-sans transition-colors duration-200">
-      {/* Top Header */}
+      {/* Top Header with Breadcrumbs and Controls */}
       <Header />
 
       {/* Main Workspace Layout */}

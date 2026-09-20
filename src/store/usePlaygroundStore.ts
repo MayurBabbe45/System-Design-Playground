@@ -27,8 +27,26 @@ import { WorkerSimulationInput, WorkerSimulationOutput } from '../workers/simula
 import { benchmarkWasm, benchmarkJs } from '../wasm/wasmEngine';
 import { collabManager } from '../collab/collabManager';
 import { apiClient, SavedArchitecture } from '../api/client';
+import { auditArchitecture } from '../simulation/architectureLinter';
+
+export interface ActiveProjectSummary {
+  id: string;
+  name: string;
+  description?: string;
+  isPublic?: boolean;
+}
 
 interface PlaygroundState {
+  // Application View Routing & Workspace State (Auth -> Dashboard -> Playground)
+  appView: 'auth' | 'dashboard' | 'playground';
+  setAppView: (view: 'auth' | 'dashboard' | 'playground') => void;
+  activeProject: ActiveProjectSummary | null;
+  openProject: (arch: SavedArchitecture) => void;
+  openProjectById: (id: string) => Promise<boolean>;
+  returnToDashboard: () => Promise<void>;
+  renameActiveProject: (newName: string) => Promise<void>;
+  createNewProject: (name: string, description?: string, presetId?: string) => Promise<string | null>;
+
   // React Flow graph state
   nodes: Node<InfrastructureNodeData>[];
   edges: Edge<EdgeStreamData>[];
@@ -152,6 +170,21 @@ if (typeof document !== 'undefined') {
     document.documentElement.classList.remove('light');
   }
 }
+
+const getInitialAppView = (): 'auth' | 'dashboard' | 'playground' => {
+  if (typeof window === 'undefined') return 'auth';
+  const token = localStorage.getItem('sdp_auth_token');
+  const isGuest = localStorage.getItem('sdp_is_guest') === 'true';
+  if (!token && !isGuest) {
+    return 'auth';
+  }
+  const params = new URLSearchParams(window.location.search);
+  const viewParam = params.get('view');
+  if (viewParam === 'playground') return 'playground';
+  return 'dashboard';
+};
+
+const initialAppView = getInitialAppView();
 
 export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
   // Wire up Web Worker message response listener
@@ -302,6 +335,142 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
       set({ isCollabModalOpen: !get().isCollabModalOpen });
     },
 
+    // Application View Routing & Workspace State (Auth -> Dashboard -> Playground)
+    appView: initialAppView,
+    activeProject: null,
+    setAppView: (view) => {
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        url.searchParams.set('view', view);
+        if (view !== 'playground') {
+          url.searchParams.delete('project');
+        }
+        window.history.pushState({}, '', url.toString());
+      }
+      set({ appView: view });
+    },
+    openProject: (arch) => {
+      set({
+        nodes: arch.nodes,
+        edges: arch.edges,
+        activePresetId: 'custom',
+        activeCloudArchitectureId: arch.id,
+        activeProject: {
+          id: arch.id,
+          name: arch.name,
+          description: arch.description,
+          isPublic: arch.isPublic,
+        },
+        appView: 'playground',
+        selectedNodeId: null,
+        bottleneckNodeId: null,
+        bottleneckReason: null,
+        killedAzs: [],
+      });
+      collabManager.syncLocalCanvas(arch.nodes, arch.edges);
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        url.searchParams.set('view', 'playground');
+        url.searchParams.set('project', arch.id);
+        window.history.pushState({}, '', url.toString());
+      }
+    },
+    openProjectById: async (id: string) => {
+      try {
+        const arch = await apiClient.getArchitecture(id);
+        if (!arch) return false;
+        get().openProject(arch);
+        return true;
+      } catch (err) {
+        console.error('Failed to open project by id:', err);
+        return false;
+      }
+    },
+    returnToDashboard: async () => {
+      const activeProj = get().activeProject;
+      if (activeProj) {
+        try {
+          const audit = auditArchitecture(get().nodes, get().edges);
+          const monthlyCost = Math.round(get().nodes.reduce((acc, n) => acc + (n.data.costPerHour || 0) * 730, 0));
+          await apiClient.updateArchitecture(activeProj.id, {
+            name: activeProj.name,
+            nodes: get().nodes,
+            edges: get().edges,
+            grade: audit.grade,
+            monthlyCost,
+          });
+        } catch (err) {
+          console.warn('[Auto-Save] Error saving project before dashboard transition:', err);
+        }
+      }
+      get().setAppView('dashboard');
+    },
+    renameActiveProject: async (newName: string) => {
+      const activeProj = get().activeProject;
+      if (!activeProj || !newName.trim()) return;
+      const trimmed = newName.trim();
+      set({
+        activeProject: {
+          ...activeProj,
+          name: trimmed,
+        },
+      });
+      try {
+        await apiClient.updateArchitecture(activeProj.id, { name: trimmed });
+      } catch (err) {
+        console.error('Failed to rename architecture:', err);
+      }
+    },
+    createNewProject: async (name: string, description?: string, presetId?: string) => {
+      let projectNodes: Node<InfrastructureNodeData>[] = [];
+      let projectEdges: Edge<EdgeStreamData>[] = [];
+
+      if (presetId && presetId !== 'blank') {
+        const preset = PRESET_ARCHITECTURES.find((p) => p.id === presetId);
+        if (preset) {
+          projectNodes = preset.nodes.map((n) => ({
+            ...n,
+            data: {
+              ...n.data,
+              utilizationPercent: 0,
+              isBottleneck: false,
+            },
+          })) as Node<InfrastructureNodeData>[];
+          projectEdges = preset.edges.map((e) => ({
+            ...e,
+            type: 'flowEdge',
+            data: {
+              currentFlowRps: 2500,
+              latencyMs: 5,
+              errorRatePercent: 0,
+              animated: true,
+            },
+          })) as Edge<EdgeStreamData>[];
+        }
+      }
+
+      const audit = auditArchitecture(projectNodes, projectEdges);
+      const monthlyCost = Math.round(projectNodes.reduce((acc, n) => acc + (n.data.costPerHour || 0) * 730, 0));
+
+      try {
+        const saved = await apiClient.saveArchitecture({
+          name: name.trim() || 'Untitled Architecture',
+          description: description?.trim() || '',
+          nodes: projectNodes,
+          edges: projectEdges,
+          grade: audit.grade,
+          monthlyCost,
+          isPublic: true,
+        });
+
+        get().openProject(saved);
+        return saved.id;
+      } catch (err) {
+        console.error('Failed to create new project:', err);
+        return null;
+      }
+    },
+
     // Cloud Architecture Library State & Actions (PostgreSQL)
     isLibraryModalOpen: false,
     activeCloudArchitectureId: null,
@@ -314,6 +483,12 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
         edges: arch.edges,
         activePresetId: 'custom',
         activeCloudArchitectureId: arch.id,
+        activeProject: {
+          id: arch.id,
+          name: arch.name,
+          description: arch.description,
+          isPublic: arch.isPublic,
+        },
         selectedNodeId: null,
         bottleneckNodeId: null,
         bottleneckReason: null,

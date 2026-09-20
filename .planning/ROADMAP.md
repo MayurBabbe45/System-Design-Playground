@@ -27,6 +27,12 @@
 - Final UI polish, keyboard shortcuts (Ctrl+S, Delete, Fit View), and micro-animations.
 
 ## Milestone 2: WASM Engine, Multiplayer CRDT & Fullstack Persistence
-- Phase 5: Rust WebAssembly Discrete Event Engine compiled for Web Workers.
-- Phase 6: Yjs CRDT real-time collaboration with Node.js WebSocket relay server.
-- Phase 7: PostgreSQL + Express API backend for authenticated user saves and ClickHouse telemetry logging.
+- Phase 5: Rust WebAssembly Discrete Event Engine compiled for Web Workers. (Completed)
+- Phase 6: Yjs CRDT real-time collaboration with Node.js WebSocket relay server. (Completed)
+- Phase 7: PostgreSQL + Express API backend for authenticated user saves and ClickHouse telemetry logging. (Completed)
+
+## Milestone 3: n8n-Style Workspace, Authentication & Project Lifecycle
+- Phase 8: Authentication System & Session Management (Login, Signup, Guest Mode, JWT/Session Store)
+- Phase 9: n8n-Inspired Home Dashboard & Projects Workspace (Workspaces, Projects Grid, Templates Shelf, Project Creation)
+- Phase 10: Canvas Project Integration, Breadcrumb Navigation & Auto-Sync (URL routing, Project Breadcrumbs, Live Save Sync)
+
