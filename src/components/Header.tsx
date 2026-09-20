@@ -14,7 +14,9 @@ import {
   ArrowLeft,
   Edit2,
   Check,
-  LogOut
+  LogOut,
+  Box,
+  Activity
 } from 'lucide-react';
 import { usePlaygroundStore } from '../store/usePlaygroundStore';
 import { useAuthStore } from '../store/useAuthStore';
@@ -42,6 +44,8 @@ export const Header: React.FC = () => {
     killedAzs,
     theme,
     toggleTheme,
+    canvasViewMode,
+    setCanvasViewMode,
     activeProject,
     returnToDashboard,
     renameActiveProject,
@@ -135,17 +139,49 @@ export const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* Center: Clean Simulation Control Capsule */}
-      <div className="flex items-center gap-1.5 bg-[var(--bg-pill)] p-1 rounded-xl border border-[var(--border-subtle)] shadow-inner">
-        {/* Simulation Play / Pause Button */}
-        <button
-          onClick={toggleSimulation}
-          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer ${
-            isSimulating
-              ? 'bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
-              : 'bg-blue-600 text-white hover:bg-blue-500 shadow-blue-600/20'
-          }`}
-        >
+      {/* Center: Mode Switcher & Simulation Capsule */}
+      <div className="flex items-center gap-2">
+        {/* Simple vs Detailed Canvas Mode Toggle */}
+        <div className="hidden sm:flex items-center bg-[var(--bg-pill)] p-0.5 rounded-xl border border-[var(--border-subtle)] text-[11px] font-medium">
+          <button
+            type="button"
+            onClick={() => setCanvasViewMode('simple')}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+              canvasViewMode === 'simple'
+                ? 'bg-[var(--bg-surface)] text-blue-600 dark:text-blue-400 font-bold shadow-xs'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+            }`}
+            title="Simple Mode: Compact n8n-style nodes. Click a node to reveal full metrics."
+          >
+            <Box className="w-3 h-3" />
+            <span>Simple</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setCanvasViewMode('detailed')}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+              canvasViewMode === 'detailed'
+                ? 'bg-[var(--bg-surface)] text-blue-600 dark:text-blue-400 font-bold shadow-xs'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+            }`}
+            title="Detailed Mode: Always display live throughput, latency, and queue metrics on all canvas nodes."
+          >
+            <Activity className="w-3 h-3" />
+            <span>Detailed</span>
+          </button>
+        </div>
+
+        {/* Clean Simulation Control Capsule */}
+        <div className="flex items-center gap-1.5 bg-[var(--bg-pill)] p-1 rounded-xl border border-[var(--border-subtle)] shadow-inner">
+          {/* Simulation Play / Pause Button */}
+          <button
+            onClick={toggleSimulation}
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer ${
+              isSimulating
+                ? 'bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
+                : 'bg-blue-600 text-white hover:bg-blue-500 shadow-blue-600/20'
+            }`}
+          >
           {isSimulating ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current" />}
           <span className="hidden sm:inline">{isSimulating ? 'Pause' : 'Simulate'}</span>
         </button>
@@ -181,6 +217,7 @@ export const Header: React.FC = () => {
             {targetGlobalRps >= 1000 ? `${(targetGlobalRps / 1000).toFixed(1)}k` : targetGlobalRps} RPS
           </span>
         </div>
+      </div>
       </div>
 
       {/* Right: Resilience & Utility Controls */}

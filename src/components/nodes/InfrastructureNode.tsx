@@ -9,6 +9,7 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
   const nodeData = data as unknown as InfrastructureNodeData;
   const setSelectedNodeId = usePlaygroundStore((state) => state.setSelectedNodeId);
   const killedAzs = usePlaygroundStore((state) => state.killedAzs);
+  const canvasViewMode = usePlaygroundStore((state) => state.canvasViewMode);
   const meta = COMPONENT_CATALOG[nodeData.typeId];
 
   // Dynamically resolve icon
@@ -17,6 +18,61 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
   const isClient = nodeData.typeId === 'traffic_generator';
   const isAzKilled = nodeData.availabilityZone && killedAzs.includes(nodeData.availabilityZone);
   const isEffectivelyDead = nodeData.isKilled || isAzKilled;
+
+  // Show detailed metrics if canvas is in 'detailed' mode OR if this node is currently clicked/selected
+  const showDetails = canvasViewMode === 'detailed' || selected;
+
+  const getStatusDot = () => {
+    if (isEffectivelyDead) {
+      return (
+        <span
+          className="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-600 inline-block"
+          title={isAzKilled ? 'AZ Down' : 'Offline'}
+        />
+      );
+    }
+    if (nodeData.circuitBreakerState === 'OPEN') {
+      return (
+        <span
+          className="w-2 h-2 rounded-full bg-amber-500 animate-ping inline-block"
+          title="Circuit Open"
+        />
+      );
+    }
+    if (nodeData.isBottleneck) {
+      return (
+        <span
+          className="w-2 h-2 rounded-full bg-rose-500 animate-ping inline-block"
+          title="Bottleneck"
+        />
+      );
+    }
+    switch (nodeData.status) {
+      case 'healthy':
+        return (
+          <span
+            className="w-2 h-2 rounded-full bg-emerald-500 inline-block"
+            title="Healthy"
+          />
+        );
+      case 'warning':
+        return (
+          <span
+            className="w-2 h-2 rounded-full bg-amber-500 animate-pulse inline-block"
+            title="High Load"
+          />
+        );
+      case 'critical':
+        return (
+          <span
+            className="w-2 h-2 rounded-full bg-rose-500 animate-pulse inline-block"
+            title="Overloaded"
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
   const getStatusBadge = () => {
     if (isEffectivelyDead) {
@@ -78,7 +134,7 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
       return 'border-red-500 ring-2 ring-red-500/50 shadow-[0_0_24px_rgba(239,68,68,0.35)]';
     }
     if (selected) {
-      return 'border-blue-500 ring-2 ring-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.35)]';
+      return 'border-blue-500 ring-2 ring-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.25)]';
     }
     if (nodeData.status === 'critical') {
       return 'border-red-500/60 shadow-[0_0_16px_rgba(239,68,68,0.2)]';
@@ -86,11 +142,61 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
     if (nodeData.status === 'warning') {
       return 'border-amber-500/60 shadow-[0_0_16px_rgba(245,158,11,0.2)]';
     }
-    return 'border-[var(--border-card)] hover:border-blue-400/40 shadow-md shadow-black/5 dark:shadow-black/20';
+    return 'border-[var(--border-card)] hover:border-blue-500/40 shadow-sm hover:shadow-md';
   };
 
   const utilPercent = nodeData.utilizationPercent || 0;
 
+  // Simple Mode (n8n-style compact card when not selected)
+  if (!showDetails) {
+    return (
+      <div
+        onClick={() => setSelectedNodeId(id)}
+        className={`relative w-[210px] bg-[var(--bg-surface)] rounded-xl border p-2.5 cursor-pointer transition-all duration-150 shadow-sm ${getCardBorder()}`}
+      >
+        {/* Target Connection Handle (Left) */}
+        {!isClient && (
+          <Handle
+            type="target"
+            position={Position.Left}
+            className="n8n-handle n8n-handle-target !-left-2"
+          />
+        )}
+
+        {/* Compact n8n Node Row: Icon, Title, Subtitle, Status Dot */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0 shadow-xs"
+              style={{ backgroundColor: `${meta?.color || '#2563eb'}20`, color: meta?.color || '#2563eb' }}
+            >
+              <IconComponent className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-xs font-semibold text-[var(--text-main)] truncate">
+                {nodeData.label}
+              </div>
+              <div className="text-[10.5px] text-[var(--text-muted)] truncate">
+                {nodeData.instanceCount > 1 ? `${nodeData.instanceCount}x · ` : ''}{meta?.name}
+              </div>
+            </div>
+          </div>
+          <div className="shrink-0 flex items-center">
+            {getStatusDot()}
+          </div>
+        </div>
+
+        {/* Source Connection Handle (Right) */}
+        <Handle
+          type="source"
+          position={Position.Right}
+          className="n8n-handle n8n-handle-source !-right-2"
+        />
+      </div>
+    );
+  }
+
+  // Detailed Mode (or selected node in simple mode)
   return (
     <div
       onClick={() => setSelectedNodeId(id)}
@@ -105,12 +211,12 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
         />
       )}
 
-      {/* Header: Icon, Title, AZ Pill, Status */}
+      {/* Header: Icon, Title, AZ Pill, Status Badge */}
       <div className="flex items-start justify-between gap-2 mb-2.5">
         <div className="flex items-center gap-2 min-w-0">
           <div
             className="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0 shadow-xs"
-            style={{ backgroundColor: `${meta?.color || '#3b82f6'}25`, color: meta?.color || '#3b82f6' }}
+            style={{ backgroundColor: `${meta?.color || '#2563eb'}25`, color: meta?.color || '#2563eb' }}
           >
             <IconComponent className="w-3.5 h-3.5" />
           </div>

@@ -129,6 +129,11 @@ interface PlaygroundState {
   theme: 'dark' | 'light';
   toggleTheme: () => void;
 
+  // Canvas View Mode (Simple: n8n-style compact nodes vs Detailed: live metrics visible)
+  canvasViewMode: 'simple' | 'detailed';
+  setCanvasViewMode: (mode: 'simple' | 'detailed') => void;
+  toggleCanvasViewMode: () => void;
+
   // WebAssembly Simulation Engine & Benchmarks
   engineMode: SimulationEngineMode;
   isWasmReady: boolean;
@@ -185,6 +190,16 @@ const getInitialAppView = (): 'auth' | 'dashboard' | 'playground' => {
 };
 
 const initialAppView = getInitialAppView();
+
+const getInitialViewMode = (): 'simple' | 'detailed' => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('spd_view_mode');
+    if (saved === 'simple' || saved === 'detailed') return saved;
+  }
+  return 'simple';
+};
+
+const initialViewMode = getInitialViewMode();
 
 export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
   // Wire up Web Worker message response listener
@@ -519,6 +534,22 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
         localStorage.setItem('spd_theme', nextTheme);
       }
       set({ theme: nextTheme });
+    },
+
+    // Canvas View Mode (Simple vs Detailed)
+    canvasViewMode: initialViewMode,
+    setCanvasViewMode: (mode) => {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('spd_view_mode', mode);
+      }
+      set({ canvasViewMode: mode });
+    },
+    toggleCanvasViewMode: () => {
+      const next = get().canvasViewMode === 'simple' ? 'detailed' : 'simple';
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('spd_view_mode', next);
+      }
+      set({ canvasViewMode: next });
     },
 
     setEngineMode: (mode) => {
