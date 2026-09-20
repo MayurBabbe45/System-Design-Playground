@@ -166,13 +166,13 @@ export const WasmBenchmarkModal: React.FC = () => {
               disabled={isBenchmarking}
               className={`w-full py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all ${
                 isBenchmarking
-                  ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
+                  ? 'bg-[var(--bg-pill)] text-[var(--text-muted)] cursor-not-allowed'
                   : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-950/50'
               }`}
             >
               {isBenchmarking ? (
                 <>
-                  <RefreshCw className="w-4 h-4 animate-spin text-neutral-400" />
+                  <RefreshCw className="w-4 h-4 animate-spin text-[var(--text-muted)]" />
                   Running {testIterations.toLocaleString()} iterations...
                 </>
               ) : (

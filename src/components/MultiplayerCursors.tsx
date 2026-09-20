@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useReactFlow } from '@xyflow/react';
 import { collabManager } from '../collab/collabManager';
 import { PeerState } from '../collab/types';
-import { MousePointer2 } from 'lucide-react';
 
 export const MultiplayerCursors: React.FC = () => {
   const [peers, setPeers] = useState<PeerState[]>([]);
@@ -33,27 +32,33 @@ export const MultiplayerCursors: React.FC = () => {
               transform: 'translate(-2px, -2px)',
             }}
           >
-            {/* Custom Colored Cursor Icon */}
-            <MousePointer2
-              className="w-4 h-4 drop-shadow-md"
-              style={{
-                color: peer.user.color,
-                fill: peer.user.color,
-              }}
-            />
+            {/* High-visibility Dual-tone Cursor SVG (Crisp dark outline ensures visibility on both Light and Dark mode) */}
+            <svg
+              className="w-5 h-5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+              viewBox="0 0 24 24"
+              fill={peer.user.color}
+              stroke="#0f172a"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polygon points="3 3 10 21 13 13 21 10 3 3" />
+            </svg>
 
-            {/* Peer Name Tag */}
+            {/* Peer Name Tag with High Contrast */}
             <div
-              className="px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wide text-white shadow-lg backdrop-blur-md flex items-center gap-1 -mt-1 select-none whitespace-nowrap border"
+              className="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide shadow-md flex items-center gap-1 -mt-1 select-none whitespace-nowrap border"
               style={{
-                backgroundColor: `${peer.user.color}dd`,
-                borderColor: `${peer.user.color}`,
+                backgroundColor: peer.user.color,
+                color: '#ffffff',
+                textShadow: '0 1px 2px rgba(0,0,0,0.7)',
+                borderColor: 'rgba(0,0,0,0.3)',
               }}
             >
               <span>{peer.user.name}</span>
               {peer.selectedNodeId && (
-                <span className="opacity-75 text-[9px] font-mono">
-                  [editing]
+                <span className="opacity-90 text-[9px] font-mono bg-black/30 px-1 rounded">
+                  editing
                 </span>
               )}
             </div>

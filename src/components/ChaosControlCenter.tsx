@@ -113,7 +113,7 @@ export const ChaosControlCenter: React.FC = () => {
             step="25"
             value={globalInjectedLatencyMs}
             onChange={(e) => setGlobalInjectedLatencyMs(Number(e.target.value))}
-            className="w-full accent-amber-500 h-1.5 bg-neutral-700/50 dark:bg-neutral-800 rounded-lg cursor-pointer"
+            className="w-full accent-amber-500 h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-lg cursor-pointer"
           />
         </div>
 
@@ -133,7 +133,7 @@ export const ChaosControlCenter: React.FC = () => {
             step="5"
             value={globalPacketDropPercent}
             onChange={(e) => setGlobalPacketDropPercent(Number(e.target.value))}
-            className="w-full accent-red-500 h-1.5 bg-neutral-700/50 dark:bg-neutral-800 rounded-lg cursor-pointer"
+            className="w-full accent-red-500 h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-lg cursor-pointer"
           />
         </div>
 

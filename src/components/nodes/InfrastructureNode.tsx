@@ -21,7 +21,7 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
   const getStatusBadge = () => {
     if (isEffectivelyDead) {
       return (
-        <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400 border border-neutral-700">
+        <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-neutral-800 text-slate-700 dark:text-neutral-400 border border-slate-300 dark:border-neutral-700">
           <span className="w-1.5 h-1.5 rounded-full bg-neutral-500" />
           {isAzKilled ? 'AZ DOWN' : 'OFFLINE'}
         </span>
@@ -29,16 +29,16 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
     }
     if (nodeData.circuitBreakerState === 'OPEN') {
       return (
-        <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-600 animate-pulse">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+        <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-600 animate-pulse">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
           CIRCUIT OPEN
         </span>
       );
     }
     if (nodeData.isBottleneck) {
       return (
-        <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-950 text-red-300 border border-red-700 animate-pulse">
-          <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping" />
+        <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300 border border-red-300 dark:border-red-700 animate-pulse">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
           BOTTLENECK
         </span>
       );
@@ -46,22 +46,22 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
     switch (nodeData.status) {
       case 'healthy':
         return (
-          <span className="flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-950/70 text-emerald-300 border border-emerald-800/60">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          <span className="flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800/60">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             Healthy
           </span>
         );
       case 'warning':
         return (
-          <span className="flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-950/70 text-amber-300 border border-amber-800/60">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+          <span className="flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800/60">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
             High Load
           </span>
         );
       case 'critical':
         return (
-          <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-950/80 text-red-300 border border-red-800 animate-pulse">
-            <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+          <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-950/80 text-red-800 dark:text-red-300 border border-red-300 dark:border-red-800 animate-pulse">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
             Overloaded
           </span>
         );
@@ -72,7 +72,7 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
 
   const getCardBorder = () => {
     if (isEffectivelyDead) {
-      return 'border-neutral-800 opacity-60 filter grayscale';
+      return 'border-neutral-300 dark:border-neutral-800 opacity-60 filter grayscale';
     }
     if (nodeData.isBottleneck) {
       return 'border-red-500 ring-2 ring-red-500/50 shadow-[0_0_24px_rgba(239,68,68,0.35)]';
@@ -86,7 +86,7 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
     if (nodeData.status === 'warning') {
       return 'border-amber-500/60 shadow-[0_0_16px_rgba(245,158,11,0.2)]';
     }
-    return 'border-[var(--border-card)] hover:border-blue-400/40 shadow-md shadow-black/20';
+    return 'border-[var(--border-card)] hover:border-blue-400/40 shadow-md shadow-black/5 dark:shadow-black/20';
   };
 
   const utilPercent = nodeData.utilizationPercent || 0;

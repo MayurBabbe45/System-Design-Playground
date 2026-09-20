@@ -134,17 +134,17 @@ export const TelemetryDrawer: React.FC = () => {
               </button>
               <button
                 onClick={() => setActiveTab('queue')}
-                className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'queue'
-                    ? 'bg-[#1e2230] text-purple-400 border border-purple-500/40 shadow-sm'
-                    : 'text-neutral-400 hover:text-neutral-200'
+                    ? 'bg-[var(--bg-surface)] text-purple-600 dark:text-purple-400 border border-purple-500/40 shadow-sm'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
                 Queue Depth
               </button>
             </div>
-            <div className="text-[10px] text-neutral-400 font-mono">
+            <div className="text-[10px] text-[var(--text-muted)] font-mono">
               Web Worker Discrete-Event Sampling
             </div>
           </div>
@@ -171,18 +171,21 @@ export const TelemetryDrawer: React.FC = () => {
                     <stop offset="95%" stopColor="#a371f7" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis dataKey="time" stroke="#484f58" fontSize={9} tickLine={false} />
-                <YAxis stroke="#484f58" fontSize={9} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" />
+                <XAxis dataKey="time" stroke="var(--text-muted)" fontSize={9} tickLine={false} />
+                <YAxis stroke="var(--text-muted)" fontSize={9} tickLine={false} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#161922',
-                    borderColor: 'rgba(255,255,255,0.12)',
+                    backgroundColor: 'var(--bg-surface)',
+                    borderColor: 'var(--border-card)',
+                    color: 'var(--text-main)',
                     borderRadius: '8px',
                     fontSize: '11px',
                     fontFamily: 'monospace',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
                   }}
+                  itemStyle={{ color: 'var(--text-main)' }}
+                  labelStyle={{ color: 'var(--text-muted)' }}
                 />
                 {activeTab === 'throughput' && (
                   <>

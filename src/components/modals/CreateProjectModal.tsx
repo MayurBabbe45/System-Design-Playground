@@ -181,7 +181,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                         {tmpl.tag}
                       </span>
                       {isSelected && (
-                        <span className="text-[10px] text-cyan-400 font-semibold flex items-center gap-1">
+                        <span className="text-[10px] text-cyan-600 dark:text-cyan-400 font-semibold flex items-center gap-1">
                           Selected
                         </span>
                       )}
