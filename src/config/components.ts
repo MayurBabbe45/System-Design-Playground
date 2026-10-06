@@ -11,7 +11,7 @@ export const COMPONENT_CATALOG: Record<ComponentTypeId, ComponentMetadata> = {
     defaultLatencyMs: 0,
     defaultCostPerHour: 0.0,
     defaultQueueDepth: 0,
-    color: '#2563eb', // Clean Technical Blue
+    color: '#ff6d5a', // n8n Trigger Coral
   },
   cdn: {
     typeId: 'cdn',
@@ -23,7 +23,7 @@ export const COMPONENT_CATALOG: Record<ComponentTypeId, ComponentMetadata> = {
     defaultLatencyMs: 15,
     defaultCostPerHour: 0.25,
     defaultQueueDepth: 1000,
-    color: '#0284c7', // Sky / Edge
+    color: '#0284c7', // Global Edge Sky Blue
   },
   api_gateway: {
     typeId: 'api_gateway',
@@ -35,7 +35,7 @@ export const COMPONENT_CATALOG: Record<ComponentTypeId, ComponentMetadata> = {
     defaultLatencyMs: 5,
     defaultCostPerHour: 0.15,
     defaultQueueDepth: 500,
-    color: '#4f46e5', // Deep Indigo
+    color: '#8b5cf6', // Gateway Purple
   },
   load_balancer: {
     typeId: 'load_balancer',
@@ -47,7 +47,7 @@ export const COMPONENT_CATALOG: Record<ComponentTypeId, ComponentMetadata> = {
     defaultLatencyMs: 8,
     defaultCostPerHour: 0.08,
     defaultQueueDepth: 1000,
-    color: '#3b82f6', // Cobalt Blue
+    color: '#06b6d4', // Flow Balancer Cyan
   },
   web_server: {
     typeId: 'web_server',
@@ -59,7 +59,7 @@ export const COMPONENT_CATALOG: Record<ComponentTypeId, ComponentMetadata> = {
     defaultLatencyMs: 45,
     defaultCostPerHour: 0.12,
     defaultQueueDepth: 200,
-    color: '#2563eb', // Primary Compute Blue
+    color: '#3b82f6', // Compute Royal Blue
   },
   cache: {
     typeId: 'cache',
@@ -71,7 +71,7 @@ export const COMPONENT_CATALOG: Record<ComponentTypeId, ComponentMetadata> = {
     defaultLatencyMs: 2,
     defaultCostPerHour: 0.20,
     defaultQueueDepth: 1000,
-    color: '#0284c7', // Fast Cache Sky
+    color: '#ef4444', // Redis Crimson
   },
   relational_db: {
     typeId: 'relational_db',
@@ -83,7 +83,7 @@ export const COMPONENT_CATALOG: Record<ComponentTypeId, ComponentMetadata> = {
     defaultLatencyMs: 35,
     defaultCostPerHour: 0.45,
     defaultQueueDepth: 300,
-    color: '#334155', // Slate Steel
+    color: '#2563eb', // PostgreSQL Sapphire
   },
   nosql_db: {
     typeId: 'nosql_db',
@@ -95,7 +95,7 @@ export const COMPONENT_CATALOG: Record<ComponentTypeId, ComponentMetadata> = {
     defaultLatencyMs: 18,
     defaultCostPerHour: 0.35,
     defaultQueueDepth: 400,
-    color: '#475569', // Muted Slate
+    color: '#10b981', // Document Emerald
   },
   message_queue: {
     typeId: 'message_queue',
@@ -119,6 +119,6 @@ export const COMPONENT_CATALOG: Record<ComponentTypeId, ComponentMetadata> = {
     defaultLatencyMs: 60,
     defaultCostPerHour: 0.05,
     defaultQueueDepth: 1000,
-    color: '#64748b', // Cool Slate
+    color: '#f59e0b', // S3 Amber Gold
   },
 };

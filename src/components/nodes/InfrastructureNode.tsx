@@ -1,32 +1,72 @@
-import React, { memo } from 'react';
+import React, { memo, useState, useEffect, useRef } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
-import * as Icons from 'lucide-react';
-import { InfrastructureNodeData } from '../../types/playground';
+import { Zap } from 'lucide-react';
+import { InfrastructureNodeData, ComponentTypeId } from '../../types/playground';
 import { COMPONENT_CATALOG } from '../../config/components';
 import { usePlaygroundStore } from '../../store/usePlaygroundStore';
+import { ComponentIcon } from '../icons/ComponentIcons';
+
+// Valid downstream components that can be quickly added via the (+) button
+const CONNECTABLE_TYPES: ComponentTypeId[] = [
+  'load_balancer',
+  'web_server',
+  'cache',
+  'relational_db',
+  'nosql_db',
+  'message_queue',
+  'object_storage',
+  'api_gateway',
+  'cdn',
+];
 
 export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selected }) => {
   const nodeData = data as unknown as InfrastructureNodeData;
   const setSelectedNodeId = usePlaygroundStore((state) => state.setSelectedNodeId);
+  const appendConnectedNode = usePlaygroundStore((state) => state.appendConnectedNode);
+  const isViewOnly = usePlaygroundStore((state) => state.isViewOnly);
   const killedAzs = usePlaygroundStore((state) => state.killedAzs);
   const canvasViewMode = usePlaygroundStore((state) => state.canvasViewMode);
   const meta = COMPONENT_CATALOG[nodeData.typeId];
 
-  // Dynamically resolve icon
-  const IconComponent = (Icons as unknown as Record<string, React.ElementType>)[meta?.iconName || 'Cpu'] || Icons.Cpu;
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
 
   const isClient = nodeData.typeId === 'traffic_generator';
   const isAzKilled = nodeData.availabilityZone && killedAzs.includes(nodeData.availabilityZone);
   const isEffectivelyDead = nodeData.isKilled || isAzKilled;
 
-  // Show detailed metrics if canvas is in 'detailed' mode OR if this node is currently clicked/selected
+  // Show detailed metrics pill under the node if canvas is in 'detailed' mode or selected
   const showDetails = canvasViewMode === 'detailed' || selected;
+
+  // Close picker on click outside or Escape
+  useEffect(() => {
+    if (!isPickerOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsPickerOpen(false);
+      }
+    };
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setIsPickerOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isPickerOpen]);
 
   const getStatusDot = () => {
     if (isEffectivelyDead) {
       return (
         <span
-          className="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-600 inline-block"
+          className="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-600 inline-block shrink-0"
           title={isAzKilled ? 'AZ Down' : 'Offline'}
         />
       );
@@ -34,7 +74,7 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
     if (nodeData.circuitBreakerState === 'OPEN') {
       return (
         <span
-          className="w-2 h-2 rounded-full bg-amber-500 animate-ping inline-block"
+          className="w-2 h-2 rounded-full bg-amber-500 animate-ping inline-block shrink-0"
           title="Circuit Open"
         />
       );
@@ -42,7 +82,7 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
     if (nodeData.isBottleneck) {
       return (
         <span
-          className="w-2 h-2 rounded-full bg-rose-500 animate-ping inline-block"
+          className="w-2 h-2 rounded-full bg-rose-500 animate-ping inline-block shrink-0"
           title="Bottleneck"
         />
       );
@@ -51,21 +91,21 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
       case 'healthy':
         return (
           <span
-            className="w-2 h-2 rounded-full bg-emerald-500 inline-block"
+            className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block shrink-0"
             title="Healthy"
           />
         );
       case 'warning':
         return (
           <span
-            className="w-2 h-2 rounded-full bg-amber-500 animate-pulse inline-block"
+            className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse inline-block shrink-0"
             title="High Load"
           />
         );
       case 'critical':
         return (
           <span
-            className="w-2 h-2 rounded-full bg-rose-500 animate-pulse inline-block"
+            className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse inline-block shrink-0"
             title="Overloaded"
           />
         );
@@ -74,86 +114,46 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
     }
   };
 
-  const getStatusBadge = () => {
-    if (isEffectivelyDead) {
-      return (
-        <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-neutral-800 text-slate-700 dark:text-neutral-400 border border-slate-300 dark:border-neutral-700">
-          <span className="w-1.5 h-1.5 rounded-full bg-neutral-500" />
-          {isAzKilled ? 'AZ DOWN' : 'OFFLINE'}
-        </span>
-      );
-    }
-    if (nodeData.circuitBreakerState === 'OPEN') {
-      return (
-        <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-600 animate-pulse">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
-          CIRCUIT OPEN
-        </span>
-      );
-    }
-    if (nodeData.isBottleneck) {
-      return (
-        <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300 border border-red-300 dark:border-red-700 animate-pulse">
-          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
-          BOTTLENECK
-        </span>
-      );
-    }
-    switch (nodeData.status) {
-      case 'healthy':
-        return (
-          <span className="flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800/60">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            Healthy
-          </span>
-        );
-      case 'warning':
-        return (
-          <span className="flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800/60">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-            High Load
-          </span>
-        );
-      case 'critical':
-        return (
-          <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-950/80 text-red-800 dark:text-red-300 border border-red-300 dark:border-red-800 animate-pulse">
-            <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-            Overloaded
-          </span>
-        );
-      default:
-        return null;
-    }
-  };
-
   const getCardBorder = () => {
     if (isEffectivelyDead) {
-      return 'border-neutral-300 dark:border-neutral-800 opacity-60 filter grayscale';
+      return 'border-[var(--border-subtle)] opacity-50 grayscale';
     }
     if (nodeData.isBottleneck) {
-      return 'border-red-500 ring-2 ring-red-500/50 shadow-[0_0_24px_rgba(239,68,68,0.35)]';
+      return 'border-rose-500 ring-2 ring-rose-500/60 shadow-[0_0_20px_rgba(244,63,94,0.35)] animate-pulse';
     }
     if (selected) {
-      return 'border-blue-500 ring-2 ring-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.25)]';
+      return 'border-blue-500 ring-2 ring-blue-500 shadow-md';
     }
     if (nodeData.status === 'critical') {
-      return 'border-red-500/60 shadow-[0_0_16px_rgba(239,68,68,0.2)]';
+      return 'border-rose-500/80 shadow-[0_0_12px_rgba(244,63,94,0.25)]';
     }
     if (nodeData.status === 'warning') {
-      return 'border-amber-500/60 shadow-[0_0_16px_rgba(245,158,11,0.2)]';
+      return 'border-amber-500/80 shadow-[0_0_12px_rgba(245,158,11,0.25)]';
     }
-    return 'border-[var(--border-card)] hover:border-blue-500/40 shadow-sm hover:shadow-md';
+    return 'border-[var(--border-card)] hover:border-blue-500/50 shadow-xs hover:shadow-md';
   };
 
   const utilPercent = nodeData.utilizationPercent || 0;
 
-  // Simple Mode (n8n-style compact card when not selected)
-  if (!showDetails) {
-    return (
+  return (
+    <div className="flex flex-col items-center group select-none relative">
+      {/* The n8n Node Card Shell */}
       <div
         onClick={() => setSelectedNodeId(id)}
-        className={`relative w-[210px] bg-[var(--bg-surface)] rounded-xl border p-2.5 cursor-pointer transition-all duration-150 shadow-sm ${getCardBorder()}`}
+        className={`relative flex items-center justify-center w-[76px] h-[76px] bg-[var(--bg-surface)] border transition-all duration-150 cursor-pointer ${
+          isClient ? 'rounded-l-3xl rounded-r-2xl' : 'rounded-2xl'
+        } ${getCardBorder()}`}
       >
+        {/* Trigger Lightning Badge (Left of Trigger Node) */}
+        {isClient && (
+          <div
+            className="absolute -left-6 top-1/2 -translate-y-1/2 flex items-center justify-center text-orange-500 animate-pulse"
+            title="Ingress Traffic Trigger"
+          >
+            <Zap className="w-4 h-4 fill-orange-500 text-orange-500" />
+          </div>
+        )}
+
         {/* Target Connection Handle (Left) */}
         {!isClient && (
           <Handle
@@ -163,27 +163,9 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
           />
         )}
 
-        {/* Compact n8n Node Row: Icon, Title, Subtitle, Status Dot */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0 shadow-xs"
-              style={{ backgroundColor: `${meta?.color || '#2563eb'}20`, color: meta?.color || '#2563eb' }}
-            >
-              <IconComponent className="w-4 h-4" />
-            </div>
-            <div className="min-w-0">
-              <div className="text-xs font-semibold text-[var(--text-main)] truncate">
-                {nodeData.label}
-              </div>
-              <div className="text-[10.5px] text-[var(--text-muted)] truncate">
-                {nodeData.instanceCount > 1 ? `${nodeData.instanceCount}x · ` : ''}{meta?.name}
-              </div>
-            </div>
-          </div>
-          <div className="shrink-0 flex items-center">
-            {getStatusDot()}
-          </div>
+        {/* Clean, Prominent n8n Center Symbol */}
+        <div className="flex items-center justify-center transition-transform duration-150 group-hover:scale-105 pointer-events-none">
+          <ComponentIcon typeId={nodeData.typeId} size={42} color={meta?.color} />
         </div>
 
         {/* Source Connection Handle (Right) */}
@@ -192,103 +174,119 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
           position={Position.Right}
           className="n8n-handle n8n-handle-source !-right-2"
         />
-      </div>
-    );
-  }
 
-  // Detailed Mode (or selected node in simple mode)
-  return (
-    <div
-      onClick={() => setSelectedNodeId(id)}
-      className={`relative w-[245px] bg-[var(--bg-surface)] rounded-xl border p-3 cursor-pointer transition-all duration-150 shadow-sm ${getCardBorder()}`}
-    >
-      {/* Target Connection Handle (Left) */}
-      {!isClient && (
-        <Handle
-          type="target"
-          position={Position.Left}
-          className="n8n-handle n8n-handle-target !-left-2"
-        />
+        {/* n8n Plus Button: Interactive Quick-Add and Connect Next Node */}
+        <button
+          type="button"
+          disabled={isViewOnly}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!isViewOnly) setIsPickerOpen((prev) => !prev);
+          }}
+          title={isViewOnly ? 'View-Only Mode' : 'Quickly add and connect next node (+)'}
+          className={`absolute -right-7 top-1/2 -translate-y-1/2 w-4 h-4 rounded border border-[var(--border-card)] bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-blue-500 hover:border-blue-400 hover:scale-110 active:scale-95 flex items-center justify-center text-[11px] font-bold shadow-xs transition-all cursor-pointer z-10 ${
+            isPickerOpen
+              ? 'border-blue-500 text-blue-500 ring-2 ring-blue-500/40 bg-blue-500/10'
+              : 'opacity-80 hover:opacity-100'
+          }`}
+        >
+          +
+        </button>
+      </div>
+
+      {/* Quick Node Picker Popover */}
+      {isPickerOpen && !isViewOnly && (
+        <div
+          ref={pickerRef}
+          onClick={(e) => e.stopPropagation()}
+          className="absolute left-[88px] top-4 z-50 w-56 bg-[var(--bg-surface)] border border-[var(--border-card)] rounded-xl shadow-2xl p-1.5 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150"
+        >
+          <div className="flex items-center justify-between px-2 py-1 border-b border-[var(--border-subtle)] mb-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+              Add Connected Node
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsPickerOpen(false)}
+              className="text-[var(--text-muted)] hover:text-[var(--text-main)] text-xs p-0.5 rounded cursor-pointer leading-none"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="max-h-56 overflow-y-auto space-y-0.5 custom-scrollbar">
+            {CONNECTABLE_TYPES.map((type) => {
+              const itemMeta = COMPONENT_CATALOG[type];
+              if (!itemMeta) return null;
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    appendConnectedNode(id, type);
+                    setIsPickerOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-blue-500/10 hover:text-blue-500 text-[var(--text-main)] transition-colors cursor-pointer group/item"
+                >
+                  <div
+                    className="w-6 h-6 rounded-md flex items-center justify-center shrink-0 border border-white/5"
+                    style={{
+                      background: `linear-gradient(135deg, ${itemMeta.color}30 0%, ${itemMeta.color}15 100%)`,
+                    }}
+                  >
+                    <ComponentIcon typeId={type} size={15} color={itemMeta.color} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-medium truncate group-hover/item:text-blue-500">
+                      {itemMeta.name}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       )}
 
-      {/* Header: Icon, Title, AZ Pill, Status Badge */}
-      <div className="flex items-start justify-between gap-2 mb-2.5">
-        <div className="flex items-center gap-2 min-w-0">
-          <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0 shadow-xs"
-            style={{ backgroundColor: `${meta?.color || '#2563eb'}25`, color: meta?.color || '#2563eb' }}
-          >
-            <IconComponent className="w-3.5 h-3.5" />
-          </div>
-          <div className="min-w-0">
-            <div className="text-xs font-semibold text-[var(--text-main)] truncate">
-              {nodeData.label}
-            </div>
-            <div className="text-[10px] text-[var(--text-muted)] font-medium flex items-center gap-1.5">
-              <span>{nodeData.instanceCount > 1 ? `${nodeData.instanceCount}x` : meta?.name}</span>
-              {nodeData.availabilityZone && (
-                <span className="px-1 py-0.2 rounded bg-[var(--bg-pill)] text-[9px] font-mono text-[var(--text-muted)] border border-[var(--border-subtle)]">
-                  {nodeData.availabilityZone.replace('us-east-', '')}
-                </span>
-              )}
-            </div>
-          </div>
+      {/* Node Label & Subtitle Below the Card (Matching n8n) */}
+      <div className="mt-2 text-center max-w-[140px] px-1 pointer-events-none">
+        <div className="text-xs font-bold text-[var(--text-main)] leading-snug truncate">
+          {nodeData.label}
         </div>
-        <div className="shrink-0">{getStatusBadge()}</div>
-      </div>
-
-      {/* Metrics Row: 3 cleanly separated stat pills */}
-      <div className="grid grid-cols-3 gap-1 bg-[var(--bg-pill)] rounded-lg py-1.5 px-1 text-center mb-2 border border-[var(--border-subtle)]">
-        <div>
-          <div className="text-[8px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Throughput</div>
-          <div className="text-[11px] font-bold font-mono text-blue-600 dark:text-blue-400">
-            {isEffectivelyDead ? '0' : nodeData.currentRps.toLocaleString()}
-          </div>
-        </div>
-        <div>
-          <div className="text-[8px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Latency</div>
-          <div className={`text-[11px] font-bold font-mono ${nodeData.currentLatency > 100 ? 'text-amber-500 dark:text-amber-400' : 'text-[var(--text-main)]'}`}>
-            {isEffectivelyDead ? '0ms' : `${nodeData.currentLatency}ms`}
-          </div>
-        </div>
-        <div>
-          <div className="text-[8px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">Queue</div>
-          <div className={`text-[11px] font-bold font-mono ${nodeData.currentQueue > 50 ? 'text-rose-500 font-bold' : 'text-[var(--text-main)]'}`}>
-            {isEffectivelyDead ? '0' : nodeData.currentQueue}
-          </div>
+        <div className="text-[10px] text-[var(--text-muted)] font-medium truncate flex items-center justify-center gap-1 mt-0.5">
+          {getStatusDot()}
+          <span>
+            {nodeData.instanceCount > 1 ? `${nodeData.instanceCount}x · ` : ''}
+            {meta?.name}
+          </span>
         </div>
       </div>
 
-      {/* Utilization Bar (for non-clients) */}
-      {!isClient && !isEffectivelyDead && (
-        <div className="space-y-0.5">
-          <div className="flex items-center justify-between text-[9px] font-mono">
-            <span className="text-[var(--text-muted)]">Capacity:</span>
-            <span className={`font-bold ${utilPercent >= 90 ? 'text-red-500' : utilPercent >= 75 ? 'text-amber-500' : 'text-emerald-500 dark:text-emerald-400'}`}>
-              {utilPercent}%
+      {/* Detailed Mode Metrics Pill (Appended Below When Detailed Mode is Active or Selected) */}
+      {showDetails && (
+        <div className="mt-1.5 px-2 py-1 rounded-lg bg-[var(--bg-pill)] border border-[var(--border-subtle)] text-[9px] font-mono shadow-xs space-y-0.5 text-center min-w-[110px] pointer-events-none animate-in fade-in duration-150">
+          <div className="flex items-center justify-between gap-1 text-[8px] text-[var(--text-muted)] font-semibold uppercase">
+            <span>RPS</span>
+            <span className="text-blue-500 dark:text-blue-400 font-bold">
+              {isEffectivelyDead ? '0' : nodeData.currentRps.toLocaleString()}
             </span>
           </div>
-          <div className="w-full bg-[var(--bg-pill)] rounded-full h-1.5 overflow-hidden border border-[var(--border-subtle)]">
-            <div
-              className={`h-full rounded-full transition-all duration-200 ${
-                utilPercent >= 90
-                  ? 'bg-red-500'
-                  : utilPercent >= 75
-                  ? 'bg-amber-400'
-                  : 'bg-emerald-500'
-              }`}
-              style={{ width: `${Math.min(100, utilPercent)}%` }}
-            />
+          <div className="flex items-center justify-between gap-1 text-[8px] text-[var(--text-muted)] font-semibold uppercase">
+            <span>Latency</span>
+            <span className={`font-bold ${nodeData.currentLatency > 100 ? 'text-amber-500' : 'text-slate-700 dark:text-slate-300'}`}>
+              {isEffectivelyDead ? '0ms' : `${nodeData.currentLatency}ms`}
+            </span>
           </div>
+          {!isClient && !isEffectivelyDead && (
+            <div className="flex items-center justify-between gap-1 text-[8px] text-[var(--text-muted)] font-semibold uppercase">
+              <span>Cap</span>
+              <span className={`font-bold ${utilPercent >= 90 ? 'text-rose-500' : utilPercent >= 75 ? 'text-amber-500' : 'text-emerald-500 dark:text-emerald-400'}`}>
+                {utilPercent}%
+              </span>
+            </div>
+          )}
         </div>
       )}
-
-      {/* Source Connection Handle (Right) */}
-      <Handle
-        type="source"
-        position={Position.Right}
-        className="n8n-handle n8n-handle-source !-right-2"
-      />
     </div>
   );
 });

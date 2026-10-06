@@ -1,6 +1,240 @@
 {
-  "users": [],
+  "users": [
+    {
+      "id": "usr_4b3437627389574b",
+      "email": "victim_1790924660627@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-02T07:04:20.627Z"
+    },
+    {
+      "id": "usr_0b16a2dd7631e2c6",
+      "email": "attacker_1790924660630@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-02T07:04:20.630Z"
+    },
+    {
+      "id": "usr_67f632b6e90ce9bd",
+      "email": "victim_1790924682861@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-02T07:04:42.862Z"
+    },
+    {
+      "id": "usr_e19a14b9a9061f16",
+      "email": "attacker_1790924682865@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-02T07:04:42.865Z"
+    },
+    {
+      "id": "usr_fba48bb51afd0215",
+      "email": "victim_1790924832131@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-02T07:07:12.131Z"
+    },
+    {
+      "id": "usr_c7de55eebcda2a4b",
+      "email": "attacker_1790924832134@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-02T07:07:12.134Z"
+    },
+    {
+      "id": "usr_eceec2ca54dcc2a8",
+      "email": "victim_1790924841211@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-02T07:07:21.212Z"
+    },
+    {
+      "id": "usr_db7380a6e00dfe9a",
+      "email": "attacker_1790924841214@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-02T07:07:21.214Z"
+    },
+    {
+      "id": "usr_871c1764acc5b04c",
+      "email": "victim_1790996863270@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-03T03:07:43.270Z"
+    },
+    {
+      "id": "usr_ef4fabaf4fc8154d",
+      "email": "attacker_1790996863272@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-03T03:07:43.272Z"
+    },
+    {
+      "id": "usr_7352b8ec14bd29e9",
+      "email": "test@example.com",
+      "password_hash": "$2b$10$keYqIAeogOMjgyZF9iIhLeJK3fkgUJS73nLFBdaYlaBRZlZChG5hW",
+      "name": "Test",
+      "created_at": "2026-10-03T03:24:31.512Z"
+    },
+    {
+      "id": "usr_876203c98694c6b1",
+      "email": "test2@example.com",
+      "password_hash": "$2b$10$KSdUuRgr.lK.f/hpFsSpY.JRyAZWpeOXX.U8B2oEPm2Jq2SZJ20fW",
+      "name": "Test 2",
+      "created_at": "2026-10-03T03:24:35.636Z"
+    },
+    {
+      "id": "usr_0000f2306a326f60",
+      "email": "victim_1790997942955@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-03T03:25:42.955Z"
+    },
+    {
+      "id": "usr_539d96fdba8184fc",
+      "email": "attacker_1790997942957@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-03T03:25:42.957Z"
+    },
+    {
+      "id": "usr_ee963f9eeaad2f33",
+      "email": "test1@gmail.com",
+      "password_hash": "$2b$10$F3CTVD7S4gps9K4ONC6m4.szgnc.Ww.k/PZ.8IeqxFLgBuB8pHsaq",
+      "name": "test1",
+      "created_at": "2026-10-04T17:30:03.966Z"
+    },
+    {
+      "id": "usr_ff6ba682136726c5",
+      "email": "victim_1791135972861@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-04T17:46:12.861Z"
+    },
+    {
+      "id": "usr_feb9f068d8bc12ec",
+      "email": "attacker_1791135972863@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-04T17:46:12.863Z"
+    },
+    {
+      "id": "usr_ba9ad1af5c22be6f",
+      "email": "victim_1791216842324@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-05T16:14:02.324Z"
+    },
+    {
+      "id": "usr_754c15706d2057f5",
+      "email": "attacker_1791216842327@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-05T16:14:02.327Z"
+    },
+    {
+      "id": "usr_89a08ba9c6d7fa75",
+      "email": "victim_1791217122873@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-05T16:18:42.874Z"
+    },
+    {
+      "id": "usr_81c3853176ac63ec",
+      "email": "attacker_1791217122877@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-05T16:18:42.877Z"
+    },
+    {
+      "id": "usr_208841ad024c91e0",
+      "email": "victim_1791217720172@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-05T16:28:40.172Z"
+    },
+    {
+      "id": "usr_1bdc9e249ac195f5",
+      "email": "attacker_1791217720174@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-05T16:28:40.174Z"
+    },
+    {
+      "id": "usr_61035ec03a3a1a06",
+      "email": "victim_1791220293343@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-05T17:11:33.344Z"
+    },
+    {
+      "id": "usr_9b691001720e9f6f",
+      "email": "attacker_1791220293347@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-05T17:11:33.348Z"
+    },
+    {
+      "id": "usr_8028b666e8cc66f2",
+      "email": "victim_1791302646278@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-06T16:04:06.278Z"
+    },
+    {
+      "id": "usr_615892fe6548141a",
+      "email": "attacker_1791302646281@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-06T16:04:06.281Z"
+    },
+    {
+      "id": "usr_790311ebf9ba3a65",
+      "email": "victim_1791306179087@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-06T17:02:59.087Z"
+    },
+    {
+      "id": "usr_0c6bcf2ce8e55a9f",
+      "email": "attacker_1791306179089@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-06T17:02:59.089Z"
+    },
+    {
+      "id": "usr_5dec0b784f4b9828",
+      "email": "victim_1791306753265@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-06T17:12:33.265Z"
+    },
+    {
+      "id": "usr_698f2ea36f2b20bb",
+      "email": "attacker_1791306753269@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-06T17:12:33.269Z"
+    }
+  ],
   "architectures": [
+    {
+      "id": "arch_133c547441250298",
+      "user_id": "usr_ee963f9eeaad2f33",
+      "name": "Normal 1m system",
+      "description": "",
+      "nodes_json": "[{\"id\":\"traffic_generator-1791135590020\",\"type\":\"infrastructure\",\"position\":{\"x\":36.49665361387997,\"y\":137.61392451231836},\"data\":{\"label\":\"Traffic Generator\",\"typeId\":\"traffic_generator\",\"category\":\"CLIENT\",\"instanceCount\":1,\"capacityRps\":50000,\"latencyMs\":0,\"maxQueueDepth\":0,\"failureRate\":0,\"costPerHour\":0,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":2520,\"currentQueue\":0,\"currentLatency\":5,\"status\":\"healthy\",\"utilizationPercent\":5,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"web_server-1791135599004\",\"type\":\"infrastructure\",\"position\":{\"x\":847.2719759624955,\"y\":140.9597764819809},\"data\":{\"label\":\"App Server (EC2/Pod)\",\"typeId\":\"web_server\",\"category\":\"COMPUTE\",\"instanceCount\":1,\"capacityRps\":2000,\"latencyMs\":45,\"maxQueueDepth\":200,\"failureRate\":0,\"costPerHour\":0.12,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":1380,\"currentQueue\":2,\"currentLatency\":46,\"status\":\"healthy\",\"utilizationPercent\":69,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"load_balancer-1791135644083\",\"type\":\"infrastructure\",\"position\":{\"x\":369.03530715785394,\"y\":128.8227855218136},\"data\":{\"label\":\"Load Balancer (ALB)\",\"typeId\":\"load_balancer\",\"category\":\"NETWORK\",\"instanceCount\":1,\"capacityRps\":15000,\"latencyMs\":8,\"maxQueueDepth\":1000,\"failureRate\":0,\"costPerHour\":0.08,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"circuitBreakerEnabled\":true,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":5520,\"currentQueue\":0,\"currentLatency\":8,\"status\":\"healthy\",\"utilizationPercent\":37,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"web_server-1791135654554\",\"type\":\"infrastructure\",\"position\":{\"x\":870.807828848522,\"y\":256.765626255733},\"data\":{\"label\":\"App Server (EC2/Pod)\",\"typeId\":\"web_server\",\"category\":\"COMPUTE\",\"instanceCount\":1,\"capacityRps\":2000,\"latencyMs\":45,\"maxQueueDepth\":200,\"failureRate\":0,\"costPerHour\":0.12,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":1380,\"currentQueue\":2,\"currentLatency\":46,\"status\":\"healthy\",\"utilizationPercent\":69,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"web_server-1791135661866\",\"type\":\"infrastructure\",\"position\":{\"x\":819.9890777653081,\"y\":-18.853588999459085},\"data\":{\"label\":\"App Server (EC2/Pod)\",\"typeId\":\"web_server\",\"category\":\"COMPUTE\",\"instanceCount\":1,\"capacityRps\":2000,\"latencyMs\":45,\"maxQueueDepth\":200,\"failureRate\":0,\"costPerHour\":0.12,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":1380,\"currentQueue\":2,\"currentLatency\":46,\"status\":\"healthy\",\"utilizationPercent\":69,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"cache-1791135682978\",\"type\":\"infrastructure\",\"position\":{\"x\":1590.0096564440644,\"y\":79.15347409517756},\"data\":{\"label\":\"Redis Cache Cluster\",\"typeId\":\"cache\",\"category\":\"STORAGE\",\"instanceCount\":1,\"capacityRps\":25000,\"latencyMs\":2,\"maxQueueDepth\":1000,\"failureRate\":0,\"costPerHour\":0.2,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"hitRatePercent\":85,\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":5520,\"currentQueue\":0,\"currentLatency\":2,\"status\":\"healthy\",\"utilizationPercent\":22,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"relational_db-1791135697226\",\"type\":\"infrastructure\",\"position\":{\"x\":2027.105064213706,\"y\":96.1447039179675},\"data\":{\"label\":\"PostgreSQL Database\",\"typeId\":\"relational_db\",\"category\":\"STORAGE\",\"instanceCount\":1,\"capacityRps\":1500,\"latencyMs\":35,\"maxQueueDepth\":300,\"failureRate\":0,\"costPerHour\":0.45,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"readRatioPercent\":80,\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":828,\"currentQueue\":1,\"currentLatency\":36,\"status\":\"healthy\",\"utilizationPercent\":55,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"message_queue-1791135718786\",\"type\":\"infrastructure\",\"position\":{\"x\":1178.4560457450173,\"y\":87.90969665411704},\"data\":{\"label\":\"Kafka Message Queue\",\"typeId\":\"message_queue\",\"category\":\"MESSAGING\",\"instanceCount\":1,\"capacityRps\":20000,\"latencyMs\":10,\"maxQueueDepth\":5000,\"failureRate\":0,\"costPerHour\":0.28,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":5520,\"currentQueue\":0,\"currentLatency\":10,\"status\":\"healthy\",\"utilizationPercent\":28,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"traffic_generator-1791135842889\",\"type\":\"infrastructure\",\"position\":{\"x\":39.45183000772366,\"y\":14.754842655538596},\"data\":{\"label\":\"Traffic Generator\",\"typeId\":\"traffic_generator\",\"category\":\"CLIENT\",\"instanceCount\":1,\"capacityRps\":1000,\"latencyMs\":0,\"maxQueueDepth\":0,\"failureRate\":0,\"costPerHour\":0,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":1000,\"currentQueue\":500,\"currentLatency\":505,\"status\":\"critical\",\"utilizationPercent\":252,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"traffic_generator-1791135848281\",\"type\":\"infrastructure\",\"position\":{\"x\":10.723661418951579,\"y\":252.41514643538045},\"data\":{\"label\":\"Traffic Generator\",\"typeId\":\"traffic_generator\",\"category\":\"CLIENT\",\"instanceCount\":1,\"capacityRps\":1000,\"latencyMs\":0,\"maxQueueDepth\":0,\"failureRate\":0,\"costPerHour\":0,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":1000,\"currentQueue\":500,\"currentLatency\":505,\"status\":\"critical\",\"utilizationPercent\":252,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"traffic_generator-1791135855915\",\"type\":\"infrastructure\",\"position\":{\"x\":47.28678507738876,\"y\":-126.2743485984335},\"data\":{\"label\":\"Traffic Generator\",\"typeId\":\"traffic_generator\",\"category\":\"CLIENT\",\"instanceCount\":1,\"capacityRps\":1000,\"latencyMs\":0,\"maxQueueDepth\":0,\"failureRate\":0,\"costPerHour\":0,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":1000,\"currentQueue\":500,\"currentLatency\":505,\"status\":\"critical\",\"utilizationPercent\":252,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"web_server-1791135881449\",\"type\":\"infrastructure\",\"position\":{\"x\":833.3939437337888,\"y\":-115.82774183888},\"data\":{\"label\":\"App Server (EC2/Pod)\",\"typeId\":\"web_server\",\"category\":\"COMPUTE\",\"instanceCount\":1,\"capacityRps\":2000,\"latencyMs\":45,\"maxQueueDepth\":200,\"failureRate\":0,\"costPerHour\":0.12,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":1380,\"currentQueue\":2,\"currentLatency\":46,\"status\":\"healthy\",\"utilizationPercent\":69,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}}]",
+      "edges_json": "[{\"id\":\"e-traffic_generator-1791135590020-load_balancer-1791135644083-1791135648385\",\"source\":\"traffic_generator-1791135590020\",\"target\":\"load_balancer-1791135644083\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":5,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":2520,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-load_balancer-1791135644083-web_server-1791135661866-1791135666186\",\"source\":\"load_balancer-1791135644083\",\"target\":\"web_server-1791135661866\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":8,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1380,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-load_balancer-1791135644083-web_server-1791135599004-1791135669241\",\"source\":\"load_balancer-1791135644083\",\"target\":\"web_server-1791135599004\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":8,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1380,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-load_balancer-1791135644083-web_server-1791135654554-1791135671345\",\"source\":\"load_balancer-1791135644083\",\"target\":\"web_server-1791135654554\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":8,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1380,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-cache-1791135682978-relational_db-1791135697226-1791135700835\",\"source\":\"cache-1791135682978\",\"target\":\"relational_db-1791135697226\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":2,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":828,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-web_server-1791135661866-message_queue-1791135718786-1791135755416\",\"source\":\"web_server-1791135661866\",\"target\":\"message_queue-1791135718786\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":45,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1380,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-web_server-1791135599004-message_queue-1791135718786-1791135762825\",\"source\":\"web_server-1791135599004\",\"target\":\"message_queue-1791135718786\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":45,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1380,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-web_server-1791135654554-message_queue-1791135718786-1791135767201\",\"source\":\"web_server-1791135654554\",\"target\":\"message_queue-1791135718786\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":45,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1380,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-message_queue-1791135718786-cache-1791135682978-1791135771488\",\"source\":\"message_queue-1791135718786\",\"target\":\"cache-1791135682978\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":10,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":5520,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-traffic_generator-1791135842889-load_balancer-1791135644083-1791135845943\",\"source\":\"traffic_generator-1791135842889\",\"target\":\"load_balancer-1791135644083\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":5,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1000,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-traffic_generator-1791135848281-load_balancer-1791135644083-1791135851490\",\"source\":\"traffic_generator-1791135848281\",\"target\":\"load_balancer-1791135644083\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":5,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1000,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-traffic_generator-1791135855915-load_balancer-1791135644083-1791135859655\",\"source\":\"traffic_generator-1791135855915\",\"target\":\"load_balancer-1791135644083\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":5,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1000,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-load_balancer-1791135644083-web_server-1791135881449-1791135885741\",\"source\":\"load_balancer-1791135644083\",\"target\":\"web_server-1791135881449\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":8,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1380,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-web_server-1791135881449-message_queue-1791135718786-1791135890472\",\"source\":\"web_server-1791135881449\",\"target\":\"message_queue-1791135718786\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":45,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1380,\"errorRatePercent\":0,\"animated\":true}}]",
+      "chaos_json": "{}",
+      "grade": "F",
+      "monthly_cost": 1088,
+      "is_public": true,
+      "version": 2,
+      "fork_of_id": null,
+      "created_at": "2026-10-04T17:30:35.499Z",
+      "updated_at": "2026-10-04T17:45:01.728Z"
+    },
     {
       "id": "arch_9f3b098e98edc0c8",
       "user_id": "usr_local_architect",
@@ -282,6 +516,22 @@
       "nodes_json": "[{\"id\":\"traffic-1\",\"type\":\"infrastructure\",\"position\":{\"x\":50,\"y\":240},\"data\":{\"label\":\"Client Traffic Generator\",\"typeId\":\"traffic_generator\",\"category\":\"CLIENT\",\"instanceCount\":1,\"capacityRps\":5000,\"latencyMs\":0,\"maxQueueDepth\":0,\"failureRate\":0,\"costPerHour\":0,\"isKilled\":false,\"currentRps\":2488,\"currentQueue\":0,\"currentLatency\":5,\"status\":\"healthy\",\"availabilityZone\":\"us-east-1a\",\"utilizationPercent\":50,\"isBottleneck\":false,\"circuitBreakerState\":\"CLOSED\"},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"alb-1\",\"type\":\"infrastructure\",\"position\":{\"x\":380,\"y\":240},\"data\":{\"label\":\"Application Load Balancer\",\"typeId\":\"load_balancer\",\"category\":\"NETWORK\",\"instanceCount\":2,\"capacityRps\":15000,\"latencyMs\":5,\"maxQueueDepth\":1000,\"failureRate\":0,\"costPerHour\":0.16,\"isKilled\":false,\"currentRps\":2488,\"currentQueue\":0,\"currentLatency\":5,\"status\":\"healthy\",\"availabilityZone\":\"us-east-1a\",\"lbAlgorithm\":\"round_robin\",\"circuitBreakerEnabled\":true,\"circuitBreakerState\":\"CLOSED\",\"utilizationPercent\":8,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"web-1\",\"type\":\"infrastructure\",\"position\":{\"x\":730,\"y\":120},\"data\":{\"label\":\"App Server #1 (Node.js)\",\"typeId\":\"web_server\",\"category\":\"COMPUTE\",\"instanceCount\":3,\"capacityRps\":2400,\"latencyMs\":35,\"maxQueueDepth\":200,\"failureRate\":0,\"costPerHour\":0.36,\"isKilled\":false,\"currentRps\":1244,\"currentQueue\":0,\"currentLatency\":35,\"status\":\"healthy\",\"availabilityZone\":\"us-east-1a\",\"utilizationPercent\":17,\"isBottleneck\":false,\"circuitBreakerState\":\"CLOSED\"},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"web-2\",\"type\":\"infrastructure\",\"position\":{\"x\":730,\"y\":360},\"data\":{\"label\":\"App Server #2 (Node.js)\",\"typeId\":\"web_server\",\"category\":\"COMPUTE\",\"instanceCount\":3,\"capacityRps\":2400,\"latencyMs\":35,\"maxQueueDepth\":200,\"failureRate\":0,\"costPerHour\":0.36,\"isKilled\":false,\"currentRps\":1244,\"currentQueue\":0,\"currentLatency\":35,\"status\":\"healthy\",\"availabilityZone\":\"us-east-1b\",\"utilizationPercent\":17,\"isBottleneck\":false,\"circuitBreakerState\":\"CLOSED\"},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"cache-1\",\"type\":\"infrastructure\",\"position\":{\"x\":1080,\"y\":120},\"data\":{\"label\":\"Redis Cache Cluster\",\"typeId\":\"cache\",\"category\":\"STORAGE\",\"instanceCount\":2,\"capacityRps\":30000,\"latencyMs\":2,\"maxQueueDepth\":1000,\"failureRate\":0,\"costPerHour\":0.4,\"isKilled\":false,\"currentRps\":2488,\"currentQueue\":0,\"currentLatency\":2,\"status\":\"healthy\",\"availabilityZone\":\"us-east-1a\",\"hitRatePercent\":85,\"memoryGb\":16,\"evictionPolicy\":\"LRU\",\"utilizationPercent\":4,\"isBottleneck\":false,\"circuitBreakerState\":\"CLOSED\"},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"db-1\",\"type\":\"infrastructure\",\"position\":{\"x\":1080,\"y\":360},\"data\":{\"label\":\"PostgreSQL Primary DB\",\"typeId\":\"relational_db\",\"category\":\"STORAGE\",\"instanceCount\":2,\"capacityRps\":1500,\"latencyMs\":40,\"maxQueueDepth\":300,\"failureRate\":0,\"costPerHour\":0.45,\"isKilled\":false,\"currentRps\":373,\"currentQueue\":0,\"currentLatency\":40,\"status\":\"healthy\",\"availabilityZone\":\"us-east-1b\",\"readRatioPercent\":80,\"connectionPoolSize\":200,\"utilizationPercent\":12,\"isBottleneck\":false,\"circuitBreakerState\":\"CLOSED\"},\"measured\":{\"width\":210,\"height\":54}}]",
       "edges_json": "[{\"id\":\"e1\",\"source\":\"traffic-1\",\"target\":\"alb-1\",\"label\":\"HTTP Inbound\",\"type\":\"flowEdge\",\"data\":{\"currentFlowRps\":2488,\"latencyMs\":5,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e2\",\"source\":\"alb-1\",\"target\":\"web-1\",\"label\":\"AZ-1a Flow\",\"type\":\"flowEdge\",\"data\":{\"currentFlowRps\":1244,\"latencyMs\":5,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e3\",\"source\":\"alb-1\",\"target\":\"web-2\",\"label\":\"AZ-1b Flow\",\"type\":\"flowEdge\",\"data\":{\"currentFlowRps\":1244,\"latencyMs\":5,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e4\",\"source\":\"web-1\",\"target\":\"cache-1\",\"label\":\"Cache Read\",\"type\":\"flowEdge\",\"data\":{\"currentFlowRps\":1244,\"latencyMs\":35,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e5\",\"source\":\"web-2\",\"target\":\"cache-1\",\"label\":\"Cache Read\",\"type\":\"flowEdge\",\"data\":{\"currentFlowRps\":1244,\"latencyMs\":35,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e6\",\"source\":\"cache-1\",\"target\":\"db-1\",\"label\":\"Miss (15%)\",\"type\":\"flowEdge\",\"data\":{\"currentFlowRps\":373,\"latencyMs\":2,\"errorRatePercent\":0,\"animated\":true}}]",
       "created_at": "2026-09-20T14:30:07.092Z"
+    },
+    {
+      "id": "rev_cc65b19e1863dc4d",
+      "architecture_id": "arch_133c547441250298",
+      "version": 1,
+      "nodes_json": "[]",
+      "edges_json": "[]",
+      "created_at": "2026-10-04T17:30:35.499Z"
+    },
+    {
+      "id": "rev_ebedc8b88b676470",
+      "architecture_id": "arch_133c547441250298",
+      "version": 2,
+      "nodes_json": "[{\"id\":\"traffic_generator-1791135590020\",\"type\":\"infrastructure\",\"position\":{\"x\":36.49665361387997,\"y\":137.61392451231836},\"data\":{\"label\":\"Traffic Generator\",\"typeId\":\"traffic_generator\",\"category\":\"CLIENT\",\"instanceCount\":1,\"capacityRps\":50000,\"latencyMs\":0,\"maxQueueDepth\":0,\"failureRate\":0,\"costPerHour\":0,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":2520,\"currentQueue\":0,\"currentLatency\":5,\"status\":\"healthy\",\"utilizationPercent\":5,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"web_server-1791135599004\",\"type\":\"infrastructure\",\"position\":{\"x\":847.2719759624955,\"y\":140.9597764819809},\"data\":{\"label\":\"App Server (EC2/Pod)\",\"typeId\":\"web_server\",\"category\":\"COMPUTE\",\"instanceCount\":1,\"capacityRps\":2000,\"latencyMs\":45,\"maxQueueDepth\":200,\"failureRate\":0,\"costPerHour\":0.12,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":1380,\"currentQueue\":2,\"currentLatency\":46,\"status\":\"healthy\",\"utilizationPercent\":69,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"load_balancer-1791135644083\",\"type\":\"infrastructure\",\"position\":{\"x\":369.03530715785394,\"y\":128.8227855218136},\"data\":{\"label\":\"Load Balancer (ALB)\",\"typeId\":\"load_balancer\",\"category\":\"NETWORK\",\"instanceCount\":1,\"capacityRps\":15000,\"latencyMs\":8,\"maxQueueDepth\":1000,\"failureRate\":0,\"costPerHour\":0.08,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"circuitBreakerEnabled\":true,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":5520,\"currentQueue\":0,\"currentLatency\":8,\"status\":\"healthy\",\"utilizationPercent\":37,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"web_server-1791135654554\",\"type\":\"infrastructure\",\"position\":{\"x\":870.807828848522,\"y\":256.765626255733},\"data\":{\"label\":\"App Server (EC2/Pod)\",\"typeId\":\"web_server\",\"category\":\"COMPUTE\",\"instanceCount\":1,\"capacityRps\":2000,\"latencyMs\":45,\"maxQueueDepth\":200,\"failureRate\":0,\"costPerHour\":0.12,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":1380,\"currentQueue\":2,\"currentLatency\":46,\"status\":\"healthy\",\"utilizationPercent\":69,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"web_server-1791135661866\",\"type\":\"infrastructure\",\"position\":{\"x\":819.9890777653081,\"y\":-18.853588999459085},\"data\":{\"label\":\"App Server (EC2/Pod)\",\"typeId\":\"web_server\",\"category\":\"COMPUTE\",\"instanceCount\":1,\"capacityRps\":2000,\"latencyMs\":45,\"maxQueueDepth\":200,\"failureRate\":0,\"costPerHour\":0.12,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":1380,\"currentQueue\":2,\"currentLatency\":46,\"status\":\"healthy\",\"utilizationPercent\":69,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"cache-1791135682978\",\"type\":\"infrastructure\",\"position\":{\"x\":1590.0096564440644,\"y\":79.15347409517756},\"data\":{\"label\":\"Redis Cache Cluster\",\"typeId\":\"cache\",\"category\":\"STORAGE\",\"instanceCount\":1,\"capacityRps\":25000,\"latencyMs\":2,\"maxQueueDepth\":1000,\"failureRate\":0,\"costPerHour\":0.2,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"hitRatePercent\":85,\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":5520,\"currentQueue\":0,\"currentLatency\":2,\"status\":\"healthy\",\"utilizationPercent\":22,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"relational_db-1791135697226\",\"type\":\"infrastructure\",\"position\":{\"x\":2027.105064213706,\"y\":96.1447039179675},\"data\":{\"label\":\"PostgreSQL Database\",\"typeId\":\"relational_db\",\"category\":\"STORAGE\",\"instanceCount\":1,\"capacityRps\":1500,\"latencyMs\":35,\"maxQueueDepth\":300,\"failureRate\":0,\"costPerHour\":0.45,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"readRatioPercent\":80,\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":828,\"currentQueue\":1,\"currentLatency\":36,\"status\":\"healthy\",\"utilizationPercent\":55,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"message_queue-1791135718786\",\"type\":\"infrastructure\",\"position\":{\"x\":1178.4560457450173,\"y\":87.90969665411704},\"data\":{\"label\":\"Kafka Message Queue\",\"typeId\":\"message_queue\",\"category\":\"MESSAGING\",\"instanceCount\":1,\"capacityRps\":20000,\"latencyMs\":10,\"maxQueueDepth\":5000,\"failureRate\":0,\"costPerHour\":0.28,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":5520,\"currentQueue\":0,\"currentLatency\":10,\"status\":\"healthy\",\"utilizationPercent\":28,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"traffic_generator-1791135842889\",\"type\":\"infrastructure\",\"position\":{\"x\":39.45183000772366,\"y\":14.754842655538596},\"data\":{\"label\":\"Traffic Generator\",\"typeId\":\"traffic_generator\",\"category\":\"CLIENT\",\"instanceCount\":1,\"capacityRps\":1000,\"latencyMs\":0,\"maxQueueDepth\":0,\"failureRate\":0,\"costPerHour\":0,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":1000,\"currentQueue\":500,\"currentLatency\":505,\"status\":\"critical\",\"utilizationPercent\":252,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"traffic_generator-1791135848281\",\"type\":\"infrastructure\",\"position\":{\"x\":10.723661418951579,\"y\":252.41514643538045},\"data\":{\"label\":\"Traffic Generator\",\"typeId\":\"traffic_generator\",\"category\":\"CLIENT\",\"instanceCount\":1,\"capacityRps\":1000,\"latencyMs\":0,\"maxQueueDepth\":0,\"failureRate\":0,\"costPerHour\":0,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":1000,\"currentQueue\":500,\"currentLatency\":505,\"status\":\"critical\",\"utilizationPercent\":252,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"traffic_generator-1791135855915\",\"type\":\"infrastructure\",\"position\":{\"x\":47.28678507738876,\"y\":-126.2743485984335},\"data\":{\"label\":\"Traffic Generator\",\"typeId\":\"traffic_generator\",\"category\":\"CLIENT\",\"instanceCount\":1,\"capacityRps\":1000,\"latencyMs\":0,\"maxQueueDepth\":0,\"failureRate\":0,\"costPerHour\":0,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":1000,\"currentQueue\":500,\"currentLatency\":505,\"status\":\"critical\",\"utilizationPercent\":252,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}},{\"id\":\"web_server-1791135881449\",\"type\":\"infrastructure\",\"position\":{\"x\":833.3939437337888,\"y\":-115.82774183888},\"data\":{\"label\":\"App Server (EC2/Pod)\",\"typeId\":\"web_server\",\"category\":\"COMPUTE\",\"instanceCount\":1,\"capacityRps\":2000,\"latencyMs\":45,\"maxQueueDepth\":200,\"failureRate\":0,\"costPerHour\":0.12,\"isKilled\":false,\"availabilityZone\":\"us-east-1a\",\"circuitBreakerEnabled\":false,\"circuitBreakerState\":\"CLOSED\",\"currentRps\":1380,\"currentQueue\":2,\"currentLatency\":46,\"status\":\"healthy\",\"utilizationPercent\":69,\"isBottleneck\":false},\"measured\":{\"width\":210,\"height\":54}}]",
+      "edges_json": "[{\"id\":\"e-traffic_generator-1791135590020-load_balancer-1791135644083-1791135648385\",\"source\":\"traffic_generator-1791135590020\",\"target\":\"load_balancer-1791135644083\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":5,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":2520,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-load_balancer-1791135644083-web_server-1791135661866-1791135666186\",\"source\":\"load_balancer-1791135644083\",\"target\":\"web_server-1791135661866\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":8,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1380,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-load_balancer-1791135644083-web_server-1791135599004-1791135669241\",\"source\":\"load_balancer-1791135644083\",\"target\":\"web_server-1791135599004\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":8,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1380,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-load_balancer-1791135644083-web_server-1791135654554-1791135671345\",\"source\":\"load_balancer-1791135644083\",\"target\":\"web_server-1791135654554\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":8,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1380,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-cache-1791135682978-relational_db-1791135697226-1791135700835\",\"source\":\"cache-1791135682978\",\"target\":\"relational_db-1791135697226\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":2,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":828,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-web_server-1791135661866-message_queue-1791135718786-1791135755416\",\"source\":\"web_server-1791135661866\",\"target\":\"message_queue-1791135718786\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":45,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1380,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-web_server-1791135599004-message_queue-1791135718786-1791135762825\",\"source\":\"web_server-1791135599004\",\"target\":\"message_queue-1791135718786\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":45,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1380,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-web_server-1791135654554-message_queue-1791135718786-1791135767201\",\"source\":\"web_server-1791135654554\",\"target\":\"message_queue-1791135718786\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":45,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1380,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-message_queue-1791135718786-cache-1791135682978-1791135771488\",\"source\":\"message_queue-1791135718786\",\"target\":\"cache-1791135682978\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":10,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":5520,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-traffic_generator-1791135842889-load_balancer-1791135644083-1791135845943\",\"source\":\"traffic_generator-1791135842889\",\"target\":\"load_balancer-1791135644083\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":5,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1000,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-traffic_generator-1791135848281-load_balancer-1791135644083-1791135851490\",\"source\":\"traffic_generator-1791135848281\",\"target\":\"load_balancer-1791135644083\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":5,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1000,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-traffic_generator-1791135855915-load_balancer-1791135644083-1791135859655\",\"source\":\"traffic_generator-1791135855915\",\"target\":\"load_balancer-1791135644083\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":5,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1000,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-load_balancer-1791135644083-web_server-1791135881449-1791135885741\",\"source\":\"load_balancer-1791135644083\",\"target\":\"web_server-1791135881449\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":8,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1380,\"errorRatePercent\":0,\"animated\":true}},{\"id\":\"e-web_server-1791135881449-message_queue-1791135718786-1791135890472\",\"source\":\"web_server-1791135881449\",\"target\":\"message_queue-1791135718786\",\"sourceHandle\":null,\"targetHandle\":null,\"type\":\"flowEdge\",\"animated\":true,\"data\":{\"currentRps\":0,\"latencyMs\":45,\"packetDropRate\":0,\"trafficRatio\":1,\"currentFlowRps\":1380,\"errorRatePercent\":0,\"animated\":true}}]",
+      "created_at": "2026-10-04T17:45:01.728Z"
     }
   ]
 }

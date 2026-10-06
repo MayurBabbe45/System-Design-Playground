@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { Canvas } from './components/Canvas';
@@ -8,6 +8,9 @@ import { ChaosControlCenter } from './components/ChaosControlCenter';
 import { CloudCostModal } from './components/modals/CloudCostModal';
 import { HealthAuditModal } from './components/modals/HealthAuditModal';
 import { ShareModal } from './components/modals/ShareModal';
+import { LegalModal } from './components/modals/LegalModal';
+import { CookieConsentBanner } from './components/common/CookieConsentBanner';
+import { NotFoundView } from './components/common/NotFoundView';
 import { AuthScreen } from './components/auth/AuthScreen';
 import { DashboardView } from './components/dashboard/DashboardView';
 import { useAuthStore } from './store/useAuthStore';
@@ -16,6 +19,14 @@ import { usePlaygroundStore } from './store/usePlaygroundStore';
 export const App: React.FC = () => {
   const { isAuthenticated, isGuest, isLoading, checkSession } = useAuthStore();
   const { appView, setAppView, openProjectById, loadFromUrlHash, isViewOnly, setIsViewOnly } = usePlaygroundStore();
+  const [isLegalOpen, setIsLegalOpen] = useState(false);
+  const [legalTab, setLegalTab] = useState<'privacy' | 'terms'>('privacy');
+  const [isNotFound, setIsNotFound] = useState(false);
+
+  const handleOpenLegal = (tab: 'privacy' | 'terms') => {
+    setLegalTab(tab);
+    setIsLegalOpen(true);
+  };
 
   // Validate session on startup
   useEffect(() => {
@@ -31,6 +42,12 @@ export const App: React.FC = () => {
       const mode = params.get('mode');
       const hash = window.location.hash;
       const isView = mode === 'view' || hash.includes('mode=view');
+
+      if (view && view !== 'dashboard' && view !== 'playground' && view !== 'auth') {
+        setIsNotFound(true);
+        return;
+      }
+      setIsNotFound(false);
 
       if (isView) {
         setIsViewOnly(true);
@@ -65,6 +82,27 @@ export const App: React.FC = () => {
     );
   }
 
+  // 404 Route Not Found View
+  if (isNotFound) {
+    return (
+      <>
+        <NotFoundView
+          onReset={() => {
+            setIsNotFound(false);
+            setAppView('dashboard');
+            window.history.replaceState({}, '', '/?view=dashboard');
+          }}
+        />
+        <CookieConsentBanner onOpenPrivacy={() => handleOpenLegal('privacy')} />
+        <LegalModal
+          isOpen={isLegalOpen}
+          onClose={() => setIsLegalOpen(false)}
+          defaultTab={legalTab}
+        />
+      </>
+    );
+  }
+
   // Check if viewing a shared view-only architecture link
   const isViewMode =
     typeof window !== 'undefined' &&
@@ -74,12 +112,35 @@ export const App: React.FC = () => {
 
   // If user is neither authenticated nor in guest mode, show Auth Screen (unless viewing a shared view-only link)
   if (!isAuthenticated && !isGuest && !isViewMode) {
-    return <AuthScreen onSuccess={() => setAppView('dashboard')} />;
+    return (
+      <>
+        <AuthScreen 
+          onSuccess={() => setAppView('dashboard')} 
+          onOpenLegal={handleOpenLegal}
+        />
+        <CookieConsentBanner onOpenPrivacy={() => handleOpenLegal('privacy')} />
+        <LegalModal 
+          isOpen={isLegalOpen} 
+          onClose={() => setIsLegalOpen(false)} 
+          defaultTab={legalTab} 
+        />
+      </>
+    );
   }
 
   // If in Home Dashboard view
   if (appView === 'dashboard') {
-    return <DashboardView />;
+    return (
+      <>
+        <DashboardView />
+        <CookieConsentBanner onOpenPrivacy={() => handleOpenLegal('privacy')} />
+        <LegalModal 
+          isOpen={isLegalOpen} 
+          onClose={() => setIsLegalOpen(false)} 
+          defaultTab={legalTab} 
+        />
+      </>
+    );
   }
 
   // Default: Interactive Playground Simulation Canvas
@@ -110,6 +171,12 @@ export const App: React.FC = () => {
       <CloudCostModal />
       <HealthAuditModal />
       <ShareModal />
+      <LegalModal 
+        isOpen={isLegalOpen} 
+        onClose={() => setIsLegalOpen(false)} 
+        defaultTab={legalTab} 
+      />
+      <CookieConsentBanner onOpenPrivacy={() => handleOpenLegal('privacy')} />
     </div>
   );
 };

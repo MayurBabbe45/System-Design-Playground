@@ -21,28 +21,51 @@ import { usePlaygroundStore } from '../../store/usePlaygroundStore';
 
 interface AuthScreenProps {
   onSuccess?: () => void;
+  onOpenLegal?: (tab: 'privacy' | 'terms') => void;
 }
 
-export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess }) => {
+export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onOpenLegal }) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const { login, register, continueAsGuest, isLoading, authError, clearError } = useAuthStore();
   const { theme, toggleTheme } = usePlaygroundStore();
 
+  const handleClearErrors = () => {
+    if (validationError) setValidationError(null);
+    if (authError) clearError();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    clearError();
+    handleClearErrors();
+
+    const cleanEmail = email.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!cleanEmail || !emailRegex.test(cleanEmail)) {
+      setValidationError('Please enter a valid email address');
+      return;
+    }
+
+    if (password.length < 8) {
+      setValidationError('Password must be at least 8 characters long');
+      return;
+    }
+
+    if (isSignUp && !name.trim()) {
+      setValidationError('Please enter your name');
+      return;
+    }
 
     let success = false;
     if (isSignUp) {
-      if (!name.trim()) return;
-      success = await register(email.trim(), password, name.trim());
+      success = await register(cleanEmail, password, name.trim());
     } else {
-      success = await login(email.trim(), password);
+      success = await login(cleanEmail, password);
     }
 
     if (success && onSuccess) {
@@ -91,7 +114,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess }) => {
         <div className="grid grid-cols-2 p-1 bg-[var(--bg-panel)] rounded-xl border border-[var(--border-subtle)] mb-6">
           <button
             type="button"
-            onClick={() => { setIsSignUp(false); clearError(); }}
+            onClick={() => { setIsSignUp(false); handleClearErrors(); }}
             className={`py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
               !isSignUp
                 ? 'bg-[var(--bg-surface)] text-[var(--text-main)] shadow-sm'
@@ -102,7 +125,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess }) => {
           </button>
           <button
             type="button"
-            onClick={() => { setIsSignUp(true); clearError(); }}
+            onClick={() => { setIsSignUp(true); handleClearErrors(); }}
             className={`py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
               isSignUp
                 ? 'bg-[var(--bg-surface)] text-[var(--text-main)] shadow-sm'
@@ -114,10 +137,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess }) => {
         </div>
 
         {/* Error Notification */}
-        {authError && (
+        {(validationError || authError) && (
           <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 dark:text-rose-400 text-xs flex items-center gap-2.5 animate-fadeIn">
             <AlertCircle className="w-4 h-4 shrink-0" />
-            <span className="flex-1">{authError}</span>
+            <span className="flex-1">{validationError || authError}</span>
           </div>
         )}
 
@@ -136,7 +159,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess }) => {
                   type="text"
                   required={isSignUp}
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => { setName(e.target.value); handleClearErrors(); }}
                   placeholder="e.g. Alex Morgan"
                   className="w-full pl-9 pr-3.5 py-2.5 bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-xl text-xs text-[var(--text-main)] placeholder-[var(--text-muted)]/60 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all"
                 />
@@ -156,7 +179,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess }) => {
                 type="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); handleClearErrors(); }}
                 placeholder="engineer@company.com"
                 className="w-full pl-9 pr-3.5 py-2.5 bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-xl text-xs text-[var(--text-main)] placeholder-[var(--text-muted)]/60 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all"
               />
@@ -175,7 +198,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess }) => {
                 type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); handleClearErrors(); }}
                 placeholder="••••••••••••"
                 className="w-full pl-9 pr-10 py-2.5 bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-xl text-xs text-[var(--text-main)] placeholder-[var(--text-muted)]/60 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all"
               />
@@ -247,6 +270,25 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess }) => {
             <Server className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
             <span>Local & Cloud Saves</span>
           </div>
+        </div>
+
+        {/* Legal Links Footer */}
+        <div className="mt-4 pt-3 border-t border-[var(--border-subtle)]/40 flex items-center justify-center gap-3 text-[10px] text-[var(--text-muted)]">
+          <button
+            type="button"
+            onClick={() => onOpenLegal?.('terms')}
+            className="hover:text-[var(--text-main)] underline transition-colors cursor-pointer"
+          >
+            Terms of Service
+          </button>
+          <span>•</span>
+          <button
+            type="button"
+            onClick={() => onOpenLegal?.('privacy')}
+            className="hover:text-[var(--text-main)] underline transition-colors cursor-pointer"
+          >
+            Privacy Policy
+          </button>
         </div>
       </div>
     </div>

@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 :root {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color-scheme: dark;
@@ -106,23 +108,24 @@ input, textarea, select {
   width: 12px !important;
   height: 12px !important;
   border-radius: 50% !important;
-  border: 2.5px solid var(--bg-surface) !important;
-  background-color: #3b82f6 !important;
+  border: 2px solid var(--bg-surface) !important;
+  background-color: #64748b !important;
   transition: transform 0.15s ease, background-color 0.15s ease !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
+  z-index: 10 !important;
 }
 
 .n8n-handle:hover {
-  transform: scale(1.35) !important;
-  background-color: #60a5fa !important;
+  transform: scale(1.4) !important;
+  background-color: #3b82f6 !important;
 }
 
 .n8n-handle-target {
-  background-color: #2563eb !important;
+  background-color: #64748b !important;
 }
 
 .n8n-handle-source {
-  background-color: #10b981 !important;
+  background-color: #64748b !important;
 }
 
 /* Theme Adaptive Custom Scrollbars */

@@ -21,26 +21,84 @@ import {
   queryTelemetryAnalytics 
 } from './db/clickhouse.mjs';
 
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 const PORT = process.env.API_PORT || 4000;
 const JWT_SECRET = process.env.JWT_SECRET || 'system-design-playground-jwt-secret-key-2026';
 
-const app = express();
+export const app = express();
 
-app.use(cors({ origin: true, credentials: true }));
+const defaultOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:4000',
+  'http://127.0.0.1:4000',
+];
+
+const envOrigins = process.env.CLIENT_ORIGIN
+  ? process.env.CLIENT_ORIGIN.split(',').map((o) => o.trim())
+  : [];
+
+const allowedOrigins = [...defaultOrigins, ...envOrigins];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow server-to-server, whitelist matches, or any localhost port in development
+    if (
+      !origin ||
+      allowedOrigins.includes(origin) ||
+      (process.env.NODE_ENV !== 'production' && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin))
+    ) {
+      return callback(null, true);
+    }
+    return callback(new Error('Blocked by CORS policy'));
+  },
+  credentials: true,
+}));
 app.use(cookieParser());
 app.use(express.json({ limit: '15mb' }));
 
-// Auth Token Middleware
-function authenticateUser(req, res, next) {
+// Auth Rate Limiting Middleware (15 requests per 15 minutes window)
+const authAttempts = new Map();
+const AUTH_RATE_WINDOW_MS = 15 * 60 * 1000;
+const AUTH_RATE_MAX_ATTEMPTS = 15;
+
+export function resetAuthRateLimits() {
+  authAttempts.clear();
+}
+
+export function authRateLimiter(req, res, next) {
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  
+  const ip = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+  const now = Date.now();
+  const windowStart = now - AUTH_RATE_WINDOW_MS;
+
+  const timestamps = (authAttempts.get(ip) || []).filter((t) => t > windowStart);
+
+  if (timestamps.length >= AUTH_RATE_MAX_ATTEMPTS) {
+    return res.status(429).json({
+      error: 'Too many authentication attempts. Please try again after 15 minutes.'
+    });
+  }
+
+  timestamps.push(now);
+  authAttempts.set(ip, timestamps);
+  next();
+}
+
+// Strict Auth Token Middleware for protected operations
+export function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;
   const token = (authHeader && authHeader.startsWith('Bearer ')) 
     ? authHeader.split(' ')[1] 
     : req.cookies?.token;
 
   if (!token) {
-    // Default to local/demo user
-    req.user = { id: 'usr_local_architect', name: 'Cloud Architect', email: 'architect@local' };
-    return next();
+    return res.status(401).json({ error: 'Authentication required' });
   }
 
   try {
@@ -48,9 +106,27 @@ function authenticateUser(req, res, next) {
     req.user = decoded;
     next();
   } catch {
-    req.user = { id: 'usr_local_architect', name: 'Cloud Architect', email: 'architect@local' };
-    next();
+    return res.status(401).json({ error: 'Invalid or expired authentication token' });
   }
+}
+
+// Optional Auth Middleware for public endpoints
+export function optionalAuth(req, res, next) {
+  const authHeader = req.headers.authorization;
+  const token = (authHeader && authHeader.startsWith('Bearer ')) 
+    ? authHeader.split(' ')[1] 
+    : req.cookies?.token;
+
+  if (token) {
+    try {
+      req.user = jwt.verify(token, JWT_SECRET);
+    } catch {
+      req.user = null;
+    }
+  } else {
+    req.user = null;
+  }
+  next();
 }
 
 // --- Health Check ---
@@ -65,20 +141,31 @@ app.get('/api/health', (req, res) => {
 });
 
 // --- Auth Routes ---
-app.post('/api/auth/register', async (req, res) => {
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+app.post('/api/auth/register', authRateLimiter, async (req, res) => {
   try {
     const { email, password, name } = req.body;
-    if (!email || !password || !name) {
-      return res.status(400).json({ error: 'Email, password, and name are required' });
+    if (!email || !EMAIL_REGEX.test(String(email).trim())) {
+      return res.status(400).json({ error: 'Valid email address is required' });
+    }
+    if (!password || String(password).length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+    }
+    if (!name || !String(name).trim()) {
+      return res.status(400).json({ error: 'Name is required' });
     }
 
-    const existing = await findUserByEmail(email);
+    const cleanEmail = String(email).trim().toLowerCase();
+    const cleanName = String(name).trim();
+
+    const existing = await findUserByEmail(cleanEmail);
     if (existing) {
       return res.status(409).json({ error: 'A user with this email already exists' });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await createUser({ email, passwordHash, name });
+    const user = await createUser({ email: cleanEmail, passwordHash, name: cleanName });
     const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
 
     res.status(201).json({ user, token });
@@ -88,14 +175,15 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', authRateLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password required' });
     }
 
-    const user = await findUserByEmail(email);
+    const cleanEmail = String(email).trim().toLowerCase();
+    const user = await findUserByEmail(cleanEmail);
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
@@ -115,18 +203,18 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-app.get('/api/auth/me', authenticateUser, async (req, res) => {
+app.get('/api/auth/me', requireAuth, async (req, res) => {
   const user = await findUserById(req.user.id);
   res.json({ user: user || req.user });
 });
 
 // --- Architecture Routes ---
 
-// List architectures
-app.get('/api/architectures', authenticateUser, async (req, res) => {
+// List architectures (optionalAuth: public list if unauthenticated, plus user architectures if logged in)
+app.get('/api/architectures', optionalAuth, async (req, res) => {
   try {
-    const publicOnly = req.query.publicOnly === 'true';
-    const list = await listArchitectures({ userId: req.user.id, publicOnly });
+    const publicOnly = req.query.publicOnly === 'true' || !req.user;
+    const list = await listArchitectures({ userId: req.user ? req.user.id : null, publicOnly });
     res.json({ architectures: list });
   } catch (err) {
     console.error('[API] List architectures error:', err);
@@ -135,7 +223,7 @@ app.get('/api/architectures', authenticateUser, async (req, res) => {
 });
 
 // Save new architecture
-app.post('/api/architectures', authenticateUser, async (req, res) => {
+app.post('/api/architectures', requireAuth, async (req, res) => {
   try {
     const { name, description, nodes, edges, chaos, grade, monthlyCost, isPublic } = req.body;
     if (!name || !Array.isArray(nodes) || !Array.isArray(edges)) {
@@ -176,7 +264,7 @@ app.get('/api/architectures/:id', async (req, res) => {
 });
 
 // Update architecture
-app.put('/api/architectures/:id', authenticateUser, async (req, res) => {
+app.put('/api/architectures/:id', requireAuth, async (req, res) => {
   try {
     const updated = await updateArchitecture(req.params.id, req.user.id, req.body);
     if (!updated) {
@@ -190,11 +278,11 @@ app.put('/api/architectures/:id', authenticateUser, async (req, res) => {
 });
 
 // Delete architecture
-app.delete('/api/architectures/:id', authenticateUser, async (req, res) => {
+app.delete('/api/architectures/:id', requireAuth, async (req, res) => {
   try {
     const success = await deleteArchitecture(req.params.id, req.user.id);
     if (!success) {
-      return res.status(404).json({ error: 'Architecture not found' });
+      return res.status(404).json({ error: 'Architecture not found or unauthorized' });
     }
     res.json({ success: true, message: 'Architecture deleted successfully' });
   } catch (err) {
@@ -204,7 +292,7 @@ app.delete('/api/architectures/:id', authenticateUser, async (req, res) => {
 });
 
 // Fork architecture
-app.post('/api/architectures/:id/fork', authenticateUser, async (req, res) => {
+app.post('/api/architectures/:id/fork', requireAuth, async (req, res) => {
   try {
     const { newName } = req.body;
     const forked = await forkArchitecture(req.params.id, req.user.id, newName);
@@ -251,13 +339,23 @@ app.get('/api/telemetry/analytics', async (req, res) => {
 });
 
 // Start Express Server
-async function startServer() {
+export async function startServer() {
   await initPostgres();
   await initClickHouse();
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[Express API] System Design Playground API running on http://localhost:${PORT}`);
+  return new Promise((resolve) => {
+    const srv = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`[Express API] System Design Playground API running on http://localhost:${PORT}`);
+      resolve(srv);
+    });
   });
 }
 
-startServer();
+const isDirectExecution = process.argv[1] && (
+  fileURLToPath(import.meta.url) === path.resolve(process.argv[1]) ||
+  process.argv[1].endsWith('apiServer.mjs')
+);
+
+if (isDirectExecution) {
+  startServer();
+}

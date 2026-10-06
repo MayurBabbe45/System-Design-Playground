@@ -17,27 +17,64 @@ if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
+let cachedDb = null;
+let isWriting = false;
+let writeQueued = false;
+
 // Local Database Schema structure
 function loadLocalDb() {
+  if (cachedDb) return cachedDb;
+
   if (!fs.existsSync(LOCAL_DB_PATH)) {
     const initialDb = {
       users: [],
       architectures: [],
       revisions: [],
     };
-    fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(initialDb, null, 2), 'utf-8');
-    return initialDb;
+    try {
+      fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(initialDb, null, 2), 'utf-8');
+    } catch (err) {
+      console.error('[DB] Failed to initialize local db file:', err);
+    }
+    cachedDb = initialDb;
+    return cachedDb;
   }
   try {
-    return JSON.parse(fs.readFileSync(LOCAL_DB_PATH, 'utf-8'));
+    cachedDb = JSON.parse(fs.readFileSync(LOCAL_DB_PATH, 'utf-8'));
+    return cachedDb;
   } catch (err) {
     console.error('[DB] Failed to read local db, initializing empty:', err);
-    return { users: [], architectures: [], revisions: [] };
+    cachedDb = { users: [], architectures: [], revisions: [] };
+    return cachedDb;
   }
 }
 
-function saveLocalDb(data) {
-  fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
+async function flushLocalDbToDisk() {
+  if (isWriting) {
+    writeQueued = true;
+    return;
+  }
+  isWriting = true;
+  writeQueued = false;
+
+  try {
+    const serialized = JSON.stringify(cachedDb, null, 2);
+    const tempPath = `${LOCAL_DB_PATH}.tmp`;
+    await fs.promises.writeFile(tempPath, serialized, 'utf-8');
+    await fs.promises.rename(tempPath, LOCAL_DB_PATH);
+  } catch (err) {
+    console.error('[DB] Async disk save error:', err);
+  } finally {
+    isWriting = false;
+    if (writeQueued) {
+      flushLocalDbToDisk();
+    }
+  }
+}
+
+export function saveLocalDb(data) {
+  cachedDb = data;
+  flushLocalDbToDisk();
 }
 
 export async function initPostgres() {
@@ -265,7 +302,7 @@ export async function getArchitectureById(id) {
 export async function updateArchitecture(id, userId, updates) {
   const now = new Date().toISOString();
   if (pool) {
-    const current = await pool.query('SELECT * FROM architectures WHERE id = $1', [id]);
+    const current = await pool.query('SELECT * FROM architectures WHERE id = $1 AND user_id = $2', [id, userId]);
     if (!current.rows[0]) return null;
 
     const nextVersion = (current.rows[0].version || 1) + 1;
@@ -285,7 +322,7 @@ export async function updateArchitecture(id, userId, updates) {
         is_public = COALESCE($8, is_public),
         version = $9,
         updated_at = $10
-       WHERE id = $11 RETURNING *`,
+       WHERE id = $11 AND user_id = $12 RETURNING *`,
       [
         updates.name || null,
         updates.description || null,
@@ -298,6 +335,7 @@ export async function updateArchitecture(id, userId, updates) {
         nextVersion,
         now,
         id,
+        userId,
       ]
     );
 
@@ -310,7 +348,7 @@ export async function updateArchitecture(id, userId, updates) {
     return formatArchitecture(res.rows[0]);
   } else {
     const db = loadLocalDb();
-    const idx = db.architectures.findIndex((a) => a.id === id);
+    const idx = db.architectures.findIndex((a) => a.id === id && a.user_id === userId);
     if (idx === -1) return null;
 
     const current = db.architectures[idx];
@@ -349,15 +387,21 @@ export async function updateArchitecture(id, userId, updates) {
 
 export async function deleteArchitecture(id, userId) {
   if (pool) {
-    const res = await pool.query('DELETE FROM architectures WHERE id = $1 RETURNING id', [id]);
-    return res.rowCount > 0;
+    const res = await pool.query(
+      'DELETE FROM architectures WHERE id = $1 AND user_id = $2 RETURNING id',
+      [id, userId]
+    );
+    return (res.rowCount ?? 0) > 0;
   } else {
     const db = loadLocalDb();
     const initialLen = db.architectures.length;
-    db.architectures = db.architectures.filter((a) => a.id !== id);
-    db.revisions = db.revisions.filter((r) => r.architecture_id !== id);
-    saveLocalDb(db);
-    return db.architectures.length < initialLen;
+    db.architectures = db.architectures.filter((a) => !(a.id === id && a.user_id === userId));
+    if (db.architectures.length < initialLen) {
+      db.revisions = db.revisions.filter((r) => r.architecture_id !== id);
+      saveLocalDb(db);
+      return true;
+    }
+    return false;
   }
 }
 

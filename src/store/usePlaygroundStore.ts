@@ -51,6 +51,7 @@ interface PlaygroundState {
   nodes: Node<InfrastructureNodeData>[];
   edges: Edge<EdgeStreamData>[];
   selectedNodeId: string | null;
+  selectedEdgeId: string | null;
   
   // View-Only Interactive Simulation State
   isViewOnly: boolean;
@@ -113,10 +114,24 @@ interface PlaygroundState {
   
   // Custom Actions
   setSelectedNodeId: (id: string | null) => void;
+  setSelectedEdgeId: (id: string | null) => void;
   addNodeFromPalette: (typeId: ComponentTypeId, position: { x: number; y: number }) => void;
+  appendConnectedNode: (sourceNodeId: string, typeId: ComponentTypeId) => void;
   updateNodeData: (id: string, partialData: Partial<InfrastructureNodeData>) => void;
   toggleNodeKillSwitch: (id: string) => void;
   deleteNode: (id: string) => void;
+  deleteEdge: (id: string) => void;
+
+  // History & Clipboard Shortcuts
+  history: { nodes: Node<InfrastructureNodeData>[]; edges: Edge<EdgeStreamData>[] }[];
+  future: { nodes: Node<InfrastructureNodeData>[]; edges: Edge<EdgeStreamData>[] }[];
+  copiedNode: Node<InfrastructureNodeData> | null;
+  takeSnapshot: () => void;
+  undo: () => void;
+  redo: () => void;
+  copySelectedNode: () => void;
+  pasteNode: (position?: { x: number; y: number }) => void;
+  duplicateSelectedNode: () => void;
   
   // Preset & Import/Export
   loadPreset: (presetId: string) => void;
@@ -221,28 +236,58 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
         computeDurationMs
       } = e.data;
       
-      const nextNodes = get().nodes.map((node) => {
+      let nodesChanged = false;
+      const currentNodes = get().nodes;
+      const nextNodes = currentNodes.map((node) => {
         const update = updatedNodes.find((un) => un.id === node.id);
-        if (update) {
+        if (!update || !update.data) return node;
+
+        const d = node.data;
+        const u = update.data;
+        const isDifferent =
+          d.currentRps !== u.currentRps ||
+          d.currentQueue !== u.currentQueue ||
+          d.currentLatency !== u.currentLatency ||
+          d.status !== u.status ||
+          d.utilizationPercent !== u.utilizationPercent ||
+          d.isBottleneck !== u.isBottleneck ||
+          d.circuitBreakerState !== u.circuitBreakerState;
+
+        if (isDifferent) {
+          nodesChanged = true;
           return {
             ...node,
             data: {
               ...node.data,
-              ...update.data,
+              ...u,
             },
           };
         }
         return node;
       });
 
-      const nextEdges = get().edges.map((edge) => {
+      let edgesChanged = false;
+      const currentEdges = get().edges;
+      const nextEdges = currentEdges.map((edge) => {
         const update = updatedEdges.find((ue) => ue.id === edge.id);
-        if (update) {
+        if (!update || !update.data) return edge;
+
+        const d = edge.data;
+        const u = update.data;
+        const isDifferent =
+          !d ||
+          d.currentFlowRps !== u.currentFlowRps ||
+          d.latencyMs !== u.latencyMs ||
+          d.errorRatePercent !== u.errorRatePercent ||
+          d.animated !== u.animated;
+
+        if (isDifferent) {
+          edgesChanged = true;
           return {
             ...edge,
             data: {
               ...edge.data,
-              ...update.data,
+              ...u,
             },
           };
         }
@@ -272,8 +317,8 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
       }
 
       set({
-        nodes: nextNodes,
-        edges: nextEdges,
+        nodes: nodesChanged ? nextNodes : currentNodes,
+        edges: edgesChanged ? nextEdges : currentEdges,
         telemetryHistory: updatedHistory,
         bottleneckNodeId,
         bottleneckReason,
@@ -303,6 +348,7 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
       },
     })),
     selectedNodeId: null,
+    selectedEdgeId: null,
     isViewOnly: false,
     setIsViewOnly: (viewOnly: boolean) => set({ isViewOnly: viewOnly }),
     
@@ -703,11 +749,21 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
       for (const change of changes) {
         if (change.type === 'remove') {
           collabManager.syncEdgeDeletion(change.id);
+          if (get().selectedEdgeId === change.id) {
+            set({ selectedEdgeId: null });
+          }
+        } else if (change.type === 'select') {
+          if (change.selected) {
+            set({ selectedEdgeId: change.id, selectedNodeId: null });
+          } else if (get().selectedEdgeId === change.id) {
+            set({ selectedEdgeId: null });
+          }
         }
       }
     },
 
     onConnect: (connection) => {
+      get().takeSnapshot();
       const newEdge: Edge<EdgeStreamData> = {
         ...connection,
         id: `e-${connection.source}-${connection.target}-${Date.now()}`,
@@ -726,11 +782,141 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
     },
 
     setSelectedNodeId: (id) => {
-      set({ selectedNodeId: id });
+      set({ selectedNodeId: id, selectedEdgeId: id ? null : get().selectedEdgeId });
       collabManager.updateSelection(id);
     },
 
+    setSelectedEdgeId: (id) => {
+      set({ selectedEdgeId: id, selectedNodeId: id ? null : get().selectedNodeId });
+    },
+
+    // History & Clipboard Shortcuts
+    history: [],
+    future: [],
+    copiedNode: null,
+
+    takeSnapshot: () => {
+      const currentNodes = get().nodes.map((n) => ({ ...n, data: { ...n.data } }));
+      const currentEdges = get().edges.map((e) => ({ ...e, data: { ...e.data } }));
+      set((state) => ({
+        history: [...state.history.slice(-35), { nodes: currentNodes, edges: currentEdges }],
+        future: [],
+      }));
+    },
+
+    undo: () => {
+      const { history, future, nodes, edges } = get();
+      if (history.length === 0) return;
+
+      const previous = history[history.length - 1];
+      const newHistory = history.slice(0, history.length - 1);
+      const currentSnapshot = {
+        nodes: nodes.map((n) => ({ ...n, data: { ...n.data } })),
+        edges: edges.map((e) => ({ ...e, data: { ...e.data } })),
+      };
+
+      set({
+        nodes: previous.nodes,
+        edges: previous.edges,
+        history: newHistory,
+        future: [currentSnapshot, ...future.slice(0, 35)],
+        selectedNodeId: null,
+        selectedEdgeId: null,
+      });
+
+      collabManager.syncLocalCanvas(previous.nodes, previous.edges);
+    },
+
+    redo: () => {
+      const { history, future, nodes, edges } = get();
+      if (future.length === 0) return;
+
+      const next = future[0];
+      const newFuture = future.slice(1);
+      const currentSnapshot = {
+        nodes: nodes.map((n) => ({ ...n, data: { ...n.data } })),
+        edges: edges.map((e) => ({ ...e, data: { ...e.data } })),
+      };
+
+      set({
+        nodes: next.nodes,
+        edges: next.edges,
+        history: [...history.slice(-35), currentSnapshot],
+        future: newFuture,
+        selectedNodeId: null,
+        selectedEdgeId: null,
+      });
+
+      collabManager.syncLocalCanvas(next.nodes, next.edges);
+    },
+
+    copySelectedNode: () => {
+      const { nodes, selectedNodeId } = get();
+      if (!selectedNodeId) return;
+      const target = nodes.find((n) => n.id === selectedNodeId);
+      if (target) {
+        set({ copiedNode: JSON.parse(JSON.stringify(target)) });
+      }
+    },
+
+    pasteNode: (targetPosition) => {
+      const { copiedNode, nodes } = get();
+      if (!copiedNode) return;
+      get().takeSnapshot();
+
+      const id = `${copiedNode.data.typeId}-${Date.now()}`;
+      const position = targetPosition || {
+        x: copiedNode.position.x + 50,
+        y: copiedNode.position.y + 50,
+      };
+
+      const cloned = JSON.parse(JSON.stringify(copiedNode));
+      const newNode: Node<InfrastructureNodeData> = {
+        ...cloned,
+        id,
+        position,
+        selected: true,
+      };
+
+      set({
+        nodes: [...nodes.map((n) => ({ ...n, selected: false })), newNode],
+        selectedNodeId: id,
+        selectedEdgeId: null,
+      });
+
+      collabManager.syncSingleNode(newNode);
+    },
+
+    duplicateSelectedNode: () => {
+      const { selectedNodeId, nodes } = get();
+      if (!selectedNodeId) return;
+      const target = nodes.find((n) => n.id === selectedNodeId);
+      if (!target) return;
+      get().takeSnapshot();
+
+      const id = `${target.data.typeId}-${Date.now()}`;
+      const cloned = JSON.parse(JSON.stringify(target));
+      const newNode: Node<InfrastructureNodeData> = {
+        ...cloned,
+        id,
+        position: {
+          x: target.position.x + 50,
+          y: target.position.y + 50,
+        },
+        selected: true,
+      };
+
+      set({
+        nodes: [...nodes.map((n) => ({ ...n, selected: false })), newNode],
+        selectedNodeId: id,
+        selectedEdgeId: null,
+      });
+
+      collabManager.syncSingleNode(newNode);
+    },
+
     addNodeFromPalette: (typeId, position) => {
+      get().takeSnapshot();
       const meta = COMPONENT_CATALOG[typeId];
       if (!meta) return;
 
@@ -769,6 +955,76 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
         selectedNodeId: id,
       });
       collabManager.syncSingleNode(newNode);
+    },
+
+    appendConnectedNode: (sourceNodeId, typeId) => {
+      get().takeSnapshot();
+      const sourceNode = get().nodes.find((n) => n.id === sourceNodeId);
+      const meta = COMPONENT_CATALOG[typeId];
+      if (!sourceNode || !meta) return;
+
+      const existingSourceEdges = get().edges.filter((e) => e.source === sourceNodeId);
+      const edgeIndex = existingSourceEdges.length;
+
+      // Position new node downstream to the right with vertical spreading for branches
+      const yOffset = edgeIndex === 0 ? 0 : (edgeIndex % 2 === 1 ? Math.ceil(edgeIndex / 2) * 110 : -Math.ceil(edgeIndex / 2) * 110);
+      const position = {
+        x: sourceNode.position.x + 220,
+        y: sourceNode.position.y + yOffset,
+      };
+
+      const id = `${typeId}-${Date.now()}`;
+      const newNode: Node<InfrastructureNodeData> = {
+        id,
+        type: 'infrastructure',
+        position,
+        data: {
+          label: meta.name,
+          typeId: meta.typeId,
+          category: meta.category,
+          instanceCount: 1,
+          capacityRps: meta.defaultCapacityRps,
+          latencyMs: meta.defaultLatencyMs,
+          maxQueueDepth: meta.defaultQueueDepth,
+          failureRate: 0,
+          costPerHour: meta.defaultCostPerHour,
+          isKilled: false,
+          currentRps: 0,
+          currentQueue: 0,
+          currentLatency: meta.defaultLatencyMs,
+          status: 'healthy',
+          utilizationPercent: 0,
+          isBottleneck: false,
+          availabilityZone: 'us-east-1a',
+          hitRatePercent: typeId === 'cache' ? 85 : undefined,
+          readRatioPercent: typeId === 'relational_db' ? 80 : undefined,
+          circuitBreakerEnabled: typeId === 'load_balancer' || typeId === 'api_gateway',
+          circuitBreakerState: 'CLOSED',
+        },
+      };
+
+      const newEdge: Edge<EdgeStreamData> = {
+        id: `e-${sourceNodeId}-${id}-${Date.now()}`,
+        source: sourceNodeId,
+        target: id,
+        type: 'flowEdge',
+        data: {
+          currentFlowRps: 1000,
+          latencyMs: 5,
+          errorRatePercent: 0,
+          animated: true,
+        },
+      };
+
+      set({
+        nodes: [...get().nodes, newNode],
+        edges: [...get().edges, newEdge],
+        selectedNodeId: id,
+        selectedEdgeId: null,
+      });
+
+      collabManager.syncSingleNode(newNode);
+      collabManager.syncSingleEdge(newEdge);
     },
 
     updateNodeData: (id, partialData) => {
@@ -813,17 +1069,32 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
     },
 
     deleteNode: (id) => {
+      get().takeSnapshot();
+      const remainingEdges = get().edges.filter((e) => e.source !== id && e.target !== id);
+      const removedEdges = get().edges.filter((e) => e.source === id || e.target === id);
+      removedEdges.forEach((e) => collabManager.syncEdgeDeletion(e.id));
       set({
         nodes: get().nodes.filter((n) => n.id !== id),
-        edges: get().edges.filter((e) => e.source !== id && e.target !== id),
+        edges: remainingEdges,
         selectedNodeId: get().selectedNodeId === id ? null : get().selectedNodeId,
+        selectedEdgeId: removedEdges.some((e) => e.id === get().selectedEdgeId) ? null : get().selectedEdgeId,
       });
       collabManager.syncNodeDeletion(id);
+    },
+
+    deleteEdge: (id) => {
+      get().takeSnapshot();
+      set({
+        edges: get().edges.filter((e) => e.id !== id),
+        selectedEdgeId: get().selectedEdgeId === id ? null : get().selectedEdgeId,
+      });
+      collabManager.syncEdgeDeletion(id);
     },
 
     loadPreset: (presetId) => {
       const preset = PRESET_ARCHITECTURES.find((p) => p.id === presetId);
       if (!preset) return;
+      get().takeSnapshot();
 
       const loadedNodes = preset.nodes.map((n) => ({
         ...n,
@@ -858,6 +1129,7 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
     },
 
     clearCanvas: () => {
+      get().takeSnapshot();
       set({
         nodes: [],
         edges: [],

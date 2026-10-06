@@ -172,7 +172,7 @@ export const Header: React.FC = () => {
       {/* Center: Mode Switcher & Simulation Capsule */}
       <div className="flex items-center gap-2">
         {/* Simple vs Detailed Canvas Mode Toggle */}
-        <div className="hidden sm:flex items-center bg-[var(--bg-pill)] p-0.5 rounded-xl border border-[var(--border-subtle)] text-[11px] font-medium">
+        <div className="hidden md:flex items-center bg-[var(--bg-pill)] p-0.5 rounded-xl border border-[var(--border-subtle)] text-[11px] font-medium">
           <button
             type="button"
             onClick={() => setCanvasViewMode('simple')}
@@ -259,7 +259,8 @@ export const Header: React.FC = () => {
           className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${getGradeBadge()}`}
         >
           <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-          <span>Resilience: {auditResult.grade} ({auditResult.score}%)</span>
+          <span className="hidden md:inline">Resilience: </span>
+          <span>{auditResult.grade} ({auditResult.score}%)</span>
         </button>
 
         {/* Cloud Cost Pill */}

@@ -18,6 +18,7 @@ import {
 import { usePlaygroundStore } from '../store/usePlaygroundStore';
 import { COMPONENT_CATALOG } from '../config/components';
 import { AvailabilityZone, EvictionPolicy, LoadBalancerAlgorithm } from '../types/playground';
+import { ComponentIcon } from './icons/ComponentIcons';
 
 const ALL_AZS: AvailabilityZone[] = ['us-east-1a', 'us-east-1b', 'us-east-1c'];
 
@@ -57,10 +58,12 @@ export const Inspector: React.FC = () => {
       <div className="p-4 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[var(--bg-panel)]">
         <div className="flex items-center gap-2.5 min-w-0">
           <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm"
-            style={{ backgroundColor: `${meta?.color || '#3b82f6'}25`, color: meta?.color || '#3b82f6' }}
+            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-xs border border-white/10 dark:border-white/5"
+            style={{
+              background: `linear-gradient(135deg, ${meta?.color || '#3b82f6'}25 0%, ${meta?.color || '#3b82f6'}10 100%)`,
+            }}
           >
-            <Cpu className="w-4 h-4" />
+            <ComponentIcon typeId={data.typeId} size={26} color={meta?.color || '#3b82f6'} />
           </div>
           <div className="min-w-0">
             <div className="text-xs font-bold text-[var(--text-main)] truncate">Node Configuration</div>
