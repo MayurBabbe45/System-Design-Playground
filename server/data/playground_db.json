@@ -216,6 +216,97 @@
       "password_hash": "hash",
       "name": "Attacker",
       "created_at": "2026-10-06T17:12:33.269Z"
+    },
+    {
+      "id": "usr_6c3150fb41bbcbdb",
+      "email": "victim_1791391353793@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-07T16:42:33.794Z"
+    },
+    {
+      "id": "usr_21d35473c9f1d6f4",
+      "email": "attacker_1791391353800@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-07T16:42:33.800Z"
+    },
+    {
+      "id": "usr_bcc9c452f70795fe",
+      "email": "victim_1791392582145@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-07T17:03:02.146Z"
+    },
+    {
+      "id": "usr_61a05632b3229217",
+      "email": "attacker_1791392582154@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-07T17:03:02.155Z"
+    },
+    {
+      "id": "usr_0af5dc72ef4307cc",
+      "email": "victim_1791393101200@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-07T17:11:41.201Z"
+    },
+    {
+      "id": "usr_582277cad9abf6ce",
+      "email": "attacker_1791393101206@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-07T17:11:41.207Z"
+    },
+    {
+      "id": "usr_61ac0040b9891143",
+      "email": "victim_1791394378689@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-07T17:32:58.690Z"
+    },
+    {
+      "id": "usr_234ff6d8f2b96283",
+      "email": "attacker_1791394378696@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-07T17:32:58.696Z"
+    },
+    {
+      "id": "usr_afc1c824a3c9a20c",
+      "email": "victim_1791394542399@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-07T17:35:42.399Z"
+    },
+    {
+      "id": "usr_72cba86df3581417",
+      "email": "attacker_1791394542404@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-07T17:35:42.405Z"
+    },
+    {
+      "id": "usr_guest_default",
+      "email": "usr_guest_default@playground.local",
+      "password_hash": "guest_session",
+      "name": "Guest Architect",
+      "created_at": "2026-10-07T17:36:23.107Z"
+    },
+    {
+      "id": "usr_4037c3c86eddc408",
+      "email": "victim_1791476227498@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-08T16:17:07.498Z"
+    },
+    {
+      "id": "usr_94d21ddaf13e3185",
+      "email": "attacker_1791476227501@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-08T16:17:07.501Z"
     }
   ],
   "architectures": [

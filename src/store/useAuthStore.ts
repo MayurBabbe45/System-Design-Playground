@@ -102,7 +102,30 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  continueAsGuest: () => {
+  continueAsGuest: async () => {
+    try {
+      const res = await fetch('/api/auth/guest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem(TOKEN_KEY, data.token);
+        localStorage.setItem(GUEST_KEY, 'true');
+        set({
+          user: data.user,
+          token: data.token,
+          isAuthenticated: true,
+          isGuest: true,
+          isLoading: false,
+          authError: null,
+        });
+        return;
+      }
+    } catch (err) {
+      console.warn('Backend guest auth call failed, falling back to offline guest session:', err);
+    }
+
     const guestUser: UserProfile = {
       id: 'usr_guest_' + Math.random().toString(36).substring(2, 9),
       name: 'Guest Architect',
@@ -110,7 +133,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       avatar: '🚀',
     };
 
-    localStorage.removeItem(TOKEN_KEY);
     localStorage.setItem(GUEST_KEY, 'true');
 
     set({
@@ -142,6 +164,29 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const isGuest = localStorage.getItem(GUEST_KEY) === 'true';
 
     if (isGuest) {
+      if (!token) {
+        try {
+          const res = await fetch('/api/auth/guest', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            localStorage.setItem(TOKEN_KEY, data.token);
+            set({
+              user: data.user,
+              token: data.token,
+              isAuthenticated: true,
+              isGuest: true,
+              isLoading: false,
+            });
+            return;
+          }
+        } catch {
+          // offline fallback below
+        }
+      }
+
       set({
         user: {
           id: 'usr_guest_stored',
@@ -149,7 +194,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           email: 'guest@playground.local',
           avatar: '🚀',
         },
-        token: null,
+        token,
         isAuthenticated: true,
         isGuest: true,
         isLoading: false,

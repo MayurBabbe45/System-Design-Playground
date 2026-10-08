@@ -65,6 +65,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const [description, setDescription] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState(defaultTemplateId);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const { createNewProject } = usePlaygroundStore();
 
@@ -74,6 +75,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       setDescription('');
       setSelectedTemplate(defaultTemplateId);
       setIsSubmitting(false);
+      setError(null);
     }
   }, [isOpen, defaultTemplateId]);
 
@@ -84,11 +86,18 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     if (!name.trim()) return;
 
     setIsSubmitting(true);
+    setError(null);
     try {
-      await createNewProject(name, description, selectedTemplate);
-      onClose();
-    } catch (err) {
+      const createdId = await createNewProject(name, description, selectedTemplate);
+      if (createdId) {
+        onClose();
+      } else {
+        setError('Failed to create architecture project. Please try again.');
+        setIsSubmitting(false);
+      }
+    } catch (err: any) {
       console.error('Failed to create project:', err);
+      setError(err?.message || 'Failed to create architecture project.');
       setIsSubmitting(false);
     }
   };
@@ -118,6 +127,12 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
         {/* Content Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto flex-1">
+          {error && (
+            <div className="px-3.5 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 dark:text-rose-400 text-xs flex items-center gap-2 animate-fadeIn">
+              <span>{error}</span>
+            </div>
+          )}
+
           <div>
             <label className="block text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1.5">
               Project Name <span className="text-rose-500">*</span>
@@ -127,7 +142,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               required
               autoFocus
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (error) setError(null);
+              }}
               placeholder="e.g. Payment Gateway, Order Ingest Service"
               className="w-full px-3.5 py-2.5 bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-xl text-xs text-[var(--text-main)] placeholder-[var(--text-muted)]/60 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all"
             />

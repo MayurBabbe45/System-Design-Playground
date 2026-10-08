@@ -19,7 +19,9 @@ import {
   Activity,
   Eye,
   GitFork,
-  Share2
+  Share2,
+  Square,
+  Zap
 } from 'lucide-react';
 import { usePlaygroundStore } from '../store/usePlaygroundStore';
 import { useAuthStore } from '../store/useAuthStore';
@@ -29,7 +31,9 @@ import { auditArchitecture } from '../simulation/architectureLinter';
 export const Header: React.FC = () => {
   const {
     isSimulating,
+    isCascadeRunning,
     toggleSimulation,
+    stopSimulation,
     targetGlobalRps,
     setTargetGlobalRps,
     trafficProfile,
@@ -203,18 +207,75 @@ export const Header: React.FC = () => {
 
         {/* Clean Simulation Control Capsule */}
         <div className="flex items-center gap-1.5 bg-[var(--bg-pill)] p-1 rounded-xl border border-[var(--border-subtle)] shadow-inner">
-          {/* Simulation Play / Pause Button */}
-          <button
-            onClick={toggleSimulation}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer ${
-              isSimulating
-                ? 'bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
-                : 'bg-blue-600 text-white hover:bg-blue-500 shadow-blue-600/20'
-            }`}
-          >
-          {isSimulating ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current" />}
-          <span className="hidden sm:inline">{isSimulating ? 'Pause' : 'Simulate'}</span>
-        </button>
+          {!isSimulating ? (
+            <>
+              {/* Primary Simulate Trigger Button */}
+              <button
+                type="button"
+                onClick={toggleSimulation}
+                title="Start real-time incremental execution cascade (Space)"
+                className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-sm shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer"
+              >
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>Simulate</span>
+              </button>
+
+              {/* Design / Construction Mode Indicator */}
+              <div
+                className="hidden xl:flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold text-[var(--text-muted)] bg-[var(--bg-surface)] border border-[var(--border-subtle)]"
+                title="Canvas is in construction mode with 0 animation overhead"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500" />
+                <span>Design Mode</span>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Status Badge: Cascade Propagating vs Live Simulating */}
+              {isCascadeRunning ? (
+                <div
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold"
+                  title="Propagating traffic wave down topology DAG"
+                >
+                  <Zap className="w-3 h-3 fill-amber-500 text-amber-500 animate-bounce" />
+                  <span className="hidden sm:inline">Cascading...</span>
+                </div>
+              ) : (
+                <div
+                  className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold"
+                  title="Real-time discrete simulation running"
+                >
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                  </span>
+                  <span className="hidden sm:inline">Live Sim</span>
+                </div>
+              )}
+
+              {/* Pause / Resume Button */}
+              <button
+                type="button"
+                onClick={toggleSimulation}
+                title="Pause / Resume simulation (Space)"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-300 border border-amber-500/30 transition-all cursor-pointer"
+              >
+                <Pause className="w-3 h-3 fill-current" />
+                <span className="hidden sm:inline">Pause</span>
+              </button>
+
+              {/* Stop Button: Resets Canvas to Tranquil Design Mode */}
+              <button
+                type="button"
+                onClick={stopSimulation}
+                title="Stop simulation & return to Design Mode"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 transition-all cursor-pointer"
+              >
+                <Square className="w-3 h-3 fill-current" />
+                <span className="hidden sm:inline">Stop</span>
+              </button>
+            </>
+          )}
 
         {/* Traffic Profile Selector */}
         <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors">

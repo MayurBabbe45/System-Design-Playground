@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import { 
   initPostgres, 
   createUser, 
+  ensureGuestUser,
   findUserByEmail, 
   findUserById, 
   saveArchitecture, 
@@ -208,6 +209,20 @@ app.get('/api/auth/me', requireAuth, async (req, res) => {
   res.json({ user: user || req.user });
 });
 
+// Guest Session Route (Zero-friction instant JWT issuance for playground exploration)
+app.post('/api/auth/guest', async (req, res) => {
+  try {
+    const requestedId = req.body?.guestId;
+    const user = await ensureGuestUser(requestedId);
+    const safeUser = { id: user.id, email: user.email, name: user.name, isGuest: true };
+    const token = jwt.sign(safeUser, JWT_SECRET, { expiresIn: '30d' });
+    res.json({ user: safeUser, token });
+  } catch (err) {
+    console.error('[API] Guest auth error:', err);
+    res.status(500).json({ error: 'Failed to create guest session' });
+  }
+});
+
 // --- Architecture Routes ---
 
 // List architectures (optionalAuth: public list if unauthenticated, plus user architectures if logged in)
@@ -222,16 +237,22 @@ app.get('/api/architectures', optionalAuth, async (req, res) => {
   }
 });
 
-// Save new architecture
-app.post('/api/architectures', requireAuth, async (req, res) => {
+// Save new architecture (optionalAuth: supports both authenticated users and guest sessions)
+app.post('/api/architectures', optionalAuth, async (req, res) => {
   try {
     const { name, description, nodes, edges, chaos, grade, monthlyCost, isPublic } = req.body;
     if (!name || !Array.isArray(nodes) || !Array.isArray(edges)) {
       return res.status(400).json({ error: 'Name, nodes array, and edges array are required' });
     }
 
+    let userId = req.user ? req.user.id : null;
+    if (!userId) {
+      const guest = await ensureGuestUser();
+      userId = guest.id;
+    }
+
     const saved = await saveArchitecture({
-      userId: req.user.id,
+      userId,
       name,
       description,
       nodes,

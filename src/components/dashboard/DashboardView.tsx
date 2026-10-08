@@ -4,7 +4,6 @@ import {
   Layers, 
   Plus, 
   Search, 
-  Filter, 
   DollarSign, 
   Clock, 
   MoreVertical, 
@@ -19,12 +18,26 @@ import {
   Activity, 
   Compass, 
   ArrowRight,
-  Database
+  Database,
+  LayoutList,
+  LayoutGrid,
+  CheckCircle2,
+  TrendingUp,
+  Cpu
 } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { usePlaygroundStore } from '../../store/usePlaygroundStore';
 import { apiClient, SavedArchitecture } from '../../api/client';
 import { CreateProjectModal } from '../modals/CreateProjectModal';
+import { ConfirmDeleteModal } from '../modals/ConfirmDeleteModal';
+import { 
+  StudioBrandLogo, 
+  TemplateBlankSvg, 
+  TemplateMultiAzSvg, 
+  TemplateFlashSaleSvg, 
+  TemplateCqrsSvg, 
+  ArchitectureArchetypeIcon 
+} from '../icons/DashboardLogos';
 
 export const DashboardView: React.FC = () => {
   const { user, isGuest, logout } = useAuthStore();
@@ -38,10 +51,15 @@ export const DashboardView: React.FC = () => {
   const [projects, setProjects] = useState<SavedArchitecture[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'updated' | 'name' | 'cost'>('updated');
+  const [sortBy, setSortBy] = useState<'updated' | 'name' | 'cost' | 'grade'>('updated');
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+  const [selectedTab, setSelectedTab] = useState<'all' | 'templates'>('all');
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTemplateForCreate, setSelectedTemplateForCreate] = useState<string>('blank');
+
+  const [projectToDelete, setProjectToDelete] = useState<SavedArchitecture | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchProjects = async () => {
     setLoading(true);
@@ -74,15 +92,23 @@ export const DashboardView: React.FC = () => {
     }
   };
 
-  const handleDeleteProject = async (id: string, e: React.MouseEvent) => {
+  const handlePromptDelete = (arch: SavedArchitecture, e: React.MouseEvent) => {
     e.stopPropagation();
     setActiveMenuId(null);
-    if (!confirm('Are you sure you want to delete this project?')) return;
+    setProjectToDelete(arch);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!projectToDelete) return;
+    setIsDeleting(true);
     try {
-      await apiClient.deleteArchitecture(id);
-      setProjects(projects.filter((p) => p.id !== id));
+      await apiClient.deleteArchitecture(projectToDelete.id);
+      setProjects((prev) => prev.filter((p) => p.id !== projectToDelete.id));
+      setProjectToDelete(null);
     } catch (err) {
       console.error('Failed to delete project:', err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -107,6 +133,7 @@ export const DashboardView: React.FC = () => {
     result.sort((a, b) => {
       if (sortBy === 'name') return a.name.localeCompare(b.name);
       if (sortBy === 'cost') return (b.monthlyCost || 0) - (a.monthlyCost || 0);
+      if (sortBy === 'grade') return (a.grade || 'Z').localeCompare(b.grade || 'Z');
       return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
     });
 
@@ -121,79 +148,130 @@ export const DashboardView: React.FC = () => {
     return projects.reduce((acc, p) => acc + (p.nodes?.length || 0), 0);
   }, [projects]);
 
+  const formatRelativeTime = (dateStr?: string) => {
+    if (!dateStr) return 'Recently';
+    const now = Date.now();
+    const past = new Date(dateStr).getTime();
+    if (isNaN(past)) return 'Recently';
+    const diffSec = Math.floor((now - past) / 1000);
+    if (diffSec < 60) return 'Just now';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return `${diffHr}h ago`;
+    const diffDays = Math.floor(diffHr / 24);
+    if (diffDays < 30) return `${diffDays}d ago`;
+    return new Date(dateStr).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  };
+
+  const getGradeBadge = (grade: string = 'A') => {
+    switch (grade) {
+      case 'A':
+        return {
+          bg: 'bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
+          dot: 'bg-emerald-500',
+        };
+      case 'B':
+        return {
+          bg: 'bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30',
+          dot: 'bg-blue-500',
+        };
+      case 'C':
+        return {
+          bg: 'bg-amber-500/10 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30',
+          dot: 'bg-amber-500',
+        };
+      default:
+        return {
+          bg: 'bg-rose-500/10 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30',
+          dot: 'bg-rose-500',
+        };
+    }
+  };
+
   return (
-    <div className="flex h-screen w-screen bg-[var(--bg-app)] text-[var(--text-main)] overflow-hidden select-none font-sans">
-      {/* Left Navigation Rail */}
-      <aside className="w-64 border-r border-[var(--border-subtle)] bg-[var(--bg-surface)] flex flex-col justify-between shrink-0 transition-colors z-20">
-        <div>
-          {/* Workspace Switcher Header */}
-          <div className="p-4 border-b border-[var(--border-subtle)]">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md shadow-blue-600/20 shrink-0">
-                <Network className="w-5 h-5 text-white" />
+    <div className="flex flex-col h-screen w-screen bg-[var(--bg-app)] text-[var(--text-main)] overflow-hidden font-sans select-none">
+      {/* Top Professional SaaS Header (Horizontal Layout - No Left Panel) */}
+      <header className="h-14 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] px-4 sm:px-6 flex items-center justify-between shrink-0 z-30 shadow-xs">
+        {/* Left: Brand Identity, Workspace Switcher, and Breadcrumbs */}
+        <div className="flex items-center gap-3 sm:gap-4 overflow-hidden">
+          {/* Logo & Brand */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            <StudioBrandLogo size={32} className="shrink-0 drop-shadow-sm" />
+            <div className="hidden md:block">
+              <div className="text-xs font-bold tracking-tight text-[var(--text-main)]">
+                System Design Playground
               </div>
-              <div className="overflow-hidden">
-                <div className="text-xs font-bold text-[var(--text-main)] truncate">
-                  {user?.name ? `${user.name}'s Workspace` : 'Architecture Workspace'}
-                </div>
-                <div className="text-[10px] text-[var(--text-muted)] flex items-center gap-1.5 mt-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                  <span>{isGuest ? 'Guest Edition' : 'Pro Architect'}</span>
-                </div>
+              <div className="text-[9px] uppercase tracking-wider font-semibold text-blue-500">
+                Architecture Studio
               </div>
             </div>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="p-3 space-y-1">
-            <button
-              type="button"
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-600/20 shadow-sm"
-            >
-              <Layers className="w-4 h-4" />
-              <span>Projects & Architectures</span>
-            </button>
+          <span className="text-[var(--border-subtle)] font-bold text-xs hidden sm:inline">/</span>
 
+          {/* Workspace Pill */}
+          <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-[var(--bg-panel)] border border-[var(--border-subtle)] text-xs shrink-0">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block shrink-0" />
+            <span className="font-semibold text-[var(--text-main)] max-w-[130px] sm:max-w-[180px] truncate">
+              {user?.name ? `${user.name}'s Workspace` : "Architect's Workspace"}
+            </span>
+            <span className="text-[10px] text-[var(--text-muted)] font-mono px-1.5 py-0.2 rounded bg-[var(--bg-surface)] border border-[var(--border-subtle)] hidden sm:inline">
+              {isGuest ? 'Guest' : 'Pro'}
+            </span>
+          </div>
+
+          {/* Horizontal Navigation Tabs */}
+          <nav className="hidden lg:flex items-center gap-1 ml-2">
             <button
               type="button"
-              onClick={() => handleCreateFromTemplate('blank')}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-panel)] transition-colors cursor-pointer"
+              onClick={() => setSelectedTab('all')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                selectedTab === 'all'
+                  ? 'bg-[var(--bg-pill)] text-blue-600 dark:text-blue-400 border border-[var(--border-subtle)] shadow-xs'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+              }`}
             >
-              <Plus className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              <span>New Architecture</span>
+              <Layers className="w-3.5 h-3.5" />
+              <span>Architectures</span>
+              <span className="ml-1 text-[10px] px-1.5 py-0.2 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-muted)] font-mono">
+                {projects.length}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedTab('templates')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                selectedTab === 'templates'
+                  ? 'bg-[var(--bg-pill)] text-blue-600 dark:text-blue-400 border border-[var(--border-subtle)] shadow-xs'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+              <span>Templates</span>
             </button>
           </nav>
         </div>
 
-        {/* User Account & Bottom Actions */}
-        <div className="p-3 border-t border-[var(--border-subtle)] space-y-2">
-          {/* Theme Switcher Button */}
+        {/* Right: Quick Tools, Theme Toggle, Profile, and New Architecture CTA */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Theme Toggle */}
           <button
             type="button"
             onClick={toggleTheme}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-panel)] transition-colors border border-[var(--border-subtle)]/50 cursor-pointer"
+            className="p-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-panel)] hover:bg-[var(--bg-pill)] text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors cursor-pointer"
+            title={`Toggle ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
           >
-            <div className="flex items-center gap-2">
-              {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-blue-600" />}
-              <span>Theme</span>
-            </div>
-            <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">{theme}</span>
+            {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-blue-600" />}
           </button>
 
-          {/* User Profile Pill */}
-          <div className="p-2.5 rounded-xl bg-[var(--bg-panel)] border border-[var(--border-subtle)] flex items-center justify-between">
-            <div className="flex items-center gap-2.5 overflow-hidden">
-              <div className="w-7 h-7 rounded-lg bg-blue-600/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 flex items-center justify-center text-xs font-bold shrink-0">
-                {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
-              </div>
-              <div className="overflow-hidden">
-                <div className="text-xs font-medium text-[var(--text-main)] truncate">
-                  {user?.name || 'Architect'}
-                </div>
-                <div className="text-[10px] text-[var(--text-muted)] truncate">
-                  {user?.email || 'local@playground'}
-                </div>
-              </div>
+          {/* User Profile Pill & Logout */}
+          <div className="flex items-center gap-2 pl-2 border-l border-[var(--border-subtle)]">
+            <div
+              className="w-7 h-7 rounded-lg bg-blue-600/15 text-blue-600 dark:text-blue-400 border border-blue-500/30 flex items-center justify-center text-xs font-bold shrink-0"
+              title={user?.email || 'Architect'}
+            >
+              {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
             </div>
             <button
               type="button"
@@ -202,367 +280,439 @@ export const DashboardView: React.FC = () => {
                 setAppView('auth');
               }}
               title="Sign Out"
-              className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-rose-500 hover:bg-[var(--bg-pill)] transition-colors shrink-0 cursor-pointer"
+              className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-rose-500 hover:bg-[var(--bg-pill)] transition-colors cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
             </button>
           </div>
-        </div>
-      </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-hidden bg-[var(--bg-app)]">
-        {/* Top Header Bar */}
-        <header className="h-16 border-b border-[var(--border-subtle)] px-8 flex items-center justify-between bg-[var(--bg-surface)] shrink-0">
-          <div className="flex items-center gap-4">
-            <h1 className="text-base font-bold text-[var(--text-main)]">
-              Architecture Projects
-            </h1>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-[var(--bg-panel)] border border-[var(--border-subtle)] text-[var(--text-muted)] font-medium">
-              {projects.length} saved
-            </span>
+          {/* Primary '+ Create Architecture' Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedTemplateForCreate('blank');
+              setIsCreateModalOpen(true);
+            }}
+            className="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-sm shadow-blue-600/20 active:scale-95 transition-all cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>New Architecture</span>
+          </button>
+        </div>
+      </header>
+
+      {/* Main Horizontal Content Area */}
+      <main className="flex-1 flex flex-col overflow-y-auto bg-[var(--bg-app)]">
+        <div className="max-w-7xl w-full mx-auto px-4 sm:px-8 py-6 space-y-6">
+          {/* Horizontal Metric Summary Strip (Replacing 4 bulky vertical cards) */}
+          <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-3 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-xs">
+            <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-[var(--text-muted)] font-medium">Architectures:</span>
+                <span className="font-bold text-[var(--text-main)] font-mono">{projects.length}</span>
+              </div>
+              <div className="h-3 w-px bg-[var(--border-subtle)] hidden sm:block" />
+              <div className="flex items-center gap-2">
+                <span className="text-[var(--text-muted)] font-medium">Est. Monthly Spend:</span>
+                <span className="font-bold text-emerald-500 dark:text-emerald-400 font-mono">
+                  ${totalSpend.toLocaleString()}/mo
+                </span>
+              </div>
+              <div className="h-3 w-px bg-[var(--border-subtle)] hidden sm:block" />
+              <div className="flex items-center gap-2">
+                <span className="text-[var(--text-muted)] font-medium">Simulated Nodes:</span>
+                <span className="font-bold text-blue-500 dark:text-blue-400 font-mono">
+                  {totalNodesCount} nodes
+                </span>
+              </div>
+              <div className="h-3 w-px bg-[var(--border-subtle)] hidden md:block" />
+              <div className="hidden md:flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse" />
+                <span className="text-[var(--text-muted)] font-medium">Engine:</span>
+                <span className="font-semibold text-[var(--text-main)]">Discrete Event @ 60Hz</span>
+              </div>
+            </div>
+
+            <div className="text-[11px] text-[var(--text-muted)] font-medium">
+              Real-time collaboration active
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Quick-Start Template Shelf (Compact Horizontal Carousel / Pills) */}
+          <div className="px-4 py-3 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-bold text-[var(--text-main)]">
+                <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+                <span>Quick-Start Templates</span>
+              </div>
+              <span className="text-[11px] text-[var(--text-muted)]">Launch pre-configured distributed systems in one click</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+              {/* Blank Architecture */}
+              <div
+                onClick={() => handleCreateFromTemplate('blank')}
+                className="flex items-center justify-between p-2.5 rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-pill)] border border-[var(--border-subtle)] hover:border-blue-500/40 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <TemplateBlankSvg size={28} className="shrink-0 group-hover:scale-105 transition-transform" />
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold text-[var(--text-main)] truncate group-hover:text-blue-500 transition-colors">
+                      Blank Canvas
+                    </div>
+                    <div className="text-[10px] text-[var(--text-muted)] truncate">Empty canvas</div>
+                  </div>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-[var(--text-muted)] group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all shrink-0" />
+              </div>
+
+              {/* Multi-AZ Web App */}
+              <div
+                onClick={() => handleCreateFromTemplate('classic-web-app')}
+                className="flex items-center justify-between p-2.5 rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-pill)] border border-[var(--border-subtle)] hover:border-blue-500/40 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <TemplateMultiAzSvg size={28} className="shrink-0 group-hover:scale-105 transition-transform" />
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold text-[var(--text-main)] truncate group-hover:text-blue-500 transition-colors">
+                      Multi-AZ Web App
+                    </div>
+                    <div className="text-[10px] text-[var(--text-muted)] truncate">4 Nodes · $1.4k/mo</div>
+                  </div>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-[var(--text-muted)] group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all shrink-0" />
+              </div>
+
+              {/* Flash Sale E-Commerce */}
+              <div
+                onClick={() => handleCreateFromTemplate('flash-sale-ecommerce')}
+                className="flex items-center justify-between p-2.5 rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-pill)] border border-[var(--border-subtle)] hover:border-blue-500/40 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <TemplateFlashSaleSvg size={28} className="shrink-0 group-hover:scale-105 transition-transform" />
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold text-[var(--text-main)] truncate group-hover:text-blue-500 transition-colors">
+                      Flash Sale Pipeline
+                    </div>
+                    <div className="text-[10px] text-[var(--text-muted)] truncate">8 Nodes · $3.2k/mo</div>
+                  </div>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-[var(--text-muted)] group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all shrink-0" />
+              </div>
+
+              {/* CQRS & Event Sourcing */}
+              <div
+                onClick={() => handleCreateFromTemplate('microservices-mesh')}
+                className="flex items-center justify-between p-2.5 rounded-lg bg-[var(--bg-panel)] hover:bg-[var(--bg-pill)] border border-[var(--border-subtle)] hover:border-blue-500/40 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <TemplateCqrsSvg size={28} className="shrink-0 group-hover:scale-105 transition-transform" />
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold text-[var(--text-main)] truncate group-hover:text-blue-500 transition-colors">
+                      CQRS & Streaming
+                    </div>
+                    <div className="text-[10px] text-[var(--text-muted)] truncate">6 Nodes · $2.1k/mo</div>
+                  </div>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-[var(--text-muted)] group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all shrink-0" />
+              </div>
+            </div>
+          </div>
+
+          {/* Table / List Controls Toolbar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
             {/* Search Input */}
-            <div className="relative w-64">
+            <div className="relative flex-1 min-w-[260px] max-w-md">
               <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search architectures..."
-                className="w-full pl-8 pr-3 py-1.5 bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-xl text-xs text-[var(--text-main)] placeholder-[var(--text-muted)]/60 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all"
+                placeholder="Search architectures by name or description..."
+                className="w-full pl-9 pr-3 py-1.5 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg text-xs text-[var(--text-main)] placeholder-[var(--text-muted)]/60 focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all"
               />
             </div>
 
-            {/* Sort Selector */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="px-3 py-1.5 bg-[var(--bg-panel)] border border-[var(--border-subtle)] rounded-xl text-xs font-medium text-[var(--text-muted)] focus:outline-none focus:text-[var(--text-main)] transition-colors cursor-pointer"
-            >
-              <option value="updated">Recently Updated</option>
-              <option value="name">Name (A-Z)</option>
-              <option value="cost">Estimated Cost</option>
-            </select>
-
-            {/* Create Project Button */}
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedTemplateForCreate('blank');
-                setIsCreateModalOpen(true);
-              }}
-              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-md shadow-blue-600/20 flex items-center gap-2 transition-all active:scale-[0.99] cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Create Project</span>
-            </button>
-          </div>
-        </header>
-
-        {/* Scrollable Dashboard Body */}
-        <div className="flex-1 overflow-y-auto p-8 space-y-8">
-          {/* Quick Metrics Strip */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-4 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-sm">
-              <div className="flex items-center justify-between text-[var(--text-muted)] mb-1">
-                <span className="text-[11px] font-semibold uppercase tracking-wider">Total Projects</span>
-                <Layers className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="text-xl font-bold text-[var(--text-main)]">{projects.length}</div>
-              <div className="text-[10px] text-[var(--text-muted)] mt-1">Saved architectures</div>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-sm">
-              <div className="flex items-center justify-between text-[var(--text-muted)] mb-1">
-                <span className="text-[11px] font-semibold uppercase tracking-wider">Est. Monthly Spend</span>
-                <DollarSign className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-              </div>
-              <div className="text-xl font-bold text-[var(--text-main)]">${totalSpend.toLocaleString()}/mo</div>
-              <div className="text-[10px] text-[var(--text-muted)] mt-1">Across all infrastructure nodes</div>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-sm">
-              <div className="flex items-center justify-between text-[var(--text-muted)] mb-1">
-                <span className="text-[11px] font-semibold uppercase tracking-wider">Simulated Nodes</span>
-                <Server className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="text-xl font-bold text-[var(--text-main)]">{totalNodesCount} Nodes</div>
-              <div className="text-[10px] text-[var(--text-muted)] mt-1">Gateways, LB, DB, Caches & Queues</div>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-sm">
-              <div className="flex items-center justify-between text-[var(--text-muted)] mb-1">
-                <span className="text-[11px] font-semibold uppercase tracking-wider">Simulation Engine</span>
-                <Activity className="w-4 h-4 text-emerald-500" />
-              </div>
-              <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 mt-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span>Discrete Event Solver Ready</span>
-              </div>
-              <div className="text-[10px] text-[var(--text-muted)] mt-1">Queue & Latency Engine @ 60Hz</div>
-            </div>
-          </div>
-
-          {/* Starter Templates Shelf */}
-          <div>
-            <div className="flex items-center justify-between mb-3.5">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--text-main)]">
-                  Starter Architecture Templates
-                </h2>
-              </div>
-              <span className="text-[11px] text-[var(--text-muted)]">Jump-start distributed designs</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div 
-                onClick={() => handleCreateFromTemplate('blank')}
-                className="p-4 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-blue-500/40 hover:bg-[var(--bg-panel)] transition-all cursor-pointer group flex flex-col justify-between shadow-sm hover:shadow-md"
+            {/* Filter, Sort, and View Mode Switches */}
+            <div className="flex items-center gap-2.5">
+              {/* Sort Dropdown */}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="px-3 py-1.5 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg text-xs font-medium text-[var(--text-muted)] focus:outline-none focus:text-[var(--text-main)] cursor-pointer"
               >
-                <div>
-                  <div className="w-9 h-9 rounded-xl bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                    <Plus className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-xs font-bold text-[var(--text-main)] mb-1">Blank Architecture</h3>
-                  <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
-                    Start clean on an infinite canvas. Add your own load balancers, caches, and databases.
-                  </p>
-                </div>
-                <div className="mt-4 flex items-center justify-between pt-3 border-t border-[var(--border-subtle)]/50">
-                  <span className="text-[10px] text-[var(--text-muted)] font-medium">Empty Canvas</span>
-                  <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                    Use <ArrowRight className="w-3 h-3" />
-                  </span>
-                </div>
-              </div>
+                <option value="updated">Recently Updated</option>
+                <option value="name">Name (A-Z)</option>
+                <option value="cost">Estimated Cost</option>
+                <option value="grade">Resilience Grade</option>
+              </select>
 
-              <div 
-                onClick={() => handleCreateFromTemplate('classic-web-app')}
-                className="p-4 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-blue-500/40 hover:bg-[var(--bg-panel)] transition-all cursor-pointer group flex flex-col justify-between shadow-sm hover:shadow-md"
-              >
-                <div>
-                  <div className="w-9 h-9 rounded-xl bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                    <Server className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-xs font-bold text-[var(--text-main)] mb-1">Multi-AZ Web Application</h3>
-                  <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
-                    High availability 3-tier system with ALB across 2 zones, web nodes, Redis, and Postgres.
-                  </p>
-                </div>
-                <div className="mt-4 flex items-center justify-between pt-3 border-t border-[var(--border-subtle)]/50">
-                  <span className="text-[10px] text-[var(--text-muted)] font-medium">4 Nodes · $1.4k/mo</span>
-                  <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                    Use <ArrowRight className="w-3 h-3" />
-                  </span>
-                </div>
-              </div>
-
-              <div 
-                onClick={() => handleCreateFromTemplate('flash-sale-ecommerce')}
-                className="p-4 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-blue-500/40 hover:bg-[var(--bg-panel)] transition-all cursor-pointer group flex flex-col justify-between shadow-sm hover:shadow-md"
-              >
-                <div>
-                  <div className="w-9 h-9 rounded-xl bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                    <Compass className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-xs font-bold text-[var(--text-main)] mb-1">Flash Sale E-Commerce</h3>
-                  <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
-                    Surge traffic absorption with Edge CDN, API Gateway, Kafka queue buffer & read replicas.
-                  </p>
-                </div>
-                <div className="mt-4 flex items-center justify-between pt-3 border-t border-[var(--border-subtle)]/50">
-                  <span className="text-[10px] text-[var(--text-muted)] font-medium">8 Nodes · $3.2k/mo</span>
-                  <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                    Use <ArrowRight className="w-3 h-3" />
-                  </span>
-                </div>
-              </div>
-
-              <div 
-                onClick={() => handleCreateFromTemplate('microservices-mesh')}
-                className="p-4 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-blue-500/40 hover:bg-[var(--bg-panel)] transition-all cursor-pointer group flex flex-col justify-between shadow-sm hover:shadow-md"
-              >
-                <div>
-                  <div className="w-9 h-9 rounded-xl bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                    <Database className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-xs font-bold text-[var(--text-main)] mb-1">CQRS & Event Sourcing</h3>
-                  <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
-                    Asynchronous write commands decoupled from materialized view read queries.
-                  </p>
-                </div>
-                <div className="mt-4 flex items-center justify-between pt-3 border-t border-[var(--border-subtle)]/50">
-                  <span className="text-[10px] text-[var(--text-muted)] font-medium">6 Nodes · $2.1k/mo</span>
-                  <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                    Use <ArrowRight className="w-3 h-3" />
-                  </span>
-                </div>
+              {/* View Toggle (Table vs Grid) */}
+              <div className="flex items-center bg-[var(--bg-surface)] p-0.5 rounded-lg border border-[var(--border-subtle)]">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('table')}
+                  title="Horizontal Table / List View"
+                  className={`p-1.5 rounded-md transition-all cursor-pointer ${
+                    viewMode === 'table'
+                      ? 'bg-[var(--bg-panel)] text-blue-600 dark:text-blue-400 font-bold shadow-xs'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                  }`}
+                >
+                  <LayoutList className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('grid')}
+                  title="Grid View"
+                  className={`p-1.5 rounded-md transition-all cursor-pointer ${
+                    viewMode === 'grid'
+                      ? 'bg-[var(--bg-panel)] text-blue-600 dark:text-blue-400 font-bold shadow-xs'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                  }`}
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
           </div>
 
-          {/* User Projects Section */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Layers className="w-4 h-4 text-[var(--text-muted)]" />
-                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--text-main)]">
-                  All Architectures ({filteredProjects.length})
-                </h2>
+          {/* Loading Indicator */}
+          {loading && (
+            <div className="p-12 text-center text-xs text-[var(--text-muted)]">
+              Loading architectures...
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!loading && filteredProjects.length === 0 && (
+            <div className="p-12 rounded-xl border border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface)] text-center flex flex-col items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-[var(--bg-panel)] flex items-center justify-center text-[var(--text-muted)] mb-3">
+                <Layers className="w-6 h-6" />
               </div>
+              <h3 className="text-sm font-bold text-[var(--text-main)] mb-1">No architectures found</h3>
+              <p className="text-xs text-[var(--text-muted)] max-w-sm mb-4">
+                {searchQuery ? 'Try adjusting your search query.' : 'Create your first system design architecture to begin simulating.'}
+              </p>
               <button
                 type="button"
                 onClick={() => {
                   setSelectedTemplateForCreate('blank');
                   setIsCreateModalOpen(true);
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[var(--border-subtle)] hover:bg-[var(--bg-panel)] text-xs font-medium text-[var(--text-main)] transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-md transition-all cursor-pointer"
               >
-                <Plus className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                <span>New Project</span>
+                Create New Architecture
               </button>
             </div>
+          )}
 
-            {/* Empty State */}
-            {filteredProjects.length === 0 && !loading && (
-              <div className="p-12 rounded-2xl border border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface)] text-center flex flex-col items-center justify-center">
-                <div className="w-12 h-12 rounded-2xl bg-[var(--bg-panel)] flex items-center justify-center text-[var(--text-muted)] mb-3">
-                  <Layers className="w-6 h-6" />
-                </div>
-                <h3 className="text-sm font-bold text-[var(--text-main)] mb-1">No architectures found</h3>
-                <p className="text-xs text-[var(--text-muted)] max-w-sm mb-4">
-                  {searchQuery ? 'Try matching a different search term.' : 'Get started by creating your first system design architecture.'}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedTemplateForCreate('blank');
-                    setIsCreateModalOpen(true);
-                  }}
-                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-md transition-all cursor-pointer"
-                >
-                  Create New Architecture
-                </button>
-              </div>
-            )}
+          {/* n8n-Style Horizontal Table View (Primary Approach) */}
+          {!loading && filteredProjects.length > 0 && viewMode === 'table' && (
+            <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden shadow-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-[var(--border-subtle)] bg-[var(--bg-panel)]/60 text-[10px] uppercase font-bold tracking-wider text-[var(--text-muted)]">
+                      <th className="py-2.5 px-4">Architecture</th>
+                      <th className="py-2.5 px-3">Resilience</th>
+                      <th className="py-2.5 px-3">Topology</th>
+                      <th className="py-2.5 px-3">Est. Spend</th>
+                      <th className="py-2.5 px-3">Updated</th>
+                      <th className="py-2.5 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--border-subtle)] text-xs">
+                    {filteredProjects.map((arch) => {
+                      const nodeCount = arch.nodes?.length || 0;
+                      const grade = arch.grade || 'A';
+                      const cost = arch.monthlyCost || 0;
+                      const badge = getGradeBadge(grade);
 
-            {/* Loading State */}
-            {loading && (
-              <div className="p-12 text-center text-xs text-[var(--text-muted)]">
-                Loading saved architectures...
-              </div>
-            )}
-
-            {/* Projects Grid */}
-            {!loading && filteredProjects.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredProjects.map((arch) => {
-                  const nodeCount = arch.nodes?.length || 0;
-                  const grade = arch.grade || 'A';
-                  const cost = arch.monthlyCost || 0;
-
-                  return (
-                    <div
-                      key={arch.id}
-                      onClick={() => handleOpenProject(arch)}
-                      className="p-5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-blue-500/40 hover:bg-[var(--bg-panel)] transition-all cursor-pointer group flex flex-col justify-between relative shadow-sm hover:shadow-md"
-                    >
-                      <div>
-                        {/* Card Header */}
-                        <div className="flex items-start justify-between gap-3 mb-2">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-xl bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center font-bold text-xs shrink-0">
-                              <Network className="w-4 h-4" />
-                            </div>
-                            <div>
-                              <h3 className="text-xs font-bold text-[var(--text-main)] group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
-                                {arch.name}
-                              </h3>
-                              <span className="text-[10px] text-[var(--text-muted)]">
-                                v{arch.version || 1}.0 {arch.forkOfId ? '· (Forked)' : ''}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Context Menu Button */}
-                          <div className="relative">
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setActiveMenuId(activeMenuId === arch.id ? null : arch.id);
-                              }}
-                              className="p-1 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-pill)] transition-colors cursor-pointer"
-                            >
-                              <MoreVertical className="w-3.5 h-3.5" />
-                            </button>
-
-                            {/* Dropdown Menu */}
-                            {activeMenuId === arch.id && (
-                              <div className="absolute right-0 top-6 w-36 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-xl py-1 z-30 animate-fadeIn">
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleOpenProject(arch);
-                                  }}
-                                  className="w-full px-3 py-1.5 text-left text-[11px] text-[var(--text-main)] hover:bg-[var(--bg-panel)] flex items-center gap-2 cursor-pointer"
-                                >
-                                  <ExternalLink className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                                  <span>Open Canvas</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={(e) => handleForkProject(arch, e)}
-                                  className="w-full px-3 py-1.5 text-left text-[11px] text-[var(--text-main)] hover:bg-[var(--bg-panel)] flex items-center gap-2 cursor-pointer"
-                                >
-                                  <GitFork className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                                  <span>Duplicate</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={(e) => handleDeleteProject(arch.id, e)}
-                                  className="w-full px-3 py-1.5 text-left text-[11px] text-rose-500 hover:bg-rose-500/10 flex items-center gap-2 cursor-pointer"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                  <span>Delete</span>
-                                </button>
+                      return (
+                        <tr
+                          key={arch.id}
+                          onClick={() => handleOpenProject(arch)}
+                          className="hover:bg-[var(--bg-panel)]/70 transition-colors cursor-pointer group"
+                        >
+                          {/* 1. Name & Description */}
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-3">
+                              <div className="shrink-0 group-hover:scale-105 transition-transform">
+                                <ArchitectureArchetypeIcon
+                                  name={arch.name}
+                                  isFork={Boolean(arch.forkOfId)}
+                                  size={32}
+                                />
                               </div>
-                            )}
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-[var(--text-main)] group-hover:text-blue-500 transition-colors truncate">
+                                    {arch.name}
+                                  </span>
+                                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-[var(--bg-panel)] border border-[var(--border-subtle)] text-[var(--text-muted)] font-mono">
+                                    v{arch.version || 1}.0
+                                  </span>
+                                  {arch.forkOfId && (
+                                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 font-medium">
+                                      Fork
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-[11px] text-[var(--text-muted)] truncate max-w-md mt-0.5">
+                                  {arch.description || 'Interactive system architecture simulation topology.'}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* 2. Resilience Grade */}
+                          <td className="py-3 px-3">
+                            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-bold border ${badge.bg}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${badge.dot}`} />
+                              <span>Grade {grade}</span>
+                            </span>
+                          </td>
+
+                          {/* 3. Topology / Nodes */}
+                          <td className="py-3 px-3">
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[var(--bg-panel)] border border-[var(--border-subtle)] text-[11px] font-mono text-[var(--text-muted)]">
+                              <Server className="w-3 h-3 text-blue-500" />
+                              <span>{nodeCount} nodes</span>
+                            </span>
+                          </td>
+
+                          {/* 4. Est. Spend */}
+                          <td className="py-3 px-3">
+                            <span className="font-mono font-semibold text-[var(--text-main)]">
+                              ${cost.toLocaleString()}
+                              <span className="text-[10px] text-[var(--text-muted)] font-normal">/mo</span>
+                            </span>
+                          </td>
+
+                          {/* 5. Last Updated */}
+                          <td className="py-3 px-3 text-[11px] text-[var(--text-muted)]">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-[var(--text-muted)]" />
+                              <span>{formatRelativeTime(arch.updatedAt)}</span>
+                            </span>
+                          </td>
+
+                          {/* 6. Quick Actions */}
+                          <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenProject(arch)}
+                                className="px-2.5 py-1 rounded-md bg-blue-600/10 hover:bg-blue-600 text-blue-600 hover:text-white dark:text-blue-400 dark:hover:text-white text-xs font-semibold border border-blue-600/20 transition-all cursor-pointer"
+                              >
+                                Open Canvas
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => handleForkProject(arch, e)}
+                                title="Duplicate architecture"
+                                className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-panel)] border border-transparent hover:border-[var(--border-subtle)] transition-colors cursor-pointer"
+                              >
+                                <GitFork className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => handlePromptDelete(arch, e)}
+                                title="Delete architecture"
+                                className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-rose-500 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-colors cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Compact Grid View Alternative (when user toggles to Grid) */}
+          {!loading && filteredProjects.length > 0 && viewMode === 'grid' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {filteredProjects.map((arch) => {
+                const nodeCount = arch.nodes?.length || 0;
+                const grade = arch.grade || 'A';
+                const cost = arch.monthlyCost || 0;
+                const badge = getGradeBadge(grade);
+
+                return (
+                  <div
+                    key={arch.id}
+                    onClick={() => handleOpenProject(arch)}
+                    className="p-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-blue-500/40 hover:bg-[var(--bg-panel)] transition-all cursor-pointer group flex flex-col justify-between shadow-xs hover:shadow-md"
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="flex items-center gap-2.5">
+                          <div className="shrink-0 group-hover:scale-105 transition-transform">
+                            <ArchitectureArchetypeIcon
+                              name={arch.name}
+                              isFork={Boolean(arch.forkOfId)}
+                              size={28}
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="text-xs font-bold text-[var(--text-main)] group-hover:text-blue-500 transition-colors truncate">
+                              {arch.name}
+                            </h3>
+                            <span className="text-[10px] text-[var(--text-muted)]">
+                              v{arch.version || 1}.0 {arch.forkOfId ? '· (Forked)' : ''}
+                            </span>
                           </div>
                         </div>
 
-                        {/* Description */}
-                        <p className="text-[11px] text-[var(--text-muted)] line-clamp-2 leading-relaxed mb-4">
-                          {arch.description || 'Interactive system architecture simulation topology.'}
-                        </p>
+                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            onClick={(e) => handleForkProject(arch, e)}
+                            title="Duplicate"
+                            className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer"
+                          >
+                            <GitFork className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handlePromptDelete(arch, e)}
+                            title="Delete"
+                            className="p-1 rounded text-[var(--text-muted)] hover:text-rose-500 cursor-pointer"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
 
-                      {/* Card Footer Badges */}
-                      <div className="pt-3 border-t border-[var(--border-subtle)]/60 flex items-center justify-between text-[11px]">
-                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded-md bg-[var(--bg-panel)] border border-[var(--border-subtle)] text-[10px] text-[var(--text-muted)] font-medium">
-                            {nodeCount} nodes
-                          </span>
-                          <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                            Grade {grade}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1 font-mono text-[10.5px] text-[var(--text-muted)]">
-                          <DollarSign className="w-3 h-3" />
-                          <span>${cost.toLocaleString()}/mo</span>
-                        </div>
+                      <p className="text-[11px] text-[var(--text-muted)] line-clamp-2 leading-relaxed mb-3">
+                        {arch.description || 'Interactive system architecture simulation topology.'}
+                      </p>
+                    </div>
+
+                    <div className="pt-2.5 border-t border-[var(--border-subtle)] flex items-center justify-between text-[11px]">
+                      <div className="flex items-center gap-2">
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${badge.bg}`}>
+                          Grade {grade}
+                        </span>
+                        <span className="text-[10px] text-[var(--text-muted)] font-mono">
+                          {nodeCount} nodes
+                        </span>
+                      </div>
+                      <div className="font-mono text-[10.5px] font-semibold text-[var(--text-main)]">
+                        ${cost.toLocaleString()}/mo
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </main>
 
@@ -574,6 +724,17 @@ export const DashboardView: React.FC = () => {
           fetchProjects();
         }}
         defaultTemplateId={selectedTemplateForCreate}
+      />
+
+      {/* Custom Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={Boolean(projectToDelete)}
+        itemName={projectToDelete?.name}
+        isDeleting={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => {
+          if (!isDeleting) setProjectToDelete(null);
+        }}
       />
     </div>
   );

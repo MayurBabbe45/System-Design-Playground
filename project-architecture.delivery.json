@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "ca54fc83-85c8-401d-bfbf-94308be85f98",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\babbe\\OneDrive\\Desktop\\study\\SYSTEM DESIGN PLAYGROUND\\project-architecture.json",
+  "output": "C:\\Users\\babbe\\OneDrive\\Desktop\\study\\SYSTEM DESIGN PLAYGROUND\\project-architecture.html",
+  "specification": {
+    "sha256": "7e2d3f0b5d58cd98e951b18a7fd638f4609f13069e6ce4cd64f06f0a419b7b4b",
+    "bytes": 6068
+  },
+  "artifact": {
+    "sha256": "f5e8ed192e531f1e670d4c56487f4a8ae1ff86118e93ddf858adb9187f542a51",
+    "bytes": 773516
+  }
+}

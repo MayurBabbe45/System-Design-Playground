@@ -13,7 +13,9 @@ import { AlertTriangle, Keyboard, X } from 'lucide-react';
 import { usePlaygroundStore } from '../store/usePlaygroundStore';
 import { InfrastructureNode } from './nodes/InfrastructureNode';
 import { FlowEdge } from './edges/FlowEdge';
-import { ComponentTypeId } from '../types/playground';
+import { ComponentTypeId, InfrastructureNodeData } from '../types/playground';
+import { collabManager } from '../collab/collabManager';
+import { Node } from '@xyflow/react';
 
 const CanvasInner: React.FC = () => {
   const {
@@ -59,7 +61,10 @@ const CanvasInner: React.FC = () => {
   }, []);
 
   // Register custom node and edge types
-  const nodeTypes = useMemo(() => ({ infrastructure: InfrastructureNode }), []);
+  const nodeTypes = useMemo(() => ({
+    infrastructure: InfrastructureNode,
+    infrastructureNode: InfrastructureNode,
+  }), []);
   const edgeTypes = useMemo(() => ({ flowEdge: FlowEdge }), []);
 
   // Comprehensive keyboard shortcuts: Undo, Redo, Copy, Paste, Duplicate, Delete, Space, Zoom
@@ -355,6 +360,11 @@ const CanvasInner: React.FC = () => {
         onConnect={isViewOnly ? undefined : onConnect}
         onNodeDragStart={() => {
           if (!isViewOnly) takeSnapshot();
+        }}
+        onNodeDragStop={(_, node) => {
+          if (!isViewOnly) {
+            collabManager.syncSingleNode(node as Node<InfrastructureNodeData>);
+          }
         }}
         onEdgeClick={isViewOnly ? undefined : (_, edge) => {
           setSelectedEdgeId(edge.id);

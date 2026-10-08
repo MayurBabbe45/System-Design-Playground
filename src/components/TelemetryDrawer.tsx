@@ -26,6 +26,7 @@ export const TelemetryDrawer: React.FC = () => {
   
   const telemetryHistory = usePlaygroundStore((state) => state.telemetryHistory);
   const selectedNodeId = usePlaygroundStore((state) => state.selectedNodeId);
+  const isSimulating = usePlaygroundStore((state) => state.isSimulating);
 
   // Format data for Recharts
   const chartData = telemetryHistory.map((pt, idx) => ({
@@ -64,23 +65,32 @@ export const TelemetryDrawer: React.FC = () => {
 
           {/* Quick Stat Badges */}
           <div className="flex items-center gap-3 font-mono text-[11px] shrink-0">
-            <span className="text-[var(--text-muted)]">
-              Throughput: <strong className="text-emerald-500 dark:text-emerald-400 font-semibold">{latest.totalProcessedRps.toLocaleString()} RPS</strong>
-            </span>
-            <span className="text-[var(--text-muted)]">
-              p95: <strong className="text-amber-500 dark:text-amber-400 font-semibold">{latest.p95LatencyMs}ms</strong>
-            </span>
-            <span className="text-[var(--text-muted)]">
-              Load: <strong className={latest.avgUtilizationPercent > 85 ? 'text-red-500 font-bold' : 'text-cyan-500 dark:text-cyan-400 font-semibold'}>{latest.avgUtilizationPercent}%</strong>
-            </span>
-            <span className="text-[var(--text-muted)]">
-              Queue: <strong className={latest.activeQueueTotal > 50 ? 'text-red-500 font-bold' : 'text-[var(--text-main)] font-semibold'}>{latest.activeQueueTotal}</strong>
-            </span>
-            {latest.totalDroppedRps > 0 && (
-              <span className="text-red-500 font-bold flex items-center gap-1 animate-pulse">
-                <AlertOctagon className="w-3 h-3" />
-                {latest.totalDroppedRps.toLocaleString()} Drop!
-              </span>
+            {isSimulating ? (
+              <>
+                <span className="text-[var(--text-muted)]">
+                  Throughput: <strong className="text-emerald-500 dark:text-emerald-400 font-semibold">{latest.totalProcessedRps.toLocaleString()} RPS</strong>
+                </span>
+                <span className="text-[var(--text-muted)]">
+                  p95: <strong className="text-amber-500 dark:text-amber-400 font-semibold">{latest.p95LatencyMs}ms</strong>
+                </span>
+                <span className="text-[var(--text-muted)]">
+                  Load: <strong className={latest.avgUtilizationPercent > 85 ? 'text-red-500 font-bold' : 'text-cyan-500 dark:text-cyan-400 font-semibold'}>{latest.avgUtilizationPercent}%</strong>
+                </span>
+                <span className="text-[var(--text-muted)]">
+                  Queue: <strong className={latest.activeQueueTotal > 50 ? 'text-red-500 font-bold' : 'text-[var(--text-main)] font-semibold'}>{latest.activeQueueTotal}</strong>
+                </span>
+                {latest.totalDroppedRps > 0 && (
+                  <span className="text-red-500 font-bold flex items-center gap-1 animate-pulse">
+                    <AlertOctagon className="w-3 h-3" />
+                    {latest.totalDroppedRps.toLocaleString()} Drop!
+                  </span>
+                )}
+              </>
+            ) : (
+              <div className="flex items-center gap-2 text-[11px] text-[var(--text-muted)]">
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500" />
+                <span>Simulation Idle · Click <strong className="text-emerald-500 dark:text-emerald-400">Simulate</strong> to start real-time traffic</span>
+              </div>
             )}
           </div>
         </div>

@@ -1,0 +1,227 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "System Design Playground — Distributed Architecture",
+    "subtitle": "Interactive Architecture Canvas, 60Hz WASM Simulation, Yjs Relay, and Dual Storage Engine",
+    "output": "project-architecture.html",
+    "visual_preset": "blueprint",
+    "animation": "trace",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "browser_client",
+      "type": "frontend",
+      "label": "Web Browser / User",
+      "sublabel": "React 18 + Vite (SPA)",
+      "tag": "Port 3000",
+      "pos": [40, 260],
+      "size": [140, 64]
+    },
+    {
+      "id": "canvas_engine",
+      "type": "frontend",
+      "label": "Canvas & Inspector",
+      "sublabel": "@xyflow/react (React Flow)",
+      "tag": "Zustand Store",
+      "pos": [240, 180],
+      "size": [150, 64]
+    },
+    {
+      "id": "sim_wasm",
+      "type": "frontend",
+      "label": "Sim Engine (WASM)",
+      "sublabel": "AssemblyScript @ 60Hz",
+      "tag": "Linear Memory",
+      "pos": [240, 360],
+      "size": [150, 64]
+    },
+    {
+      "id": "auth_guard",
+      "type": "security",
+      "label": "Auth & Session Guard",
+      "sublabel": "JWT + Guest Provisioning",
+      "tag": "Tenant Isolation",
+      "pos": [480, 80],
+      "size": [150, 64]
+    },
+    {
+      "id": "api_server",
+      "type": "backend",
+      "label": "Express API Server",
+      "sublabel": "REST Gateway (Port 4000)",
+      "tag": "CRUD & Ingest",
+      "pos": [480, 260],
+      "size": [150, 64]
+    },
+    {
+      "id": "collab_relay",
+      "type": "backend",
+      "label": "Collab Relay Server",
+      "sublabel": "Yjs WebSocket (Port 1234)",
+      "tag": "CRDT Sync",
+      "pos": [480, 480],
+      "size": [150, 64]
+    },
+    {
+      "id": "audit_linter",
+      "type": "backend",
+      "label": "Architecture Linter",
+      "sublabel": "SPOF, Multi-AZ & Rules",
+      "tag": "Audit Engine",
+      "pos": [740, 80],
+      "size": [150, 64]
+    },
+    {
+      "id": "postgres_db",
+      "type": "database",
+      "label": "PostgreSQL / SQL Store",
+      "sublabel": "Native pg / JSON Fallback",
+      "tag": "Port 5432 / JSON",
+      "pos": [740, 220],
+      "size": [160, 64]
+    },
+    {
+      "id": "clickhouse_db",
+      "type": "database",
+      "label": "ClickHouse Analytics",
+      "sublabel": "Columnar Buffer / Native",
+      "tag": "p95/p99 Metrics",
+      "pos": [740, 360],
+      "size": [160, 64]
+    },
+    {
+      "id": "room_manager",
+      "type": "cloud",
+      "label": "Room Memory Manager",
+      "sublabel": "Idle Eviction (300s TTL)",
+      "tag": "Relay GC",
+      "pos": [740, 480],
+      "size": [150, 64]
+    },
+    {
+      "id": "export_share",
+      "type": "cloud",
+      "label": "URL Hash & Export",
+      "sublabel": "LZ-String Compression",
+      "tag": "Zero-DB Share",
+      "pos": [980, 220],
+      "size": [150, 64]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Client Tier (Browser Workspace)",
+      "wraps": ["browser_client", "canvas_engine", "sim_wasm"],
+      "pad": 20
+    },
+    {
+      "kind": "security-group",
+      "label": "Backend Services (Microservice Cluster)",
+      "wraps": ["auth_guard", "api_server", "collab_relay"],
+      "pad": 16
+    },
+    {
+      "kind": "region",
+      "label": "Storage & Analytics (Dual Storage Tier)",
+      "wraps": ["postgres_db", "clickhouse_db", "room_manager", "export_share"],
+      "pad": 20
+    }
+  ],
+  "connections": [
+    {
+      "from": "browser_client",
+      "to": "canvas_engine",
+      "label": "React Flow",
+      "variant": "emphasis"
+    },
+    {
+      "from": "canvas_engine",
+      "to": "sim_wasm",
+      "label": "60Hz ticks"
+    },
+    {
+      "from": "canvas_engine",
+      "to": "auth_guard",
+      "label": "JWT session",
+      "variant": "security"
+    },
+    {
+      "from": "canvas_engine",
+      "to": "api_server",
+      "label": "REST API",
+      "variant": "emphasis"
+    },
+    {
+      "from": "canvas_engine",
+      "to": "collab_relay",
+      "label": "WSS protocol",
+      "variant": "emphasis"
+    },
+    {
+      "from": "auth_guard",
+      "to": "api_server",
+      "label": "Auth Guard",
+      "variant": "security"
+    },
+    {
+      "from": "api_server",
+      "to": "audit_linter",
+      "label": "Linter Rules"
+    },
+    {
+      "from": "api_server",
+      "to": "postgres_db",
+      "label": "Relational SQL",
+      "variant": "emphasis"
+    },
+    {
+      "from": "api_server",
+      "to": "clickhouse_db",
+      "label": "Telemetry Ingest",
+      "variant": "dashed"
+    },
+    {
+      "from": "collab_relay",
+      "to": "room_manager",
+      "label": "Eviction TTL"
+    },
+    {
+      "from": "postgres_db",
+      "to": "export_share",
+      "label": "State Snapshot",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Interactive Client Workspace",
+      "items": [
+        "React 18 + Vite single page application with @xyflow/react canvas",
+        "WASM discrete event simulation engine running at 60Hz in linear memory",
+        "Contextual node inspector, chaos fault injection (latency, packet loss, AZ drop), and real-time cost calculation"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Dual-Backend Microservices",
+      "items": [
+        "Express 5 API server handling architecture persistence, revisions, and tenant isolation",
+        "Yjs WebSocket relay server coordinating multi-user cursors and conflict-free concurrent edits",
+        "Automatic fallback architecture ensuring full offline functionality with zero external dependencies"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Hybrid Storage & Real-Time Analytics",
+      "items": [
+        "PostgreSQL Native with automatic fallback to embedded transactional JSON storage",
+        "ClickHouse columnar engine computing p50, p90, p95, and p99 latencies from batched telemetry",
+        "LZ-String compressed URL hash encoding enabling instant link sharing without database requirements"
+      ]
+    }
+  ]
+}

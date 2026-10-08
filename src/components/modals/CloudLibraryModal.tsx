@@ -19,6 +19,7 @@ import {
 import confetti from 'canvas-confetti';
 import { usePlaygroundStore } from '../../store/usePlaygroundStore';
 import { apiClient, SavedArchitecture, TelemetryAnalyticsResult } from '../../api/client';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 export const CloudLibraryModal: React.FC = () => {
   const { 
@@ -35,6 +36,8 @@ export const CloudLibraryModal: React.FC = () => {
   const [architectures, setArchitectures] = useState<SavedArchitecture[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [archToDelete, setArchToDelete] = useState<SavedArchitecture | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Save form state
   const [title, setTitle] = useState('');
@@ -127,16 +130,17 @@ export const CloudLibraryModal: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this saved architecture?')) return;
+  const handleConfirmDelete = async () => {
+    if (!archToDelete) return;
     try {
-      setLoading(true);
-      await apiClient.deleteArchitecture(id);
+      setIsDeleting(true);
+      await apiClient.deleteArchitecture(archToDelete.id);
+      setArchToDelete(null);
       await loadArchitecturesList();
     } catch (err: any) {
       setError(err.message || 'Failed to delete architecture');
     } finally {
-      setLoading(false);
+      setIsDeleting(false);
     }
   };
 
@@ -293,7 +297,7 @@ export const CloudLibraryModal: React.FC = () => {
                       <GitFork className="w-3.5 h-3.5" />
                     </button>
                     <button
-                      onClick={() => handleDelete(arch.id)}
+                      onClick={() => setArchToDelete(arch)}
                       title="Delete Architecture"
                       className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-colors cursor-pointer"
                     >
@@ -427,6 +431,16 @@ export const CloudLibraryModal: React.FC = () => {
           )}
         </div>
       </div>
+
+      <ConfirmDeleteModal
+        isOpen={Boolean(archToDelete)}
+        itemName={archToDelete?.name}
+        isDeleting={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => {
+          if (!isDeleting) setArchToDelete(null);
+        }}
+      />
     </div>
   );
 };

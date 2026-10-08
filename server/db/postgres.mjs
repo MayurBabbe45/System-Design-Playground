@@ -140,8 +140,8 @@ export async function initPostgres() {
 }
 
 // User CRUD Operations
-export async function createUser({ email, passwordHash, name }) {
-  const id = `usr_${crypto.randomBytes(8).toString('hex')}`;
+export async function createUser({ id: customId, email, passwordHash, name }) {
+  const id = customId || `usr_${crypto.randomBytes(8).toString('hex')}`;
   const now = new Date().toISOString();
 
   if (pool) {
@@ -157,6 +157,23 @@ export async function createUser({ email, passwordHash, name }) {
     saveLocalDb(db);
     return { id, email, name, created_at: now };
   }
+}
+
+export async function ensureGuestUser(guestId = null) {
+  const targetId = guestId || 'usr_guest_default';
+  const existing = await findUserById(targetId);
+  if (existing) return existing;
+
+  const email = `${targetId}@playground.local`;
+  const existingByEmail = await findUserByEmail(email);
+  if (existingByEmail) return existingByEmail;
+
+  return await createUser({
+    id: targetId,
+    email,
+    passwordHash: 'guest_session',
+    name: 'Guest Architect',
+  });
 }
 
 export async function findUserByEmail(email) {

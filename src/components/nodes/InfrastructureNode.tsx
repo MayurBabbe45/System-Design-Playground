@@ -62,12 +62,26 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
     };
   }, [isPickerOpen]);
 
+  const isSimulating = usePlaygroundStore((state) => state.isSimulating);
+  const activeNodeIds = usePlaygroundStore((state) => state.activeNodeIds);
+  const isNodeActive = activeNodeIds.includes(id);
+  const isOperating = isSimulating && isNodeActive && !isEffectivelyDead && (nodeData.currentRps > 0 || isClient);
+
   const getStatusDot = () => {
     if (isEffectivelyDead) {
       return (
         <span
           className="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-600 inline-block shrink-0"
           title={isAzKilled ? 'AZ Down' : 'Offline'}
+        />
+      );
+    }
+    // Idle construction / design mode: subtle neutral indicator
+    if (!isSimulating || !isNodeActive) {
+      return (
+        <span
+          className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-600 inline-block shrink-0"
+          title="Idle (Design Mode)"
         />
       );
     }
@@ -118,16 +132,16 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
     if (isEffectivelyDead) {
       return 'border-[var(--border-subtle)] opacity-50 grayscale';
     }
-    if (nodeData.isBottleneck) {
-      return 'border-rose-500 ring-2 ring-rose-500/60 shadow-[0_0_20px_rgba(244,63,94,0.35)] animate-pulse';
-    }
     if (selected) {
       return 'border-blue-500 ring-2 ring-blue-500 shadow-md';
     }
-    if (nodeData.status === 'critical') {
+    if (isSimulating && isNodeActive && nodeData.isBottleneck) {
+      return 'border-rose-500 ring-2 ring-rose-500/60 shadow-[0_0_20px_rgba(244,63,94,0.35)] animate-pulse';
+    }
+    if (isSimulating && isNodeActive && nodeData.status === 'critical') {
       return 'border-rose-500/80 shadow-[0_0_12px_rgba(244,63,94,0.25)]';
     }
-    if (nodeData.status === 'warning') {
+    if (isSimulating && isNodeActive && nodeData.status === 'warning') {
       return 'border-amber-500/80 shadow-[0_0_12px_rgba(245,158,11,0.25)]';
     }
     return 'border-[var(--border-card)] hover:border-blue-500/50 shadow-xs hover:shadow-md';
@@ -144,13 +158,79 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
           isClient ? 'rounded-l-3xl rounded-r-2xl' : 'rounded-2xl'
         } ${getCardBorder()}`}
       >
+        {/* n8n Sequential Wave Activation Glow */}
+        {isSimulating && isNodeActive && (
+          <span
+            key={`act-${isNodeActive}`}
+            className="absolute -inset-1.5 rounded-2xl border-2 border-emerald-400 pointer-events-none opacity-60 animate-ping"
+            style={{ animationIterationCount: 1, animationDuration: '0.9s' }}
+          />
+        )}
+
+        {/* Role-Specific Dynamic Operational Micro-Animations */}
+        {isOperating && (
+          <>
+            {/* 1. Traffic Generator: Radiating outward beacon wave ripple */}
+            {nodeData.typeId === 'traffic_generator' && (
+              <span className="absolute -inset-1 rounded-l-3xl rounded-r-2xl border-2 border-orange-500/50 anim-radar-ripple pointer-events-none" />
+            )}
+
+            {/* 2. Load Balancer: Alternating dispatch routing beacon */}
+            {nodeData.typeId === 'load_balancer' && (
+              <span className="absolute -inset-0.5 rounded-2xl border border-cyan-400/40 anim-lb-dispatch pointer-events-none" />
+            )}
+
+            {/* 3. Compute / App Server: CPU processing respiration proportional to load */}
+            {nodeData.typeId === 'web_server' && (
+              <span
+                className="absolute inset-0 rounded-2xl anim-cpu-breathe pointer-events-none"
+                style={{ '--cpu-speed': `${Math.max(0.6, 2.2 - (utilPercent / 60))}s` } as React.CSSProperties}
+              />
+            )}
+
+            {/* 4. Cache: High-speed memory quantum shimmer */}
+            {nodeData.typeId === 'cache' && (
+              <span className="absolute inset-0 rounded-2xl anim-cache-shimmer pointer-events-none" />
+            )}
+
+            {/* 5. Database (Relational / NoSQL): Disk I/O storage activity LED */}
+            {(nodeData.typeId === 'relational_db' || nodeData.typeId === 'nosql_db') && (
+              <div className="absolute top-1.5 right-1.5 flex items-center gap-1 pointer-events-none" title="Disk I/O Active">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 anim-disk-blink shadow-[0_0_5px_#10b981]" />
+              </div>
+            )}
+
+            {/* 6. Message Queue / Kafka: Streaming pipeline buffer conveyor */}
+            {nodeData.typeId === 'message_queue' && (
+              <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1 anim-queue-march pointer-events-none">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_4px_#c084fc]" />
+                <span className="w-1 h-1 rounded-full bg-purple-300" />
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_4px_#a855f7]" />
+              </div>
+            )}
+
+            {/* 7. Storage / S3: Data write absorption wave */}
+            {nodeData.typeId === 'object_storage' && (
+              <span className="absolute inset-x-2 bottom-1 h-1 rounded-full bg-amber-400/40 animate-pulse pointer-events-none" />
+            )}
+          </>
+        )}
+
         {/* Trigger Lightning Badge (Left of Trigger Node) */}
         {isClient && (
           <div
-            className="absolute -left-6 top-1/2 -translate-y-1/2 flex items-center justify-center text-orange-500 animate-pulse"
+            className={`absolute -left-6 top-1/2 -translate-y-1/2 flex items-center justify-center transition-all ${
+              isSimulating && isNodeActive ? 'text-orange-500 animate-pulse' : 'text-neutral-400 dark:text-neutral-500 opacity-60'
+            }`}
             title="Ingress Traffic Trigger"
           >
-            <Zap className="w-4 h-4 fill-orange-500 text-orange-500" />
+            <Zap
+              className={`w-4 h-4 ${
+                isSimulating && isNodeActive
+                  ? 'fill-orange-500 text-orange-500'
+                  : 'fill-neutral-400/20 text-neutral-400 dark:text-neutral-500'
+              }`}
+            />
           </div>
         )}
 
@@ -268,20 +348,20 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
           <div className="flex items-center justify-between gap-1 text-[8px] text-[var(--text-muted)] font-semibold uppercase">
             <span>RPS</span>
             <span className="text-blue-500 dark:text-blue-400 font-bold">
-              {isEffectivelyDead ? '0' : nodeData.currentRps.toLocaleString()}
+              {!isSimulating || !isNodeActive || isEffectivelyDead ? '0' : nodeData.currentRps.toLocaleString()}
             </span>
           </div>
           <div className="flex items-center justify-between gap-1 text-[8px] text-[var(--text-muted)] font-semibold uppercase">
             <span>Latency</span>
-            <span className={`font-bold ${nodeData.currentLatency > 100 ? 'text-amber-500' : 'text-slate-700 dark:text-slate-300'}`}>
-              {isEffectivelyDead ? '0ms' : `${nodeData.currentLatency}ms`}
+            <span className={`font-bold ${nodeData.currentLatency > 100 && isSimulating && isNodeActive ? 'text-amber-500' : 'text-slate-700 dark:text-slate-300'}`}>
+              {!isSimulating || !isNodeActive || isEffectivelyDead ? '0ms' : `${nodeData.currentLatency}ms`}
             </span>
           </div>
           {!isClient && !isEffectivelyDead && (
             <div className="flex items-center justify-between gap-1 text-[8px] text-[var(--text-muted)] font-semibold uppercase">
               <span>Cap</span>
-              <span className={`font-bold ${utilPercent >= 90 ? 'text-rose-500' : utilPercent >= 75 ? 'text-amber-500' : 'text-emerald-500 dark:text-emerald-400'}`}>
-                {utilPercent}%
+              <span className={`font-bold ${!isSimulating || !isNodeActive ? 'text-slate-500' : utilPercent >= 90 ? 'text-rose-500' : utilPercent >= 75 ? 'text-amber-500' : 'text-emerald-500 dark:text-emerald-400'}`}>
+                {!isSimulating || !isNodeActive ? '0%' : `${utilPercent}%`}
               </span>
             </div>
           )}

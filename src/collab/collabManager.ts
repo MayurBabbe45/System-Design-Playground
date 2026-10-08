@@ -136,12 +136,14 @@ export class CollabManager {
         this.notifyPeers();
       });
 
-      // Listen for remote Yjs updates
-      this.nodesMap.observe(() => {
+      // Listen for remote Yjs updates (ignoring local transactions to prevent feedback loops)
+      this.nodesMap.observe((event) => {
+        if (event.transaction.local) return;
         this.emitRemoteGraph();
       });
 
-      this.edgesMap.observe(() => {
+      this.edgesMap.observe((event) => {
+        if (event.transaction.local) return;
         this.emitRemoteGraph();
       });
 
@@ -317,7 +319,7 @@ export class CollabManager {
     // Convert raw Yjs records to typed Node and Edge collections
     const convertedNodes: Node<InfrastructureNodeData>[] = rawNodes.map((rn: any) => ({
       id: rn.id,
-      type: rn.type || 'infrastructureNode',
+      type: rn.type || 'infrastructure',
       position: rn.position || { x: 100, y: 100 },
       data: {
         ...rn.data,
@@ -340,10 +342,10 @@ export class CollabManager {
       type: re.type || 'flowEdge',
       animated: re.animated !== undefined ? re.animated : true,
       data: {
-        currentRps: 0,
-        latencyMs: 5,
-        packetDropRate: 0,
-        trafficRatio: 1,
+        currentFlowRps: re.data?.currentFlowRps ?? re.data?.currentRps ?? 0,
+        latencyMs: re.data?.latencyMs ?? 5,
+        errorRatePercent: re.data?.errorRatePercent ?? re.data?.packetDropRate ?? 0,
+        animated: re.animated !== undefined ? re.animated : true,
       },
     }));
 

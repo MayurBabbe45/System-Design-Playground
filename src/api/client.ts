@@ -55,6 +55,30 @@ export interface TelemetryAnalyticsResult {
 let telemetryQueue: TelemetryTickInput[] = [];
 let flushInterval: ReturnType<typeof setInterval> | null = null;
 
+async function ensureAuthToken(): Promise<string | null> {
+  if (typeof window === 'undefined') return null;
+  let token = localStorage.getItem('sdp_auth_token');
+  if (!token) {
+    try {
+      const res = await fetch('/api/auth/guest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.token) {
+          localStorage.setItem('sdp_auth_token', data.token);
+          localStorage.setItem('sdp_is_guest', 'true');
+          token = data.token;
+        }
+      }
+    } catch (err) {
+      console.warn('[API Client] Auto guest token initialization failed:', err);
+    }
+  }
+  return token;
+}
+
 function getHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
   const headers: Record<string, string> = { ...extraHeaders };
   if (typeof window !== 'undefined') {
@@ -70,6 +94,7 @@ export const apiClient = {
   // --- Architecture CRUD ---
 
   async listArchitectures(publicOnly: boolean = false): Promise<SavedArchitecture[]> {
+    await ensureAuthToken();
     const res = await fetch(`/api/architectures${publicOnly ? '?publicOnly=true' : ''}`, {
       headers: getHeaders(),
     });
@@ -97,6 +122,7 @@ export const apiClient = {
     monthlyCost?: number;
     isPublic?: boolean;
   }): Promise<SavedArchitecture> {
+    await ensureAuthToken();
     const res = await fetch('/api/architectures', {
       method: 'POST',
       headers: getHeaders({ 'Content-Type': 'application/json' }),

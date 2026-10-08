@@ -59,12 +59,17 @@ interface PlaygroundState {
   forkActiveProject: () => Promise<string | null>;
   getShareableLink: () => string;
   
-  // Simulation Controls
+  // Simulation Controls & Incremental Cascade
   isSimulating: boolean;
+  isCascadeRunning: boolean;
+  activeNodeIds: string[];
+  activeEdgeIds: string[];
   simulationSpeed: number; // 1x, 2x, 5x
   targetGlobalRps: number;
   trafficProfile: TrafficProfile;
   tickCount: number;
+  startSimulationCascade: () => void;
+  stopSimulation: () => void;
   
   // Chaos Engineering State
   killedAzs: AvailabilityZone[];
@@ -176,6 +181,13 @@ try {
 } catch (err) {
   console.warn('Web Worker initialization fallback to main thread:', err);
 }
+
+// Incremental Simulation Cascade Timers
+let cascadeTimerIds: ReturnType<typeof setTimeout>[] = [];
+const clearCascadeTimers = () => {
+  cascadeTimerIds.forEach((id) => clearTimeout(id));
+  cascadeTimerIds = [];
+};
 
 const getInitialTheme = (): 'dark' | 'light' => {
   if (typeof window !== 'undefined') {
@@ -352,7 +364,11 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
     isViewOnly: false,
     setIsViewOnly: (viewOnly: boolean) => set({ isViewOnly: viewOnly }),
     
-    isSimulating: true,
+    // Starts in clean construction/design mode with no animations until user starts simulation
+    isSimulating: false,
+    isCascadeRunning: false,
+    activeNodeIds: [],
+    activeEdgeIds: [],
     simulationSpeed: 1,
     targetGlobalRps: 2500,
     trafficProfile: 'steady',
@@ -419,6 +435,7 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
       set({ appView: view });
     },
     openProject: (arch, viewOnly = false) => {
+      clearCascadeTimers();
       set({
         nodes: arch.nodes,
         edges: arch.edges,
@@ -432,6 +449,10 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
         },
         appView: 'playground',
         isViewOnly: viewOnly,
+        isSimulating: false,
+        isCascadeRunning: false,
+        activeNodeIds: [],
+        activeEdgeIds: [],
         selectedNodeId: null,
         bottleneckNodeId: null,
         bottleneckReason: null,
@@ -595,8 +616,25 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
         get().openProject(saved);
         return saved.id;
       } catch (err) {
-        console.error('Failed to create new project:', err);
-        return null;
+        console.warn('Backend save unavailable, opening locally initialized architecture:', err);
+        const fallbackProject: SavedArchitecture = {
+          id: `arch_local_${Date.now()}`,
+          userId: 'usr_guest_default',
+          name: name.trim() || 'Untitled Architecture',
+          description: description?.trim() || '',
+          nodes: projectNodes,
+          edges: projectEdges,
+          chaos: {},
+          grade: audit.grade,
+          monthlyCost,
+          isPublic: true,
+          version: 1,
+          forkOfId: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        get().openProject(fallbackProject);
+        return fallbackProject.id;
       }
     },
 
@@ -731,9 +769,9 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
       const nextNodes = applyNodeChanges(changes, get().nodes) as Node<InfrastructureNodeData>[];
       set({ nodes: nextNodes });
 
-      // Synchronize changes to Yjs CRDT
+      // Synchronize changes to Yjs CRDT (only sync resting position when not actively dragging)
       for (const change of changes) {
-        if (change.type === 'position' && change.position) {
+        if (change.type === 'position' && change.position && !change.dragging) {
           const updatedNode = nextNodes.find((n) => n.id === change.id);
           if (updatedNode) collabManager.syncSingleNode(updatedNode);
         } else if (change.type === 'remove') {
@@ -1116,11 +1154,16 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
         },
       }));
 
+      clearCascadeTimers();
       set({
         nodes: loadedNodes,
         edges: loadedEdges,
         activePresetId: presetId,
         selectedNodeId: null,
+        isSimulating: false,
+        isCascadeRunning: false,
+        activeNodeIds: [],
+        activeEdgeIds: [],
         bottleneckNodeId: null,
         bottleneckReason: null,
         killedAzs: [],
@@ -1129,11 +1172,16 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
     },
 
     clearCanvas: () => {
+      clearCascadeTimers();
       get().takeSnapshot();
       set({
         nodes: [],
         edges: [],
         selectedNodeId: null,
+        isSimulating: false,
+        isCascadeRunning: false,
+        activeNodeIds: [],
+        activeEdgeIds: [],
         activePresetId: 'custom',
         bottleneckNodeId: null,
         bottleneckReason: null,
@@ -1198,8 +1246,137 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
       return false;
     },
 
+    startSimulationCascade: () => {
+      clearCascadeTimers();
+      const { nodes, edges } = get();
+      if (nodes.length === 0) return;
+
+      // 1. Calculate in-degrees to identify ingress root nodes
+      const inDegree: Record<string, number> = {};
+      nodes.forEach((n) => { inDegree[n.id] = 0; });
+      edges.forEach((e) => {
+        if (inDegree[e.target] !== undefined) {
+          inDegree[e.target] = (inDegree[e.target] || 0) + 1;
+        }
+      });
+
+      // Roots: nodes with no incoming connections or trigger generators
+      const roots = nodes.filter((n) => inDegree[n.id] === 0 || n.data?.typeId === 'traffic_generator');
+      const startNodes = roots.length > 0 ? roots : [nodes[0]];
+
+      const nodeTier: Record<string, number> = {};
+      const edgeTier: Record<string, number> = {};
+      const queue: { nodeId: string; tier: number }[] = startNodes.map((n) => ({
+        nodeId: n.id,
+        tier: 0,
+      }));
+
+      const visited = new Set<string>();
+
+      while (queue.length > 0) {
+        const { nodeId, tier } = queue.shift()!;
+        if (visited.has(nodeId)) {
+          nodeTier[nodeId] = Math.max(nodeTier[nodeId] || 0, tier);
+          continue;
+        }
+        visited.add(nodeId);
+        nodeTier[nodeId] = tier;
+
+        const outgoing = edges.filter((e) => e.source === nodeId);
+        for (const edge of outgoing) {
+          edgeTier[edge.id] = tier;
+          if (!visited.has(edge.target)) {
+            queue.push({ nodeId: edge.target, tier: tier + 1 });
+          }
+        }
+      }
+
+      // Any remaining disconnected nodes/edges default to max tier
+      const maxTier = Math.max(0, ...Object.values(nodeTier));
+      nodes.forEach((n) => {
+        if (nodeTier[n.id] === undefined) nodeTier[n.id] = maxTier + 1;
+      });
+      edges.forEach((e) => {
+        if (edgeTier[e.id] === undefined) edgeTier[e.id] = maxTier + 1;
+      });
+
+      set({
+        isSimulating: true,
+        isCascadeRunning: true,
+        activeNodeIds: [],
+        activeEdgeIds: [],
+      });
+
+      const tierDelay = 380; // ms per tier for realistic n8n sequential propagation
+      const totalTiers = Math.max(0, ...Object.values(nodeTier)) + 1;
+
+      for (let t = 0; t <= totalTiers; t++) {
+        // Activate nodes in tier t
+        const timerNode = setTimeout(() => {
+          const currentNodes = new Set(get().activeNodeIds);
+          nodes.forEach((n) => {
+            if (nodeTier[n.id] === t) currentNodes.add(n.id);
+          });
+          set({ activeNodeIds: Array.from(currentNodes) });
+        }, t * tierDelay);
+        cascadeTimerIds.push(timerNode);
+
+        // Activate outgoing edges in tier t with packet transit delay
+        const timerEdge = setTimeout(() => {
+          const currentEdges = new Set(get().activeEdgeIds);
+          edges.forEach((e) => {
+            if (edgeTier[e.id] === t) currentEdges.add(e.id);
+          });
+          set({ activeEdgeIds: Array.from(currentEdges) });
+
+          if (t === totalTiers) {
+            set({ isCascadeRunning: false });
+          }
+        }, t * tierDelay + 180);
+        cascadeTimerIds.push(timerEdge);
+      }
+    },
+
+    stopSimulation: () => {
+      clearCascadeTimers();
+      set({
+        isSimulating: false,
+        isCascadeRunning: false,
+        activeNodeIds: [],
+        activeEdgeIds: [],
+        bottleneckNodeId: null,
+        bottleneckReason: null,
+        telemetryHistory: [],
+        nodes: get().nodes.map((n) => ({
+          ...n,
+          data: {
+            ...n.data,
+            currentRps: 0,
+            currentQueue: 0,
+            currentLatency: 0,
+            utilizationPercent: 0,
+            status: n.data.isKilled ? 'dead' : 'healthy',
+            isBottleneck: false,
+          },
+        })),
+        edges: get().edges.map((e) => ({
+          ...e,
+          data: {
+            ...e.data,
+            currentFlowRps: 0,
+            errorRatePercent: 0,
+          },
+        })),
+      });
+    },
+
     toggleSimulation: () => {
-      set({ isSimulating: !get().isSimulating });
+      const { isSimulating } = get();
+      if (isSimulating) {
+        get().stopSimulation();
+      } else {
+        get().startSimulationCascade();
+      }
     },
 
     setSimulationSpeed: (speed) => {
@@ -1252,6 +1429,8 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
 // Register Remote Graph Listener from Yjs CRDT
 collabManager.onRemoteGraphChange((remoteNodes, remoteEdges) => {
   const currentNodes = usePlaygroundStore.getState().nodes;
+  const currentEdges = usePlaygroundStore.getState().edges;
+
   const mergedNodes = remoteNodes.map((rn) => {
     const existing = currentNodes.find((cn) => cn.id === rn.id);
     if (existing) {
@@ -1271,9 +1450,29 @@ collabManager.onRemoteGraphChange((remoteNodes, remoteEdges) => {
     return rn;
   });
 
+  // Preserve local edge telemetry / flow metrics when remote edges update
+  const mergedEdges = remoteEdges.length > 0
+    ? remoteEdges.map((re) => {
+        const existing = currentEdges.find((ce) => ce.id === re.id);
+        if (existing) {
+          return {
+            ...re,
+            data: {
+              ...re.data,
+              currentFlowRps: existing.data?.currentFlowRps ?? re.data?.currentFlowRps ?? 0,
+              latencyMs: existing.data?.latencyMs ?? re.data?.latencyMs ?? 5,
+              errorRatePercent: existing.data?.errorRatePercent ?? re.data?.errorRatePercent ?? 0,
+              animated: existing.data?.animated ?? re.data?.animated ?? true,
+            },
+          };
+        }
+        return re;
+      })
+    : currentEdges;
+
   usePlaygroundStore.setState({
     nodes: mergedNodes,
-    edges: remoteEdges,
+    edges: mergedEdges,
   });
 });
 
