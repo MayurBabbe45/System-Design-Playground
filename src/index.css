@@ -16,7 +16,7 @@
   --text-main: #f3f4f6;
   --text-muted: #9ca3af;
   --canvas-bg: #0d1017;
-  --canvas-dots: #222634;
+  --canvas-dots: rgba(255, 255, 255, 0.22);
 }
 
 [data-theme="light"] {
@@ -32,7 +32,7 @@
   --text-main: #0f172a;
   --text-muted: #475569;
   --canvas-bg: #f8fafc;
-  --canvas-dots: #94a3b8;
+  --canvas-dots: rgba(15, 23, 42, 0.22);
 }
 
 body {
@@ -105,10 +105,10 @@ input, textarea, select {
 
 /* n8n Node Handle Styling */
 .n8n-handle {
-  width: 12px !important;
-  height: 12px !important;
+  width: 14px !important;
+  height: 14px !important;
   border-radius: 50% !important;
-  border: 2px solid var(--bg-surface) !important;
+  border: 2.5px solid var(--bg-surface) !important;
   background-color: #64748b !important;
   transition: transform 0.15s ease, background-color 0.15s ease !important;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
@@ -116,7 +116,7 @@ input, textarea, select {
 }
 
 .n8n-handle:hover {
-  transform: scale(1.4) !important;
+  transform: scale(1.35) !important;
   background-color: #3b82f6 !important;
 }
 

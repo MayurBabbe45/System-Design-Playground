@@ -149,12 +149,47 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
 
   const utilPercent = nodeData.utilizationPercent || 0;
 
+  // Check if node has a custom label distinct from component archetype
+  const isCustomLabel = Boolean(
+    nodeData.label &&
+    meta?.name &&
+    nodeData.label.trim().toLowerCase() !== meta.name.trim().toLowerCase()
+  );
+
+  // Compute subtitle text to prevent printing the same name twice
+  const getSubtitle = () => {
+    if (isSimulating && isNodeActive) {
+      if (nodeData.isBottleneck) return 'Bottleneck';
+      if (isEffectivelyDead) return 'Offline';
+      if (nodeData.status === 'critical') return 'Overloaded';
+      if (nodeData.status === 'warning') return 'High Load';
+      if (nodeData.instanceCount > 1) return `${nodeData.instanceCount}x · Active`;
+      return 'Active';
+    }
+
+    if (nodeData.instanceCount > 1) {
+      if (isCustomLabel) {
+        return `${nodeData.instanceCount}x · ${meta?.name}`;
+      }
+      return `${nodeData.instanceCount}x Replicas`;
+    }
+
+    if (isCustomLabel) {
+      return meta?.name;
+    }
+
+    // Default label with 1 instance: avoid redundant duplicate name
+    return null;
+  };
+
+  const subtitle = getSubtitle();
+
   return (
     <div className="flex flex-col items-center group select-none relative">
       {/* The n8n Node Card Shell */}
       <div
         onClick={() => setSelectedNodeId(id)}
-        className={`relative flex items-center justify-center w-[76px] h-[76px] bg-[var(--bg-surface)] border transition-all duration-150 cursor-pointer ${
+        className={`relative flex items-center justify-center w-[90px] h-[90px] bg-[var(--bg-surface)] border transition-all duration-150 cursor-pointer ${
           isClient ? 'rounded-l-3xl rounded-r-2xl' : 'rounded-2xl'
         } ${getCardBorder()}`}
       >
@@ -202,7 +237,7 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
 
             {/* 6. Message Queue / Kafka: Streaming pipeline buffer conveyor */}
             {nodeData.typeId === 'message_queue' && (
-              <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1 anim-queue-march pointer-events-none">
+              <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex items-center gap-1 anim-queue-march pointer-events-none">
                 <span className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_4px_#c084fc]" />
                 <span className="w-1 h-1 rounded-full bg-purple-300" />
                 <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_4px_#a855f7]" />
@@ -211,7 +246,7 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
 
             {/* 7. Storage / S3: Data write absorption wave */}
             {nodeData.typeId === 'object_storage' && (
-              <span className="absolute inset-x-2 bottom-1 h-1 rounded-full bg-amber-400/40 animate-pulse pointer-events-none" />
+              <span className="absolute inset-x-2 bottom-1.5 h-1.5 rounded-full bg-amber-400/40 animate-pulse pointer-events-none" />
             )}
           </>
         )}
@@ -219,13 +254,13 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
         {/* Trigger Lightning Badge (Left of Trigger Node) */}
         {isClient && (
           <div
-            className={`absolute -left-6 top-1/2 -translate-y-1/2 flex items-center justify-center transition-all ${
+            className={`absolute -left-7 top-1/2 -translate-y-1/2 flex items-center justify-center transition-all ${
               isSimulating && isNodeActive ? 'text-orange-500 animate-pulse' : 'text-neutral-400 dark:text-neutral-500 opacity-60'
             }`}
             title="Ingress Traffic Trigger"
           >
             <Zap
-              className={`w-4 h-4 ${
+              className={`w-5 h-5 ${
                 isSimulating && isNodeActive
                   ? 'fill-orange-500 text-orange-500'
                   : 'fill-neutral-400/20 text-neutral-400 dark:text-neutral-500'
@@ -245,7 +280,7 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
 
         {/* Clean, Prominent n8n Center Symbol */}
         <div className="flex items-center justify-center transition-transform duration-150 group-hover:scale-105 pointer-events-none">
-          <ComponentIcon typeId={nodeData.typeId} size={42} color={meta?.color} />
+          <ComponentIcon typeId={nodeData.typeId} size={50} color={meta?.color} />
         </div>
 
         {/* Source Connection Handle (Right) */}
@@ -264,7 +299,7 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
             if (!isViewOnly) setIsPickerOpen((prev) => !prev);
           }}
           title={isViewOnly ? 'View-Only Mode' : 'Quickly add and connect next node (+)'}
-          className={`absolute -right-7 top-1/2 -translate-y-1/2 w-4 h-4 rounded border border-[var(--border-card)] bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-blue-500 hover:border-blue-400 hover:scale-110 active:scale-95 flex items-center justify-center text-[11px] font-bold shadow-xs transition-all cursor-pointer z-10 ${
+          className={`absolute -right-8 top-1/2 -translate-y-1/2 w-5 h-5 rounded-md border border-[var(--border-card)] bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-blue-500 hover:border-blue-400 hover:scale-110 active:scale-95 flex items-center justify-center text-xs font-bold shadow-xs transition-all cursor-pointer z-10 ${
             isPickerOpen
               ? 'border-blue-500 text-blue-500 ring-2 ring-blue-500/40 bg-blue-500/10'
               : 'opacity-80 hover:opacity-100'
@@ -279,10 +314,10 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
         <div
           ref={pickerRef}
           onClick={(e) => e.stopPropagation()}
-          className="absolute left-[88px] top-4 z-50 w-56 bg-[var(--bg-surface)] border border-[var(--border-card)] rounded-xl shadow-2xl p-1.5 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150"
+          className="absolute left-[102px] top-4 z-50 w-60 bg-[var(--bg-surface)] border border-[var(--border-card)] rounded-xl shadow-2xl p-2 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150"
         >
-          <div className="flex items-center justify-between px-2 py-1 border-b border-[var(--border-subtle)] mb-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+          <div className="flex items-center justify-between px-2 py-1 border-b border-[var(--border-subtle)] mb-1.5">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
               Add Connected Node
             </span>
             <button
@@ -293,7 +328,7 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
               ✕
             </button>
           </div>
-          <div className="max-h-56 overflow-y-auto space-y-0.5 custom-scrollbar">
+          <div className="max-h-60 overflow-y-auto space-y-0.5 custom-scrollbar">
             {CONNECTABLE_TYPES.map((type) => {
               const itemMeta = COMPONENT_CATALOG[type];
               if (!itemMeta) return null;
@@ -306,18 +341,18 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
                     appendConnectedNode(id, type);
                     setIsPickerOpen(false);
                   }}
-                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-blue-500/10 hover:text-blue-500 text-[var(--text-main)] transition-colors cursor-pointer group/item"
+                  className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-left hover:bg-blue-500/10 hover:text-blue-500 text-[var(--text-main)] transition-colors cursor-pointer group/item"
                 >
                   <div
-                    className="w-6 h-6 rounded-md flex items-center justify-center shrink-0 border border-white/5"
+                    className="w-7 h-7 rounded-md flex items-center justify-center shrink-0 border border-white/5"
                     style={{
                       background: `linear-gradient(135deg, ${itemMeta.color}30 0%, ${itemMeta.color}15 100%)`,
                     }}
                   >
-                    <ComponentIcon typeId={type} size={15} color={itemMeta.color} />
+                    <ComponentIcon typeId={type} size={18} color={itemMeta.color} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs font-medium truncate group-hover/item:text-blue-500">
+                    <div className="text-xs font-semibold truncate group-hover/item:text-blue-500">
                       {itemMeta.name}
                     </div>
                   </div>
@@ -329,36 +364,35 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
       )}
 
       {/* Node Label & Subtitle Below the Card (Matching n8n) */}
-      <div className="mt-2 text-center max-w-[140px] px-1 pointer-events-none">
-        <div className="text-xs font-bold text-[var(--text-main)] leading-snug truncate">
-          {nodeData.label}
+      <div className="mt-2.5 text-center max-w-[160px] px-1 pointer-events-none">
+        <div className="text-sm font-bold text-[var(--text-main)] leading-snug truncate">
+          {nodeData.label || meta?.name}
         </div>
-        <div className="text-[10px] text-[var(--text-muted)] font-medium truncate flex items-center justify-center gap-1 mt-0.5">
-          {getStatusDot()}
-          <span>
-            {nodeData.instanceCount > 1 ? `${nodeData.instanceCount}x · ` : ''}
-            {meta?.name}
-          </span>
-        </div>
+        {subtitle && (
+          <div className="text-xs text-[var(--text-muted)] font-medium truncate flex items-center justify-center gap-1 mt-0.5">
+            {getStatusDot()}
+            <span>{subtitle}</span>
+          </div>
+        )}
       </div>
 
       {/* Detailed Mode Metrics Pill (Appended Below When Detailed Mode is Active or Selected) */}
       {showDetails && (
-        <div className="mt-1.5 px-2 py-1 rounded-lg bg-[var(--bg-pill)] border border-[var(--border-subtle)] text-[9px] font-mono shadow-xs space-y-0.5 text-center min-w-[110px] pointer-events-none animate-in fade-in duration-150">
-          <div className="flex items-center justify-between gap-1 text-[8px] text-[var(--text-muted)] font-semibold uppercase">
+        <div className="mt-2 px-2.5 py-1.5 rounded-lg bg-[var(--bg-pill)] border border-[var(--border-subtle)] text-xs font-mono shadow-xs space-y-1 text-center min-w-[130px] pointer-events-none animate-in fade-in duration-150">
+          <div className="flex items-center justify-between gap-2 text-[10px] text-[var(--text-muted)] font-semibold uppercase">
             <span>RPS</span>
             <span className="text-blue-500 dark:text-blue-400 font-bold">
               {!isSimulating || !isNodeActive || isEffectivelyDead ? '0' : nodeData.currentRps.toLocaleString()}
             </span>
           </div>
-          <div className="flex items-center justify-between gap-1 text-[8px] text-[var(--text-muted)] font-semibold uppercase">
+          <div className="flex items-center justify-between gap-2 text-[10px] text-[var(--text-muted)] font-semibold uppercase">
             <span>Latency</span>
             <span className={`font-bold ${nodeData.currentLatency > 100 && isSimulating && isNodeActive ? 'text-amber-500' : 'text-slate-700 dark:text-slate-300'}`}>
               {!isSimulating || !isNodeActive || isEffectivelyDead ? '0ms' : `${nodeData.currentLatency}ms`}
             </span>
           </div>
           {!isClient && !isEffectivelyDead && (
-            <div className="flex items-center justify-between gap-1 text-[8px] text-[var(--text-muted)] font-semibold uppercase">
+            <div className="flex items-center justify-between gap-2 text-[10px] text-[var(--text-muted)] font-semibold uppercase">
               <span>Cap</span>
               <span className={`font-bold ${!isSimulating || !isNodeActive ? 'text-slate-500' : utilPercent >= 90 ? 'text-rose-500' : utilPercent >= 75 ? 'text-amber-500' : 'text-emerald-500 dark:text-emerald-400'}`}>
                 {!isSimulating || !isNodeActive ? '0%' : `${utilPercent}%`}

@@ -390,12 +390,12 @@ const CanvasInner: React.FC = () => {
           animated: true,
         }}
       >
-        {/* Dot grid background */}
+        {/* Dot grid background - Enhanced visibility */}
         <Background 
           variant={BackgroundVariant.Dots} 
-          gap={24} 
-          size={1.5} 
-          color={theme === 'dark' ? '#222634' : '#cbd5e1'} 
+          gap={26} 
+          size={2} 
+          color={theme === 'dark' ? 'rgba(255, 255, 255, 0.22)' : 'rgba(15, 23, 42, 0.22)'} 
         />
         <Controls showInteractive={false} style={{ marginBottom: '38px' }} />
         <MiniMap
