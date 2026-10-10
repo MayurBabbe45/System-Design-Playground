@@ -49,38 +49,38 @@ export const TelemetryDrawer: React.FC = () => {
   };
 
   return (
-    <div className={`fixed bottom-0 left-0 lg:left-64 ${selectedNodeId ? 'lg:right-80' : 'right-0'} z-20 transition-all duration-300 ${isOpen ? 'h-52' : 'h-8'}`}>
+    <div className={`fixed bottom-0 left-0 lg:left-68 ${selectedNodeId ? 'lg:right-80' : 'right-0'} z-20 transition-all duration-300 ${isOpen ? 'h-52' : 'h-8.5'}`}>
       {/* Toggle Header Bar */}
       <div 
-        className="h-8 bg-[var(--bg-surface)] border-t border-[var(--border-subtle)] px-3 sm:px-4 flex items-center justify-between cursor-pointer select-none shadow-md transition-colors duration-200" 
+        className="h-8.5 spatial-glass border-t border-white/10 px-3 sm:px-4 flex items-center justify-between cursor-pointer select-none transition-colors duration-200" 
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex items-center gap-3 text-xs overflow-x-auto no-scrollbar">
           <div className="flex items-center gap-1.5 font-bold text-[var(--text-main)] shrink-0">
-            <Activity className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
+            <Activity className="w-3.5 h-3.5 text-blue-400" />
             <span className="text-[11px] uppercase tracking-wider">Telemetry</span>
           </div>
 
-          <div className="h-3 w-px bg-[var(--border-subtle)] shrink-0" />
+          <div className="h-3 w-px bg-white/10 shrink-0" />
 
           {/* Quick Stat Badges */}
           <div className="flex items-center gap-3 font-mono text-[11px] shrink-0">
             {isSimulating ? (
               <>
                 <span className="text-[var(--text-muted)]">
-                  Throughput: <strong className="text-emerald-500 dark:text-emerald-400 font-semibold">{latest.totalProcessedRps.toLocaleString()} RPS</strong>
+                  Throughput: <strong className="text-emerald-400 font-semibold">{latest.totalProcessedRps.toLocaleString()} RPS</strong>
                 </span>
                 <span className="text-[var(--text-muted)]">
-                  p95: <strong className="text-amber-500 dark:text-amber-400 font-semibold">{latest.p95LatencyMs}ms</strong>
+                  p95: <strong className="text-amber-400 font-semibold">{latest.p95LatencyMs}ms</strong>
                 </span>
                 <span className="text-[var(--text-muted)]">
-                  Load: <strong className={latest.avgUtilizationPercent > 85 ? 'text-red-500 font-bold' : 'text-cyan-500 dark:text-cyan-400 font-semibold'}>{latest.avgUtilizationPercent}%</strong>
+                  Load: <strong className={latest.avgUtilizationPercent > 85 ? 'text-red-400 font-bold' : 'text-cyan-400 font-semibold'}>{latest.avgUtilizationPercent}%</strong>
                 </span>
                 <span className="text-[var(--text-muted)]">
-                  Queue: <strong className={latest.activeQueueTotal > 50 ? 'text-red-500 font-bold' : 'text-[var(--text-main)] font-semibold'}>{latest.activeQueueTotal}</strong>
+                  Queue: <strong className={latest.activeQueueTotal > 50 ? 'text-red-400 font-bold' : 'text-[var(--text-main)] font-semibold'}>{latest.activeQueueTotal}</strong>
                 </span>
                 {latest.totalDroppedRps > 0 && (
-                  <span className="text-red-500 font-bold flex items-center gap-1 animate-pulse">
+                  <span className="text-rose-400 font-bold flex items-center gap-1 animate-pulse">
                     <AlertOctagon className="w-3 h-3" />
                     {latest.totalDroppedRps.toLocaleString()} Drop!
                   </span>
@@ -88,8 +88,8 @@ export const TelemetryDrawer: React.FC = () => {
               </>
             ) : (
               <div className="flex items-center gap-2 text-[11px] text-[var(--text-muted)]">
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500" />
-                <span>Simulation Idle · Click <strong className="text-emerald-500 dark:text-emerald-400">Simulate</strong> to start real-time traffic</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                <span>Simulation Idle · Click <strong className="text-emerald-400">Simulate</strong> to start real-time traffic</span>
               </div>
             )}
           </div>
@@ -105,16 +105,16 @@ export const TelemetryDrawer: React.FC = () => {
 
       {/* Drawer Chart Area */}
       {isOpen && (
-        <div className="h-[calc(13rem-2.25rem)] bg-[var(--bg-panel)] border-x border-[var(--border-subtle)] p-3 flex flex-col justify-between transition-colors duration-200">
+        <div className="h-[calc(13rem-2.25rem)] spatial-glass border-x border-white/10 p-3 flex flex-col justify-between transition-colors duration-200">
           {/* Tabs */}
           <div className="flex items-center justify-between mb-1.5">
             <div className="flex gap-1.5">
               <button
                 onClick={() => setActiveTab('throughput')}
-                className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                className={`px-3 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'throughput'
-                    ? 'bg-[var(--bg-surface)] text-emerald-400 border border-emerald-500/40 shadow-sm'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                    ? 'spatial-pill bg-white/10 text-emerald-400 border border-emerald-500/40 shadow-xs'
+                    : 'spatial-pill text-[var(--text-muted)] hover:text-white border border-transparent'
                 }`}
               >
                 <BarChart3 className="w-3.5 h-3.5" />
@@ -122,10 +122,10 @@ export const TelemetryDrawer: React.FC = () => {
               </button>
               <button
                 onClick={() => setActiveTab('latency')}
-                className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                className={`px-3 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'latency'
-                    ? 'bg-[var(--bg-surface)] text-amber-400 border border-amber-500/40 shadow-sm'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                    ? 'spatial-pill bg-white/10 text-amber-400 border border-amber-500/40 shadow-xs'
+                    : 'spatial-pill text-[var(--text-muted)] hover:text-white border border-transparent'
                 }`}
               >
                 <Clock className="w-3.5 h-3.5" />
@@ -133,10 +133,10 @@ export const TelemetryDrawer: React.FC = () => {
               </button>
               <button
                 onClick={() => setActiveTab('utilization')}
-                className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                className={`px-3 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'utilization'
-                    ? 'bg-[var(--bg-surface)] text-cyan-400 border border-cyan-500/40 shadow-sm'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                    ? 'spatial-pill bg-white/10 text-cyan-400 border border-cyan-500/40 shadow-xs'
+                    : 'spatial-pill text-[var(--text-muted)] hover:text-white border border-transparent'
                 }`}
               >
                 <Gauge className="w-3.5 h-3.5" />
@@ -144,10 +144,10 @@ export const TelemetryDrawer: React.FC = () => {
               </button>
               <button
                 onClick={() => setActiveTab('queue')}
-                className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                className={`px-3 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'queue'
-                    ? 'bg-[var(--bg-surface)] text-purple-600 dark:text-purple-400 border border-purple-500/40 shadow-sm'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                    ? 'spatial-pill bg-white/10 text-purple-400 border border-purple-500/40 shadow-xs'
+                    : 'spatial-pill text-[var(--text-muted)] hover:text-white border border-transparent'
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />

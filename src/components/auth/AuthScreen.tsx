@@ -6,8 +6,6 @@ import {
   User, 
   ArrowRight, 
   Sparkles, 
-  Sun, 
-  Moon, 
   AlertCircle, 
   Loader2, 
   Eye, 
@@ -17,7 +15,6 @@ import {
   Cpu
 } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
-import { usePlaygroundStore } from '../../store/usePlaygroundStore';
 
 interface AuthScreenProps {
   onSuccess?: () => void;
@@ -33,7 +30,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onOpenLegal }
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const { login, register, continueAsGuest, isLoading, authError, clearError } = useAuthStore();
-  const { theme, toggleTheme } = usePlaygroundStore();
 
   const handleClearErrors = () => {
     if (validationError) setValidationError(null);
@@ -82,18 +78,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccess, onOpenLegal }
 
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center bg-[var(--bg-app)] text-[var(--text-main)] p-4 overflow-hidden select-none">
-      {/* Theme Toggle in Top Right */}
-      <div className="absolute top-6 right-6 flex items-center gap-3">
-        <button
-          type="button"
-          onClick={toggleTheme}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:bg-[var(--bg-panel)] text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors shadow-sm cursor-pointer"
-          title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} mode`}
-        >
-          {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-blue-600" />}
-          <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
-        </button>
-      </div>
 
       {/* Main Authentication Card */}
       <div className="w-full max-w-md bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-8 shadow-xl relative z-10 transition-all duration-200">

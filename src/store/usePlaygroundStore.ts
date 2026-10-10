@@ -189,24 +189,14 @@ const clearCascadeTimers = () => {
   cascadeTimerIds = [];
 };
 
-const getInitialTheme = (): 'dark' | 'light' => {
-  if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem('spd_theme');
-    if (saved === 'light' || saved === 'dark') return saved;
-  }
-  return 'dark';
-};
-
-const initialTheme = getInitialTheme();
+const initialTheme = 'dark';
 if (typeof document !== 'undefined') {
-  document.documentElement.setAttribute('data-theme', initialTheme);
-  if (initialTheme === 'light') {
-    document.documentElement.classList.add('light');
-    document.documentElement.classList.remove('dark');
-  } else {
-    document.documentElement.classList.add('dark');
-    document.documentElement.classList.remove('light');
-  }
+  document.documentElement.setAttribute('data-theme', 'dark');
+  document.documentElement.classList.add('dark');
+  document.documentElement.classList.remove('light');
+}
+if (typeof localStorage !== 'undefined') {
+  localStorage.setItem('spd_theme', 'dark');
 }
 
 const getInitialAppView = (): 'auth' | 'dashboard' | 'playground' => {
@@ -668,24 +658,10 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
       set({ isBenchmarkModalOpen: !get().isBenchmarkModalOpen });
     },
 
-    // Theme State
-    theme: initialTheme,
+    // Theme State - permanently locked to dark mode
+    theme: 'dark',
     toggleTheme: () => {
-      const nextTheme = get().theme === 'dark' ? 'light' : 'dark';
-      if (typeof document !== 'undefined') {
-        document.documentElement.setAttribute('data-theme', nextTheme);
-        if (nextTheme === 'light') {
-          document.documentElement.classList.add('light');
-          document.documentElement.classList.remove('dark');
-        } else {
-          document.documentElement.classList.add('dark');
-          document.documentElement.classList.remove('light');
-        }
-      }
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('spd_theme', nextTheme);
-      }
-      set({ theme: nextTheme });
+      // Light mode is permanently disabled
     },
 
     // Canvas View Mode (Simple vs Detailed)

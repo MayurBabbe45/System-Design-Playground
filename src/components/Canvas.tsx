@@ -239,8 +239,8 @@ const CanvasInner: React.FC = () => {
       if (!typeId) return;
 
       const position = reactFlowInstance.screenToFlowPosition({
-        x: event.clientX,
-        y: event.clientY,
+        x: event.clientX - 45,
+        y: event.clientY - 42,
       });
 
       addNodeFromPalette(typeId, position);
@@ -261,10 +261,16 @@ const CanvasInner: React.FC = () => {
         }
       }}
     >
+      {/* Subtle Atmospheric VisionOS Depth Lighting behind Canvas Grid */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute top-1/4 left-1/3 w-[520px] h-[520px] bg-blue-600/5 rounded-full blur-[140px]" />
+        <div className="absolute bottom-1/3 right-1/4 w-[480px] h-[480px] bg-purple-600/5 rounded-full blur-[140px]" />
+      </div>
+
       {/* Floating Bottleneck Warning Banner */}
       {bottleneckReason && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-xl bg-rose-950/90 border border-rose-700/80 shadow-2xl shadow-rose-950/50 flex items-center gap-2.5 backdrop-blur-md">
-          <div className="w-6 h-6 rounded-lg bg-rose-900/60 flex items-center justify-center text-rose-400 shrink-0">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 px-4 py-2 rounded-xl spatial-glass border border-rose-500/40 shadow-2xl flex items-center gap-2.5">
+          <div className="w-6 h-6 rounded-lg bg-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
             <AlertTriangle className="w-3.5 h-3.5" />
           </div>
           <div className="text-xs text-rose-200">
@@ -276,8 +282,8 @@ const CanvasInner: React.FC = () => {
 
       {/* Discreet Floating Shortcut Toast */}
       {shortcutToast && (
-        <div className="absolute top-4 right-4 z-30 px-3 py-1.5 rounded-lg bg-[var(--bg-surface)]/90 backdrop-blur-md border border-[var(--border-card)] shadow-xl text-xs font-medium text-[var(--text-main)] flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-150">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+        <div className="absolute top-4 right-4 z-30 px-3 py-1.5 rounded-xl spatial-glass border border-white/10 shadow-xl text-xs font-medium text-[var(--text-main)] flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-150">
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-xs shadow-blue-400" />
           <span>{shortcutToast}</span>
         </div>
       )}
@@ -287,25 +293,25 @@ const CanvasInner: React.FC = () => {
         type="button"
         onClick={() => setIsShortcutsOpen((prev) => !prev)}
         title="Keyboard Shortcuts (?)"
-        className="absolute bottom-11 left-4 z-10 px-2.5 py-1 rounded-lg bg-[var(--bg-surface)]/80 hover:bg-[var(--bg-surface)] backdrop-blur-md border border-[var(--border-subtle)] hover:border-blue-500/50 text-[11px] font-medium text-[var(--text-muted)] hover:text-[var(--text-main)] shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+        className="absolute bottom-12 left-4 z-10 px-3 py-1.5 rounded-xl spatial-glass-card border border-white/10 hover:border-blue-500/50 text-[11px] font-medium text-[var(--text-muted)] hover:text-[var(--text-main)] shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
       >
-        <Keyboard className="w-3.5 h-3.5 text-blue-500" />
+        <Keyboard className="w-3.5 h-3.5 text-blue-400" />
         <span>Shortcuts</span>
       </button>
 
       {/* Keyboard Shortcuts Reference Dialog */}
       {isShortcutsOpen && (
         <div
-          className="absolute bottom-20 left-4 z-30 w-72 bg-[var(--bg-surface)]/95 backdrop-blur-xl border border-[var(--border-card)] rounded-xl shadow-2xl p-3 animate-in fade-in zoom-in-95 duration-150 text-[var(--text-main)]"
+          className="absolute bottom-22 left-4 z-30 w-76 spatial-glass border border-white/10 rounded-2xl shadow-2xl p-3.5 animate-in fade-in zoom-in-95 duration-150 text-[var(--text-main)]"
         >
-          <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2 mb-2">
+          <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
             <div className="flex items-center gap-1.5 text-xs font-bold">
-              <Keyboard className="w-4 h-4 text-blue-500" />
+              <Keyboard className="w-4 h-4 text-blue-400" />
               <span>Keyboard Shortcuts</span>
             </div>
             <button
               onClick={() => setIsShortcutsOpen(false)}
-              className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer"
+              className="p-1 rounded-lg spatial-glass-card text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -314,39 +320,39 @@ const CanvasInner: React.FC = () => {
           <div className="space-y-1.5 text-xs">
             <div className="flex items-center justify-between">
               <span className="text-[var(--text-muted)]">Undo</span>
-              <kbd className="px-1.5 py-0.5 rounded bg-[var(--bg-pill)] border border-[var(--border-subtle)] text-[10px] font-mono">Ctrl + Z</kbd>
+              <kbd className="px-1.5 py-0.5 rounded-lg spatial-pill border border-white/10 text-[10px] font-mono">Ctrl + Z</kbd>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[var(--text-muted)]">Redo</span>
-              <kbd className="px-1.5 py-0.5 rounded bg-[var(--bg-pill)] border border-[var(--border-subtle)] text-[10px] font-mono">Ctrl + Y</kbd>
+              <kbd className="px-1.5 py-0.5 rounded-lg spatial-pill border border-white/10 text-[10px] font-mono">Ctrl + Y</kbd>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[var(--text-muted)]">Copy node</span>
-              <kbd className="px-1.5 py-0.5 rounded bg-[var(--bg-pill)] border border-[var(--border-subtle)] text-[10px] font-mono">Ctrl + C</kbd>
+              <kbd className="px-1.5 py-0.5 rounded-lg spatial-pill border border-white/10 text-[10px] font-mono">Ctrl + C</kbd>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[var(--text-muted)]">Paste node</span>
-              <kbd className="px-1.5 py-0.5 rounded bg-[var(--bg-pill)] border border-[var(--border-subtle)] text-[10px] font-mono">Ctrl + V</kbd>
+              <kbd className="px-1.5 py-0.5 rounded-lg spatial-pill border border-white/10 text-[10px] font-mono">Ctrl + V</kbd>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[var(--text-muted)]">Duplicate node</span>
-              <kbd className="px-1.5 py-0.5 rounded bg-[var(--bg-pill)] border border-[var(--border-subtle)] text-[10px] font-mono">Ctrl + D</kbd>
+              <kbd className="px-1.5 py-0.5 rounded-lg spatial-pill border border-white/10 text-[10px] font-mono">Ctrl + D</kbd>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[var(--text-muted)]">Delete node/edge</span>
-              <kbd className="px-1.5 py-0.5 rounded bg-[var(--bg-pill)] border border-[var(--border-subtle)] text-[10px] font-mono">Del / Backspace</kbd>
+              <kbd className="px-1.5 py-0.5 rounded-lg spatial-pill border border-white/10 text-[10px] font-mono">Del / Backspace</kbd>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[var(--text-muted)]">Play / Pause simulation</span>
-              <kbd className="px-1.5 py-0.5 rounded bg-[var(--bg-pill)] border border-[var(--border-subtle)] text-[10px] font-mono">Space</kbd>
+              <kbd className="px-1.5 py-0.5 rounded-lg spatial-pill border border-white/10 text-[10px] font-mono">Space</kbd>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[var(--text-muted)]">Fit canvas</span>
-              <kbd className="px-1.5 py-0.5 rounded bg-[var(--bg-pill)] border border-[var(--border-subtle)] text-[10px] font-mono">Ctrl + 0</kbd>
+              <kbd className="px-1.5 py-0.5 rounded-lg spatial-pill border border-white/10 text-[10px] font-mono">Ctrl + 0</kbd>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[var(--text-muted)]">Zoom in / out</span>
-              <kbd className="px-1.5 py-0.5 rounded bg-[var(--bg-pill)] border border-[var(--border-subtle)] text-[10px] font-mono">Ctrl + (+ / -)</kbd>
+              <kbd className="px-1.5 py-0.5 rounded-lg spatial-pill border border-white/10 text-[10px] font-mono">Ctrl + (+ / -)</kbd>
             </div>
           </div>
         </div>
