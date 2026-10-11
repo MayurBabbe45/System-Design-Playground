@@ -123,3 +123,97 @@ export function solveKendallMMcK(
     dropProbability: Number(dropProbability.toFixed(3)),
   };
 }
+
+export interface PullQueueDrainResult {
+  drainedRps: number;
+  remainingBacklog: number;
+  droppedOverflowRps: number;
+  isOverflown: boolean;
+}
+
+/**
+ * Solves asynchronous queue buffer accumulation and pull-based consumer draining.
+ * @param currentBacklog Existing pending backlog items in queue buffer
+ * @param inflowRps Incoming messages produced this tick
+ * @param workerCapacityRps Aggregate draining throughput of connected workers (capacityRps * instanceCount)
+ * @param maxBufferK Maximum finite buffer depth K (overflow drops to DLQ)
+ */
+export function solvePullQueueDrain(
+  currentBacklog: number,
+  inflowRps: number,
+  workerCapacityRps: number,
+  maxBufferK: number = 10000
+): PullQueueDrainResult {
+  const totalOffered = Math.max(0, currentBacklog) + Math.max(0, inflowRps);
+  const effectiveWorkerCap = Math.max(0, workerCapacityRps);
+  
+  // Drained up to worker capacity
+  const drainedRps = Math.min(totalOffered, effectiveWorkerCap);
+  const tentativeBacklog = totalOffered - drainedRps;
+
+  let droppedOverflowRps = 0;
+  let remainingBacklog = tentativeBacklog;
+
+  if (tentativeBacklog > maxBufferK) {
+    droppedOverflowRps = tentativeBacklog - maxBufferK;
+    remainingBacklog = maxBufferK;
+  }
+
+  return {
+    drainedRps,
+    remainingBacklog,
+    droppedOverflowRps,
+    isOverflown: droppedOverflowRps > 0,
+  };
+}
+
+export interface ServerlessLatencyResult {
+  effectiveLatencyMs: number;
+  isColdBurst: boolean;
+  coldRatio: number;
+}
+
+/**
+ * Computes Serverless Lambda execution latency factoring warm concurrency capacity vs cold start burst penalties.
+ * @param baseLatencyMs Warm baseline execution latency
+ * @param arrivalRate Current invocation arrival rate (RPS)
+ * @param warmCapacity Provisioned warm container capacity (warmConcurrency * capacityPerInstance)
+ * @param coldStartLatencyMs Cold start latency penalty for un-provisioned containers (e.g. 250ms)
+ * @param queueWaitMs Queue wait latency from M/M/c/K solver
+ */
+export function solveServerlessLatency(
+  baseLatencyMs: number,
+  arrivalRate: number,
+  warmCapacity: number,
+  coldStartLatencyMs: number = 250,
+  queueWaitMs: number = 0
+): ServerlessLatencyResult {
+  if (arrivalRate <= 0) {
+    return {
+      effectiveLatencyMs: baseLatencyMs,
+      isColdBurst: false,
+      coldRatio: 0,
+    };
+  }
+
+  const effectiveWarmCap = Math.max(1, warmCapacity);
+  if (arrivalRate <= effectiveWarmCap) {
+    return {
+      effectiveLatencyMs: Math.round(baseLatencyMs + queueWaitMs),
+      isColdBurst: false,
+      coldRatio: 0,
+    };
+  }
+
+  const excess = arrivalRate - effectiveWarmCap;
+  const coldRatio = Math.min(1.0, excess / arrivalRate);
+  const coldPenalty = Math.round(coldRatio * coldStartLatencyMs);
+  const effectiveLatencyMs = Math.round(baseLatencyMs + coldPenalty + queueWaitMs);
+
+  return {
+    effectiveLatencyMs,
+    isColdBurst: true,
+    coldRatio: Number(coldRatio.toFixed(3)),
+  };
+}
+

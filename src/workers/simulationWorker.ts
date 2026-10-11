@@ -7,7 +7,12 @@ import {
   CircuitBreakerState,
   SimulationEngineMode
 } from '../types/playground';
-import { calculateDynamicTrafficRate, solveKendallMMcK } from '../simulation/queueTheory';
+import { 
+  calculateDynamicTrafficRate, 
+  solveKendallMMcK, 
+  solvePullQueueDrain, 
+  solveServerlessLatency 
+} from '../simulation/queueTheory';
 import { initWasmEngine, isWasmReady, solveKendallMMcKWasm } from '../wasm/wasmEngine';
 
 // Pre-initialize WASM engine in background worker
@@ -153,40 +158,209 @@ self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
           });
         });
       } else {
-        // Cache hit rate forwarding
+        // Effective outflow calculation per component type
         let effectiveOutflow = nodeOutflow;
+        let addedHopLatency = 0;
+
+        // Cache hit rate forwarding (misses continue to storage/backends)
         if (currentNode.data.typeId === 'cache') {
           const hitRate = (currentNode.data.hitRatePercent ?? 85) / 100;
-          // Misses go to DB
           effectiveOutflow = Math.round(nodeOutflow * (1 - hitRate));
         }
 
-        // Distribute among alive targets, or all if none alive
+        // WAF rate limiting (drops excess, adds security inspection latency)
+        if (currentNode.data.typeId === 'waf') {
+          const rateLimit = currentNode.data.rateLimitRps ?? 20000;
+          effectiveOutflow = Math.min(nodeOutflow, rateLimit);
+          addedHopLatency = currentNode.data.inspectionLatencyMs ?? 3;
+        }
+
+        // Targets to distribute among
         const targetsToUse = aliveTargets.length > 0 ? aliveTargets : outgoing;
-        const splitFlow = Math.round(effectiveOutflow / targetsToUse.length);
 
-        outgoing.forEach((edge) => {
-          const isTargetAlive = targetsToUse.some((t) => t.id === edge.id);
-          const flow = isTargetAlive ? splitFlow : 0;
-          
-          edgeInflows.set(edge.id, flow);
-          const existingTargetInflow = incomingRpsMap.get(edge.target) || 0;
-          incomingRpsMap.set(edge.target, existingTargetInflow + flow);
+        // Routing & Fan-out strategies
+        if (currentNode.data.typeId === 'pub_sub') {
+          // 1-to-N Event Fan-Out: Each subscriber edge receives 100% of event outflow
+          outgoing.forEach((edge) => {
+            const isTargetAlive = targetsToUse.some((t) => t.id === edge.id);
+            const flow = isTargetAlive ? effectiveOutflow : 0;
 
-          edgeFlowMap.set(edge.id, {
-            flowRps: flow,
-            latencyMs: (currentNode.data.latencyMs || 5) + globalInjectedLatencyMs,
-            errorRate: isTargetAlive ? (currentNode.data.failureRate || 0) : 100,
+            edgeInflows.set(edge.id, flow);
+            const existingTargetInflow = incomingRpsMap.get(edge.target) || 0;
+            incomingRpsMap.set(edge.target, existingTargetInflow + flow);
+
+            edgeFlowMap.set(edge.id, {
+              flowRps: flow,
+              latencyMs: (currentNode.data.latencyMs || 8) + globalInjectedLatencyMs,
+              errorRate: isTargetAlive ? (currentNode.data.failureRate || 0) : 100,
+            });
+
+            const remaining = (inDegreeMap.get(edge.target) || 1) - 1;
+            inDegreeMap.set(edge.target, remaining);
+            if (remaining <= 0 && !visitedNodes.has(edge.target)) {
+              queue.push(edge.target);
+              visitedNodes.add(edge.target);
+            }
+          });
+        } else if (currentNode.data.typeId === 'dns_router') {
+          // Route 53 DNS Routing: Weighted (Canary) or Active-Passive Failover
+          const routingMode = currentNode.data.dnsRoutingMode || 'weighted';
+
+          if (routingMode === 'failover') {
+            const primaryTargetId = currentNode.data.primaryTargetId;
+            const primaryAliveEdge = targetsToUse.find(
+              (e) => e.target === primaryTargetId || e.id === primaryTargetId
+            );
+
+            outgoing.forEach((edge) => {
+              let flow = 0;
+              if (primaryAliveEdge) {
+                // Primary is alive: 100% to primary
+                flow = edge.id === primaryAliveEdge.id ? effectiveOutflow : 0;
+              } else {
+                // Primary is dead: failover evenly to backup alive targets
+                const isTargetAlive = targetsToUse.some((t) => t.id === edge.id);
+                flow = isTargetAlive ? Math.round(effectiveOutflow / targetsToUse.length) : 0;
+              }
+
+              edgeInflows.set(edge.id, flow);
+              const existingTargetInflow = incomingRpsMap.get(edge.target) || 0;
+              incomingRpsMap.set(edge.target, existingTargetInflow + flow);
+
+              edgeFlowMap.set(edge.id, {
+                flowRps: flow,
+                latencyMs: (currentNode.data.latencyMs || 12) + globalInjectedLatencyMs,
+                errorRate: targetsToUse.some((t) => t.id === edge.id) ? (currentNode.data.failureRate || 0) : 100,
+              });
+
+              const remaining = (inDegreeMap.get(edge.target) || 1) - 1;
+              inDegreeMap.set(edge.target, remaining);
+              if (remaining <= 0 && !visitedNodes.has(edge.target)) {
+                queue.push(edge.target);
+                visitedNodes.add(edge.target);
+              }
+            });
+          } else {
+            // Weighted Traffic Splitting (Canary / Blue-Green)
+            const weights = currentNode.data.dnsWeights || {};
+            let totalWeight = 0;
+            targetsToUse.forEach((edge) => {
+              const w = weights[edge.target] ?? weights[edge.id] ?? 0;
+              totalWeight += w;
+            });
+
+            let allocatedFlow = 0;
+            const aliveCount = targetsToUse.length;
+
+            outgoing.forEach((edge) => {
+              const isTargetAlive = targetsToUse.some((t) => t.id === edge.id);
+              let flow = 0;
+
+              if (isTargetAlive) {
+                if (totalWeight > 0) {
+                  const targetIdx = targetsToUse.findIndex((t) => t.id === edge.id);
+                  const w = weights[edge.target] ?? weights[edge.id] ?? 0;
+                  if (targetIdx === aliveCount - 1) {
+                    // Exact flow conservation residual
+                    flow = Math.max(0, effectiveOutflow - allocatedFlow);
+                  } else {
+                    flow = Math.round((effectiveOutflow * w) / totalWeight);
+                    allocatedFlow += flow;
+                  }
+                } else {
+                  // Fallback equal split
+                  flow = Math.round(effectiveOutflow / aliveCount);
+                }
+              }
+
+              edgeInflows.set(edge.id, flow);
+              const existingTargetInflow = incomingRpsMap.get(edge.target) || 0;
+              incomingRpsMap.set(edge.target, existingTargetInflow + flow);
+
+              edgeFlowMap.set(edge.id, {
+                flowRps: flow,
+                latencyMs: (currentNode.data.latencyMs || 12) + globalInjectedLatencyMs,
+                errorRate: isTargetAlive ? (currentNode.data.failureRate || 0) : 100,
+              });
+
+              const remaining = (inDegreeMap.get(edge.target) || 1) - 1;
+              inDegreeMap.set(edge.target, remaining);
+              if (remaining <= 0 && !visitedNodes.has(edge.target)) {
+                queue.push(edge.target);
+                visitedNodes.add(edge.target);
+              }
+            });
+          }
+        } else if (currentNode.data.typeId === 'standard_queue' || currentNode.data.typeId === 'message_queue') {
+          // Asynchronous Pull-Draining from Queues to Background Workers
+          let totalWorkerCapacity = 0;
+          targetsToUse.forEach((edge) => {
+            const targetNode = nodes.find((n) => n.id === edge.target);
+            if (targetNode?.data.typeId === 'background_worker') {
+              const wInst = Math.max(1, targetNode.data.instanceCount || 1);
+              totalWorkerCapacity += (targetNode.data.capacityRps || 1500) * wInst;
+            }
           });
 
-          // Decrement in-degree
-          const remaining = (inDegreeMap.get(edge.target) || 1) - 1;
-          inDegreeMap.set(edge.target, remaining);
-          if (remaining <= 0 && !visitedNodes.has(edge.target)) {
-            queue.push(edge.target);
-            visitedNodes.add(edge.target);
-          }
-        });
+          const currentBacklog = currentNode.data.currentQueue || 0;
+          const drainCap = totalWorkerCapacity > 0 ? totalWorkerCapacity : effectiveOutflow;
+          const pullResult = solvePullQueueDrain(
+            currentBacklog,
+            nodeInflow,
+            drainCap,
+            currentNode.data.maxQueueDepth || 10000
+          );
+
+          const splitFlow = Math.round(pullResult.drainedRps / targetsToUse.length);
+
+          outgoing.forEach((edge) => {
+            const isTargetAlive = targetsToUse.some((t) => t.id === edge.id);
+            const flow = isTargetAlive ? splitFlow : 0;
+
+            edgeInflows.set(edge.id, flow);
+            const existingTargetInflow = incomingRpsMap.get(edge.target) || 0;
+            incomingRpsMap.set(edge.target, existingTargetInflow + flow);
+
+            edgeFlowMap.set(edge.id, {
+              flowRps: flow,
+              latencyMs: (currentNode.data.latencyMs || 15) + addedHopLatency + globalInjectedLatencyMs,
+              errorRate: isTargetAlive ? (currentNode.data.failureRate || 0) : 100,
+            });
+
+            const remaining = (inDegreeMap.get(edge.target) || 1) - 1;
+            inDegreeMap.set(edge.target, remaining);
+            if (remaining <= 0 && !visitedNodes.has(edge.target)) {
+              queue.push(edge.target);
+              visitedNodes.add(edge.target);
+            }
+          });
+        } else {
+          // Standard balanced load split
+          const splitFlow = Math.round(effectiveOutflow / targetsToUse.length);
+
+          outgoing.forEach((edge) => {
+            const isTargetAlive = targetsToUse.some((t) => t.id === edge.id);
+            const flow = isTargetAlive ? splitFlow : 0;
+
+            edgeInflows.set(edge.id, flow);
+            const existingTargetInflow = incomingRpsMap.get(edge.target) || 0;
+            incomingRpsMap.set(edge.target, existingTargetInflow + flow);
+
+            edgeFlowMap.set(edge.id, {
+              flowRps: flow,
+              latencyMs: (currentNode.data.latencyMs || 5) + addedHopLatency + globalInjectedLatencyMs,
+              errorRate: isTargetAlive ? (currentNode.data.failureRate || 0) : 100,
+            });
+
+            // Decrement in-degree
+            const remaining = (inDegreeMap.get(edge.target) || 1) - 1;
+            inDegreeMap.set(edge.target, remaining);
+            if (remaining <= 0 && !visitedNodes.has(edge.target)) {
+              queue.push(edge.target);
+              visitedNodes.add(edge.target);
+            }
+          });
+        }
       }
     }
   }
@@ -246,7 +420,50 @@ self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
           baseLatency
         );
 
-    const utilizationPercent = Math.round(qResult.rho * 100);
+    let processedRps = qResult.processedRps;
+    let droppedRps = qResult.droppedRps;
+    let latencyMs = qResult.latencyMs;
+    let queueDepth = qResult.queueDepth;
+
+    // Component-specific adjustments
+
+    // 1. WAF: Token-bucket rate limiting (429 drops) and security inspection latency
+    if (node.data.typeId === 'waf') {
+      const rateLimit = node.data.rateLimitRps ?? 20000;
+      const wafDrops = Math.max(0, arrivalRate - rateLimit);
+      droppedRps += wafDrops;
+      processedRps = Math.min(processedRps, arrivalRate - wafDrops);
+      latencyMs += (node.data.inspectionLatencyMs ?? 3);
+    }
+
+    // 2. Serverless Function: Cold start latency on un-provisioned burst concurrency
+    if (node.data.typeId === 'serverless_function') {
+      const warmCap = (node.data.warmConcurrency ?? 10) * capacityPerInstance;
+      const serverlessResult = solveServerlessLatency(
+        baseLatency,
+        arrivalRate,
+        warmCap,
+        node.data.coldStartLatencyMs ?? 250,
+        Math.max(0, qResult.latencyMs - baseLatency)
+      );
+      latencyMs = serverlessResult.effectiveLatencyMs;
+    }
+
+    // 3. External API: 504 timeouts based on chaos failure rate
+    if (node.data.typeId === 'external_api') {
+      const failRate = node.data.failureRate || 0;
+      const timeoutDrops = Math.round(arrivalRate * (failRate / 100));
+      droppedRps = Math.max(droppedRps, timeoutDrops);
+      processedRps = Math.max(0, arrivalRate - droppedRps);
+      latencyMs = (node.data.latencyMs || 150) + globalInjectedLatencyMs;
+    }
+
+    // 4. Queues: Track buffer backlog
+    if (node.data.typeId === 'standard_queue' || node.data.typeId === 'message_queue') {
+      queueDepth = Math.min(maxQueue, qResult.queueDepth);
+    }
+
+    const utilizationPercent = Math.min(100, Math.round(qResult.rho * 100));
 
     // Bottleneck detection on non-traffic-generators
     if (qResult.rho > maxRho && node.data.typeId !== 'traffic_generator') {
@@ -258,16 +475,16 @@ self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
     }
 
     if (node.data.typeId !== 'traffic_generator') {
-      totalProcessedRps += qResult.processedRps;
-      totalDroppedRps += qResult.droppedRps;
-      totalActiveQueue += qResult.queueDepth;
-      maxP95Latency = Math.max(maxP95Latency, qResult.latencyMs);
+      totalProcessedRps += processedRps;
+      totalDroppedRps += droppedRps;
+      totalActiveQueue += queueDepth;
+      maxP95Latency = Math.max(maxP95Latency, latencyMs);
     }
 
     let status: 'healthy' | 'warning' | 'critical' | 'dead' = 'healthy';
-    if (qResult.rho >= 1.0 || qResult.droppedRps > 0) {
+    if (qResult.rho >= 1.0 || droppedRps > 0) {
       status = 'critical';
-    } else if (qResult.rho >= 0.80 || qResult.queueDepth > 20) {
+    } else if (qResult.rho >= 0.80 || queueDepth > 20) {
       status = 'warning';
     }
 
@@ -276,9 +493,9 @@ self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
     return {
       id: node.id,
       data: {
-        currentRps: qResult.processedRps,
-        currentQueue: qResult.queueDepth,
-        currentLatency: qResult.latencyMs,
+        currentRps: processedRps,
+        currentQueue: queueDepth,
+        currentLatency: latencyMs,
         status,
         utilizationPercent,
         isBottleneck: false,
