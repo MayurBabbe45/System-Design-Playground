@@ -26,6 +26,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const PORT = process.env.API_PORT || 4000;
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  throw new Error('FATAL: JWT_SECRET environment variable must be defined in production.');
+}
 const JWT_SECRET = process.env.JWT_SECRET || 'system-design-playground-jwt-secret-key-2026';
 
 export const app = express();
@@ -62,6 +65,10 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json({ limit: '15mb' }));
 
+// Graph size upper bounds to protect against denial-of-service / memory exhaustion
+export const MAX_GRAPH_NODES = 1000;
+export const MAX_GRAPH_EDGES = 2000;
+
 // Auth Rate Limiting Middleware (15 requests per 15 minutes window)
 const authAttempts = new Map();
 const AUTH_RATE_WINDOW_MS = 15 * 60 * 1000;
@@ -78,7 +85,17 @@ export function authRateLimiter(req, res, next) {
   const now = Date.now();
   const windowStart = now - AUTH_RATE_WINDOW_MS;
 
-  const timestamps = (authAttempts.get(ip) || []).filter((t) => t > windowStart);
+  // Evict expired tracking entries to avoid heap leak
+  for (const [key, times] of authAttempts.entries()) {
+    const valid = times.filter((t) => t > windowStart);
+    if (valid.length === 0) {
+      authAttempts.delete(key);
+    } else {
+      authAttempts.set(key, valid);
+    }
+  }
+
+  const timestamps = authAttempts.get(ip) || [];
 
   if (timestamps.length >= AUTH_RATE_MAX_ATTEMPTS) {
     return res.status(429).json({
@@ -243,6 +260,12 @@ app.post('/api/architectures', optionalAuth, async (req, res) => {
     const { name, description, nodes, edges, chaos, grade, monthlyCost, isPublic } = req.body;
     if (!name || !Array.isArray(nodes) || !Array.isArray(edges)) {
       return res.status(400).json({ error: 'Name, nodes array, and edges array are required' });
+    }
+
+    if (nodes.length > MAX_GRAPH_NODES || edges.length > MAX_GRAPH_EDGES) {
+      return res.status(400).json({
+        error: `Graph payload exceeds maximum permitted size (limit: ${MAX_GRAPH_NODES} nodes, ${MAX_GRAPH_EDGES} edges)`
+      });
     }
 
     let userId = req.user ? req.user.id : null;

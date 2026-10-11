@@ -245,12 +245,12 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
       
       let nodesChanged = false;
       const currentNodes = get().nodes;
+      const nodeUpdateMap = new Map((updatedNodes || []).map((n) => [n.id, n.data]));
       const nextNodes = currentNodes.map((node) => {
-        const update = updatedNodes.find((un) => un.id === node.id);
-        if (!update || !update.data) return node;
+        const u = nodeUpdateMap.get(node.id);
+        if (!u) return node;
 
         const d = node.data;
-        const u = update.data;
         const isDifferent =
           d.currentRps !== u.currentRps ||
           d.currentQueue !== u.currentQueue ||
@@ -275,12 +275,12 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
 
       let edgesChanged = false;
       const currentEdges = get().edges;
+      const edgeUpdateMap = new Map((updatedEdges || []).map((e) => [e.id, e.data]));
       const nextEdges = currentEdges.map((edge) => {
-        const update = updatedEdges.find((ue) => ue.id === edge.id);
-        if (!update || !update.data) return edge;
+        const u = edgeUpdateMap.get(edge.id);
+        if (!u) return edge;
 
         const d = edge.data;
-        const u = update.data;
         const isDifferent =
           !d ||
           d.currentFlowRps !== u.currentFlowRps ||
