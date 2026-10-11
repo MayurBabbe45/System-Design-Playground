@@ -17,6 +17,7 @@ import { FlowEdge } from './edges/FlowEdge';
 import { ComponentTypeId, InfrastructureNodeData } from '../types/playground';
 import { collabManager } from '../collab/collabManager';
 import { Node } from '@xyflow/react';
+import { CanvasErrorBoundary } from './common/CanvasErrorBoundary';
 
 const CanvasInner: React.FC = () => {
   const {
@@ -436,8 +437,10 @@ const CanvasInner: React.FC = () => {
 
 export const Canvas: React.FC = () => {
   return (
-    <ReactFlowProvider>
-      <CanvasInner />
-    </ReactFlowProvider>
+    <CanvasErrorBoundary>
+      <ReactFlowProvider>
+        <CanvasInner />
+      </ReactFlowProvider>
+    </CanvasErrorBoundary>
   );
 };

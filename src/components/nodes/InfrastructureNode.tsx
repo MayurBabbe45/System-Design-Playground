@@ -5,6 +5,7 @@ import { InfrastructureNodeData, ComponentTypeId } from '../../types/playground'
 import { COMPONENT_CATALOG } from '../../config/components';
 import { usePlaygroundStore } from '../../store/usePlaygroundStore';
 import { ComponentIcon } from '../icons/ComponentIcons';
+import { NodeErrorBoundary } from '../common/NodeErrorBoundary';
 
 // Valid downstream components that can be quickly added via the (+) button
 const CONNECTABLE_TYPES: ComponentTypeId[] = [
@@ -28,7 +29,7 @@ const CONNECTABLE_TYPES: ComponentTypeId[] = [
   'external_api',
 ];
 
-export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selected }) => {
+const InfrastructureNodeInner: React.FC<NodeProps> = ({ id, data, selected }) => {
   const nodeData = data as unknown as InfrastructureNodeData;
   const setSelectedNodeId = usePlaygroundStore((state) => state.setSelectedNodeId);
   const appendConnectedNode = usePlaygroundStore((state) => state.appendConnectedNode);
@@ -439,6 +440,14 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
         </div>
       )}
     </div>
+  );
+};
+
+export const InfrastructureNode: React.FC<NodeProps> = memo((props) => {
+  return (
+    <NodeErrorBoundary nodeId={props.id} nodeLabel={(props.data as any)?.label}>
+      <InfrastructureNodeInner {...props} />
+    </NodeErrorBoundary>
   );
 });
 
