@@ -1025,7 +1025,9 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
       const newEdge: Edge<EdgeStreamData> = {
         id: `e-${sourceNodeId}-${id}-${Date.now()}`,
         source: sourceNodeId,
+        sourceHandle: 'right',
         target: id,
+        targetHandle: 'left',
         type: 'flowEdge',
         data: {
           currentFlowRps: 1000,

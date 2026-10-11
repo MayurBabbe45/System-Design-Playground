@@ -278,25 +278,53 @@ export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selecte
           </div>
         )}
 
-        {/* Target Connection Handle (Left) */}
+        {/* Hidden Default Ingress Handle for Legacy & Preset Connections */}
         {!isClient && (
           <Handle
             type="target"
             position={Position.Left}
-            className="n8n-handle n8n-handle-target !-left-2"
+            id="left-default"
+            className="opacity-0 pointer-events-none"
+            style={{ left: -6 }}
           />
         )}
+
+        {/* 4 Cardinal Omnidirectional Connection Ports */}
+        {/* 1. Top Port */}
+        <Handle
+          type="source"
+          position={Position.Top}
+          id="top"
+          className="n8n-handle n8n-handle-top !-top-2 !left-1/2 !-translate-x-1/2"
+        />
+
+        {/* 2. Left Port */}
+        <Handle
+          type="source"
+          position={Position.Left}
+          id="left"
+          className="n8n-handle n8n-handle-left !-left-2 !top-1/2 !-translate-y-1/2"
+        />
 
         {/* Clean, Prominent n8n Center Symbol */}
         <div className="flex items-center justify-center transition-transform duration-150 group-hover:scale-105 pointer-events-none">
           <ComponentIcon typeId={nodeData.typeId} size={50} color={meta?.color} />
         </div>
 
-        {/* Source Connection Handle (Right) */}
+        {/* 3. Right Port */}
         <Handle
           type="source"
           position={Position.Right}
-          className="n8n-handle n8n-handle-source !-right-2"
+          id="right"
+          className="n8n-handle n8n-handle-source n8n-handle-right !-right-2 !top-1/2 !-translate-y-1/2"
+        />
+
+        {/* 4. Bottom Port */}
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          id="bottom"
+          className="n8n-handle n8n-handle-bottom !-bottom-2 !left-1/2 !-translate-x-1/2"
         />
 
         {/* n8n Plus Button: Interactive Quick-Add and Connect Next Node */}

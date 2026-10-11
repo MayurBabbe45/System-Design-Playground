@@ -6,7 +6,8 @@ import {
   MiniMap, 
   useReactFlow, 
   ReactFlowProvider,
-  BackgroundVariant
+  BackgroundVariant,
+  ConnectionMode
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { AlertTriangle, Keyboard, X } from 'lucide-react';
@@ -391,6 +392,13 @@ const CanvasInner: React.FC = () => {
         nodesDraggable={true}
         fitView
         colorMode={theme}
+        connectionMode={ConnectionMode.Loose}
+        isValidConnection={(connection) => {
+          if (connection.source === connection.target) return false;
+          const targetNode = nodes.find((n) => n.id === connection.target);
+          if (targetNode?.data?.typeId === 'traffic_generator') return false;
+          return true;
+        }}
         connectionLineStyle={{
           stroke: theme === 'light' ? '#64748b' : '#ffffff',
           strokeWidth: 2,

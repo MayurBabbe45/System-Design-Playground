@@ -93,23 +93,29 @@ input, textarea, select {
   height: 14px !important;
   border-radius: 50% !important;
   border: 2.5px solid var(--bg-surface) !important;
-  background-color: #64748b !important;
-  transition: transform 0.15s ease, background-color 0.15s ease !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
+  background-color: #94a3b8 !important;
+  transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3) !important;
   z-index: 10 !important;
 }
 
-.n8n-handle:hover {
-  transform: scale(1.35) !important;
-  background-color: #3b82f6 !important;
+.n8n-handle-top:hover,
+.n8n-handle-bottom:hover {
+  transform: translateX(-50%) scale(1.35) !important;
+  background-color: #38bdf8 !important;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.75) !important;
 }
 
-.n8n-handle-target {
-  background-color: #64748b !important;
+.n8n-handle-left:hover,
+.n8n-handle-right:hover {
+  transform: translateY(-50%) scale(1.35) !important;
+  background-color: #38bdf8 !important;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.75) !important;
 }
 
-.n8n-handle-source {
-  background-color: #64748b !important;
+.dark .n8n-handle {
+  background-color: #94a3b8 !important;
+  border-color: #161922 !important;
 }
 
 /* Theme Adaptive Custom Scrollbars */
