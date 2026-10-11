@@ -8,15 +8,24 @@ import { ComponentIcon } from '../icons/ComponentIcons';
 
 // Valid downstream components that can be quickly added via the (+) button
 const CONNECTABLE_TYPES: ComponentTypeId[] = [
+  'dns_router',
+  'waf',
+  'cdn',
+  'api_gateway',
   'load_balancer',
   'web_server',
+  'serverless_function',
+  'background_worker',
   'cache',
   'relational_db',
   'nosql_db',
+  'search_engine',
+  'analytics_db',
   'message_queue',
+  'standard_queue',
+  'pub_sub',
   'object_storage',
-  'api_gateway',
-  'cdn',
+  'external_api',
 ];
 
 export const InfrastructureNode: React.FC<NodeProps> = memo(({ id, data, selected }) => {
