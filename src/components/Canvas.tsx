@@ -391,6 +391,11 @@ const CanvasInner: React.FC = () => {
         nodesDraggable={true}
         fitView
         colorMode={theme}
+        connectionLineStyle={{
+          stroke: theme === 'light' ? '#64748b' : '#ffffff',
+          strokeWidth: 2,
+          strokeDasharray: '6 4',
+        }}
         defaultEdgeOptions={{
           type: 'flowEdge',
           animated: true,

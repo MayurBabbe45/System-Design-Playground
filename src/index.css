@@ -284,4 +284,21 @@ input, textarea, select {
   box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
 }
 
+/* React Flow Connecting Edge Line Enhancements (Spatial High-Visibility) */
+.react-flow__edge-path {
+  transition: stroke 0.15s ease, stroke-width 0.15s ease, opacity 0.15s ease;
+}
+
+.react-flow__connection-path {
+  stroke: #ffffff !important;
+  stroke-width: 2px !important;
+  stroke-dasharray: 6 4 !important;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.6)) !important;
+}
+
+.dark .react-flow__edge.animated path {
+  stroke-dasharray: 6 4;
+}
+
+
 

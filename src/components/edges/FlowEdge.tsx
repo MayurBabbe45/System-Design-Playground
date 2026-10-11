@@ -79,12 +79,14 @@ export const FlowEdge: React.FC<EdgeProps> = memo(({
     particleColor = '#06b6d4'; // Cyan
     strokeColor = '#06b6d4';
   } else {
-    // Theme-adaptive stroke for idle/zero-flow connection lines (never invisible white-on-white)
-    strokeColor = theme === 'light' ? 'rgba(100, 116, 139, 0.45)' : 'rgba(255, 255, 255, 0.25)';
+    // Theme-adaptive stroke for idle/zero-flow connection lines (crisp bright white in dark mode)
+    strokeColor = theme === 'light' ? 'rgba(71, 85, 105, 0.85)' : '#ffffff';
   }
 
   if (isEdgeSelected) {
     strokeColor = '#38bdf8';
+  } else if (isHovered && (!isSimulating || !isEdgeActive || flowRps === 0)) {
+    strokeColor = '#ffffff';
   }
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -248,9 +250,13 @@ export const FlowEdge: React.FC<EdgeProps> = memo(({
         style={{
           ...style,
           stroke: strokeColor,
-          strokeWidth: isEdgeSelected ? 3.5 : (isSimulating && isEdgeActive && flowRps > 0 ? 2 : 1.5),
-          opacity: isEdgeSelected ? 1 : (isSimulating && isEdgeActive && flowRps > 0 ? 0.9 : 0.65),
-          filter: isEdgeSelected ? 'drop-shadow(0 0 4px #38bdf8)' : undefined,
+          strokeWidth: isEdgeSelected ? 3.5 : isHovered ? 2.5 : (isSimulating && isEdgeActive && flowRps > 0 ? 2.2 : 2),
+          opacity: isEdgeSelected ? 1 : isHovered ? 1 : (isSimulating && isEdgeActive && flowRps > 0 ? 0.95 : 0.9),
+          filter: isEdgeSelected 
+            ? 'drop-shadow(0 0 6px #38bdf8)' 
+            : isHovered
+            ? 'drop-shadow(0 0 6px rgba(255, 255, 255, 0.7))'
+            : (theme === 'dark' ? 'drop-shadow(0 0 3px rgba(255, 255, 255, 0.35))' : undefined),
         }}
       />
 
