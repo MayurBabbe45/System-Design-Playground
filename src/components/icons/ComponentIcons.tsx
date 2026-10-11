@@ -500,6 +500,273 @@ export const ObjectStorageIcon: React.FC<ComponentIconProps> = ({
 );
 
 /**
+ * 11. DNS Router (Route 53 / Anycast DNS)
+ * Navigational compass with directional routing arrows and multi-destination bifurcation.
+ */
+export const DnsRouterIcon: React.FC<ComponentIconProps> = ({
+  className = '',
+  size = 40,
+  color = '#0ea5e9',
+}) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <defs>
+      <linearGradient id="dns-bg-grad" x1="6" y1="6" x2="34" y2="34" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#38bdf8" />
+        <stop offset="1" stopColor="#0284c7" />
+      </linearGradient>
+    </defs>
+    <circle cx="20" cy="20" r="14" fill="url(#dns-bg-grad)" stroke="#bae6fd" strokeWidth="1.5" />
+    <circle cx="20" cy="20" r="11" stroke="#ffffff" strokeWidth="1" strokeDasharray="2 2" strokeOpacity="0.7" />
+    {/* Compass Needle */}
+    <polygon points="20,9 23,20 20,18 17,20" fill="#ffffff" />
+    <polygon points="20,31 23,20 20,22 17,20" fill="#0369a1" />
+    <circle cx="20" cy="20" r="2.5" fill="#f0f9ff" stroke="#0284c7" strokeWidth="1" />
+    {/* Cardinal Pointers */}
+    <circle cx="20" cy="8" r="1.5" fill="#ffffff" />
+    <circle cx="32" cy="20" r="1.5" fill="#ffffff" />
+    <circle cx="8" cy="20" r="1.5" fill="#ffffff" />
+  </svg>
+);
+
+/**
+ * 12. WAF (Web Application Firewall / Shield)
+ * Reinforced security shield with defensive inspection grid and threat barrier.
+ */
+export const WafIcon: React.FC<ComponentIconProps> = ({
+  className = '',
+  size = 40,
+  color = '#f43f5e',
+}) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <defs>
+      <linearGradient id="waf-shield-grad" x1="8" y1="6" x2="32" y2="34" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#fb7185" />
+        <stop offset="1" stopColor="#e11d48" />
+      </linearGradient>
+    </defs>
+    <path
+      d="M20 6L32 10.5V20C32 26.8 26.9 33.1 20 35C13.1 33.1 8 26.8 8 20V10.5L20 6Z"
+      fill="url(#waf-shield-grad)"
+      stroke="#fecdd3"
+      strokeWidth="1.5"
+    />
+    {/* Brick / Filter Inspection Grid */}
+    <line x1="13" y1="16" x2="27" y2="16" stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.8" />
+    <line x1="11" y1="22" x2="29" y2="22" stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.8" />
+    <line x1="14" y1="28" x2="26" y2="28" stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.8" />
+    <line x1="20" y1="16" x2="20" y2="22" stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.8" />
+    <line x1="16" y1="22" x2="16" y2="28" stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.8" />
+    <line x1="24" y1="22" x2="24" y2="28" stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.8" />
+    {/* Core Alert Spark */}
+    <circle cx="20" cy="12" r="1.5" fill="#ffffff" />
+  </svg>
+);
+
+/**
+ * 13. Serverless Function (Lambda / Worker)
+ * Greek letter Lambda (λ) with reactive energy halo and event-driven trigger sparks.
+ */
+export const ServerlessFunctionIcon: React.FC<ComponentIconProps> = ({
+  className = '',
+  size = 40,
+  color = '#f97316',
+}) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <defs>
+      <linearGradient id="lambda-bg-grad" x1="6" y1="6" x2="34" y2="34" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#fb923c" />
+        <stop offset="1" stopColor="#ea580c" />
+      </linearGradient>
+    </defs>
+    <rect x="7" y="7" width="26" height="26" rx="7" fill="url(#lambda-bg-grad)" stroke="#ffedd5" strokeWidth="1.5" />
+    {/* Clean Lambda Path */}
+    <path
+      d="M14 28L18.5 19.5M26 28L19.5 14H16.5"
+      stroke="#ffffff"
+      strokeWidth="2.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    {/* Reactive Trigger Spark */}
+    <circle cx="27" cy="13" r="2.5" fill="#fef08a" stroke="#ca8a04" strokeWidth="0.75" />
+    <circle cx="27" cy="13" r="1" fill="#ffffff" />
+  </svg>
+);
+
+/**
+ * 14. Background Worker (Consumer / Cron Task)
+ * Interlocking precision gears with cyclical task draining arrows.
+ */
+export const BackgroundWorkerIcon: React.FC<ComponentIconProps> = ({
+  className = '',
+  size = 40,
+  color = '#8b5cf6',
+}) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <defs>
+      <linearGradient id="worker-gear-grad" x1="6" y1="6" x2="34" y2="34" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#a78bfa" />
+        <stop offset="1" stopColor="#7c3aed" />
+      </linearGradient>
+    </defs>
+    <circle cx="20" cy="20" r="14" fill="url(#worker-gear-grad)" stroke="#ddd6fe" strokeWidth="1.5" />
+    {/* Large Primary Gear */}
+    <circle cx="18" cy="19" r="6" stroke="#ffffff" strokeWidth="2" strokeDasharray="3.5 2" />
+    <circle cx="18" cy="19" r="2.5" fill="#ffffff" />
+    {/* Small Interlocking Gear */}
+    <circle cx="27" cy="25" r="4" stroke="#f5d0fe" strokeWidth="1.75" strokeDasharray="2.5 1.5" />
+    <circle cx="27" cy="25" r="1.5" fill="#ffffff" />
+    {/* Continuous Cycle Dot */}
+    <circle cx="11" cy="13" r="1.5" fill="#ffffff" />
+  </svg>
+);
+
+/**
+ * 15. Standard Queue (SQS / RabbitMQ)
+ * FIFO sequential packet stack with ordered task buffering.
+ */
+export const StandardQueueIcon: React.FC<ComponentIconProps> = ({
+  className = '',
+  size = 40,
+  color = '#059669',
+}) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <defs>
+      <linearGradient id="queue-box-grad" x1="6" y1="8" x2="34" y2="32" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#34d399" />
+        <stop offset="1" stopColor="#059669" />
+      </linearGradient>
+    </defs>
+    {/* FIFO Packet 1 (Back) */}
+    <rect x="17" y="7" width="16" height="9" rx="2" fill="#047857" stroke="#10b981" strokeWidth="1" opacity="0.6" />
+    {/* FIFO Packet 2 (Middle) */}
+    <rect x="12" y="14" width="18" height="9" rx="2" fill="#059669" stroke="#6ee7b7" strokeWidth="1.25" opacity="0.85" />
+    {/* FIFO Packet 3 (Front / In-Flight) */}
+    <rect x="7" y="21" width="20" height="10" rx="2.5" fill="url(#queue-box-grad)" stroke="#a7f3d0" strokeWidth="1.5" />
+    <line x1="11" y1="26" x2="23" y2="26" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" />
+    {/* FIFO Flow Arrow */}
+    <path d="M30 24L34 26L30 28" stroke="#ffffff" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+/**
+ * 16. Pub/Sub Topic (SNS / EventBridge)
+ * Central broadcasting antenna with 1-to-N radial fan-out wave propagation.
+ */
+export const PubSubIcon: React.FC<ComponentIconProps> = ({
+  className = '',
+  size = 40,
+  color = '#d946ef',
+}) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <defs>
+      <linearGradient id="pubsub-grad" x1="6" y1="6" x2="34" y2="34" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#e879f9" />
+        <stop offset="1" stopColor="#c026d3" />
+      </linearGradient>
+    </defs>
+    <circle cx="20" cy="20" r="14" fill="url(#pubsub-grad)" stroke="#f5d0fe" strokeWidth="1.5" />
+    {/* Broadcasting Waves */}
+    <path d="M14 14C17.3 11.2 22.7 11.2 26 14" stroke="#ffffff" strokeWidth="1.75" strokeLinecap="round" />
+    <path d="M11 10C16 6 24 6 29 10" stroke="#ffffff" strokeWidth="1.75" strokeLinecap="round" strokeOpacity="0.75" />
+    {/* Central Broadcaster Core */}
+    <circle cx="20" cy="20" r="3" fill="#ffffff" />
+    <path d="M18 23L16 29M22 23L24 29" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
+    {/* Fan-Out Destination Nodes */}
+    <circle cx="9" cy="28" r="2" fill="#fdf4ff" stroke="#a21caf" strokeWidth="1" />
+    <circle cx="31" cy="28" r="2" fill="#fdf4ff" stroke="#a21caf" strokeWidth="1" />
+    <circle cx="20" cy="32" r="2" fill="#fdf4ff" stroke="#a21caf" strokeWidth="1" />
+  </svg>
+);
+
+/**
+ * 17. Search Engine (Elasticsearch / Meilisearch)
+ * Inverted index partitions with magnifying search loupe.
+ */
+export const SearchEngineIcon: React.FC<ComponentIconProps> = ({
+  className = '',
+  size = 40,
+  color = '#eab308',
+}) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <defs>
+      <linearGradient id="search-bg-grad" x1="6" y1="6" x2="34" y2="34" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#facc15" />
+        <stop offset="1" stopColor="#ca8a04" />
+      </linearGradient>
+    </defs>
+    {/* Indexed Document Card */}
+    <rect x="7" y="7" width="22" height="26" rx="4" fill="url(#search-bg-grad)" stroke="#fef08a" strokeWidth="1.5" />
+    <line x1="11" y1="13" x2="20" y2="13" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" />
+    <line x1="11" y1="18" x2="18" y2="18" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" />
+    <line x1="11" y1="23" x2="16" y2="23" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" />
+    {/* Magnifying Loupe */}
+    <circle cx="24" cy="23" r="6" fill="#fef9c3" stroke="#854d0e" strokeWidth="2" />
+    <circle cx="24" cy="23" r="4.25" fill="#ffffff" fillOpacity="0.4" />
+    <line x1="28.5" y1="27.5" x2="33" y2="32" stroke="#854d0e" strokeWidth="2.5" strokeLinecap="round" />
+  </svg>
+);
+
+/**
+ * 18. Analytics Database (ClickHouse / Snowflake OLAP)
+ * Columnar data aggregation cylinders with performance bar analytics.
+ */
+export const AnalyticsDbIcon: React.FC<ComponentIconProps> = ({
+  className = '',
+  size = 40,
+  color = '#14b8a6',
+}) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <defs>
+      <linearGradient id="olap-bg-grad" x1="6" y1="6" x2="34" y2="34" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#2dd4bf" />
+        <stop offset="1" stopColor="#0d9488" />
+      </linearGradient>
+    </defs>
+    <rect x="7" y="7" width="26" height="26" rx="6" fill="url(#olap-bg-grad)" stroke="#ccfbf1" strokeWidth="1.5" />
+    {/* Analytical Bar Columns */}
+    <rect x="11" y="22" width="3.5" height="7" rx="1" fill="#ffffff" />
+    <rect x="16.5" y="17" width="3.5" height="12" rx="1" fill="#ffffff" />
+    <rect x="22" y="13" width="3.5" height="16" rx="1" fill="#ffffff" />
+    <rect x="27.5" y="10" width="3.5" height="19" rx="1" fill="#ffffff" />
+    {/* Aggregation Trend Line */}
+    <path d="M12.5 20L18 15L23.5 11L29 8" stroke="#fef08a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+/**
+ * 19. External API (3rd-Party SaaS / Webhook)
+ * Perimeter cloud boundary with outbound handshake plug and chaos timeout trigger.
+ */
+export const ExternalApiIcon: React.FC<ComponentIconProps> = ({
+  className = '',
+  size = 40,
+  color = '#64748b',
+}) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <defs>
+      <linearGradient id="ext-cloud-grad" x1="6" y1="8" x2="34" y2="32" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#94a3b8" />
+        <stop offset="1" stopColor="#475569" />
+      </linearGradient>
+    </defs>
+    {/* Cloud Body */}
+    <path
+      d="M13 28H27C30.3 28 33 25.3 33 22C33 19 30.8 16.5 28 16.1C27.5 11.5 23.6 8 19 8C15 8 11.6 10.8 10.4 14.6C7.9 15.2 6 17.4 6 20C6 23.3 8.7 26 12 26"
+      fill="url(#ext-cloud-grad)"
+      stroke="#e2e8f0"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    {/* Outbound Connector Plug / Webhook Arrow */}
+    <line x1="20" y1="21" x2="28" y2="29" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
+    <polyline points="23,29 28,29 28,24" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    {/* Chaos Jitter Spark */}
+    <circle cx="15" cy="18" r="1.5" fill="#fde047" />
+  </svg>
+);
+
+/**
  * Component Icon Registry Map
  */
 export const COMPONENT_ICON_MAP: Record<ComponentTypeId, React.FC<ComponentIconProps>> = {
@@ -513,6 +780,15 @@ export const COMPONENT_ICON_MAP: Record<ComponentTypeId, React.FC<ComponentIconP
   nosql_db: NoSqlDbIcon,
   message_queue: MessageQueueIcon,
   object_storage: ObjectStorageIcon,
+  dns_router: DnsRouterIcon,
+  waf: WafIcon,
+  serverless_function: ServerlessFunctionIcon,
+  background_worker: BackgroundWorkerIcon,
+  standard_queue: StandardQueueIcon,
+  pub_sub: PubSubIcon,
+  search_engine: SearchEngineIcon,
+  analytics_db: AnalyticsDbIcon,
+  external_api: ExternalApiIcon,
 };
 
 /**

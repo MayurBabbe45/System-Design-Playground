@@ -10,7 +10,17 @@ export type ComponentTypeId =
   | 'nosql_db'
   | 'message_queue'
   | 'cdn'
-  | 'object_storage';
+  | 'object_storage'
+  // 9 New Infrastructure Components
+  | 'dns_router'
+  | 'waf'
+  | 'serverless_function'
+  | 'background_worker'
+  | 'standard_queue'
+  | 'pub_sub'
+  | 'search_engine'
+  | 'analytics_db'
+  | 'external_api';
 
 export type TrafficProfile = 'steady' | 'poisson' | 'spike' | 'diurnal';
 
@@ -70,6 +80,30 @@ export interface InfrastructureNodeData extends Record<string, unknown> {
   readRatioPercent?: number; // DB Read vs Write split
   connectionPoolSize?: number; // DB max connection pool
   lbAlgorithm?: LoadBalancerAlgorithm; // Load balancer routing strategy
+
+  // DNS Router
+  dnsRoutingMode?: 'weighted' | 'failover';
+  dnsWeights?: Record<string, number>; // targetNodeId -> percentage (0-100)
+  primaryTargetId?: string; // targetNodeId for active-passive failover
+
+  // Web Application Firewall (WAF)
+  rateLimitRps?: number;
+  inspectionLatencyMs?: number;
+
+  // Serverless Function (Lambda/Worker)
+  coldStartLatencyMs?: number;
+  warmConcurrency?: number;
+
+  // External API (3rd-Party Service)
+  timeoutThresholdMs?: number;
+
+  // Background Worker & Queues
+  batchSize?: number;
+  pollIntervalMs?: number;
+
+  // Search Engine & Analytics DB
+  searchQueryLatencyMs?: number;
+  indexingBatchSize?: number;
 }
 
 export interface EdgeStreamData extends Record<string, unknown> {
