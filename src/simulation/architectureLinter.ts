@@ -142,8 +142,98 @@ export function auditArchitecture(
       remediation: 'Introduce an event streaming queue between Gateway and DB to smooth traffic spikes.',
     });
   } else if (hasQueue) {
-    passedRules.push('Async buffering: Kafka message queue decouples ingest from processing.');
+    passedRules.push('Async buffering: Message queue decouples ingest from processing.');
   }
+
+  // Rule 7: WAF Protection on Public API Gateway
+  const apiGateways = nodes.filter((n) => n.data.typeId === 'api_gateway');
+  const wafs = nodes.filter((n) => n.data.typeId === 'waf');
+  const cdns = nodes.filter((n) => n.data.typeId === 'cdn');
+  apiGateways.forEach((gw) => {
+    const upstreamEdges = edges.filter((e) => e.target === gw.id);
+    const hasClientIngress = upstreamEdges.some((e) => {
+      const srcNode = nodes.find((n) => n.id === e.source);
+      return srcNode?.data.typeId === 'traffic_generator' || srcNode?.data.typeId === 'dns_router';
+    });
+    const hasProtection = upstreamEdges.some((e) => {
+      const srcNode = nodes.find((n) => n.id === e.source);
+      return srcNode?.data.typeId === 'waf' || srcNode?.data.typeId === 'cdn';
+    });
+
+    if (hasClientIngress && !hasProtection && wafs.length === 0 && cdns.length === 0) {
+      issues.push({
+        id: `unprotected-gw-${gw.id}`,
+        severity: 'warning',
+        title: `Unprotected Ingress on ${gw.data.label}`,
+        description: `API Gateway receives direct ingress without a Web Application Firewall (WAF) or CDN edge shield. Vulnerable to DDoS and Layer 7 threats.`,
+        affectedNodeId: gw.id,
+        remediation: `Place a WAF node or CDN in front of the API Gateway to filter malicious traffic and enforce rate limits.`,
+      });
+    }
+  });
+  if (wafs.length > 0) {
+    passedRules.push('Security Layer: WAF filters malicious traffic and enforces rate limits.');
+  }
+
+  // Rule 8: Queue Without Consumer
+  const queues = nodes.filter((n) => n.data.typeId === 'standard_queue' || n.data.typeId === 'message_queue');
+  queues.forEach((q) => {
+    const downstream = edges.filter((e) => e.source === q.id);
+    const upstream = edges.filter((e) => e.target === q.id);
+    if (upstream.length > 0 && downstream.length === 0) {
+      issues.push({
+        id: `unconsumed-queue-${q.id}`,
+        severity: 'warning',
+        title: `Unconsumed Message Queue: ${q.data.label}`,
+        description: `Queue receives tasks from upstream producers but has no connected consumers or background workers. Tasks will accumulate and overflow.`,
+        affectedNodeId: q.id,
+        remediation: `Connect a Background Worker or App Server downstream of the queue to drain tasks.`,
+      });
+    }
+  });
+
+  // Rule 9: Orphan Pub/Sub Topic
+  const pubSubs = nodes.filter((n) => n.data.typeId === 'pub_sub');
+  pubSubs.forEach((ps) => {
+    const downstream = edges.filter((e) => e.source === ps.id);
+    const upstream = edges.filter((e) => e.target === ps.id);
+    if (upstream.length > 0 && downstream.length === 0) {
+      issues.push({
+        id: `orphan-pubsub-${ps.id}`,
+        severity: 'info',
+        title: `Orphan Pub/Sub Topic: ${ps.data.label}`,
+        description: `Pub/Sub topic receives published events but has 0 subscriber targets. Events will not reach any consumers.`,
+        affectedNodeId: ps.id,
+        remediation: `Connect downstream services or queues to subscribe to topic events.`,
+      });
+    }
+  });
+  if (pubSubs.length > 0 && pubSubs.every((ps) => edges.some((e) => e.source === ps.id))) {
+    passedRules.push('Event Fan-Out: Pub/Sub topic broadcasts events to all active subscriber targets.');
+  }
+
+  // Rule 10: External API Resilience
+  const extApis = nodes.filter((n) => n.data.typeId === 'external_api');
+  extApis.forEach((api) => {
+    const failRate = api.data.failureRate || 0;
+    if (failRate >= 10) {
+      const upstreamEdges = edges.filter((e) => e.target === api.id);
+      const callersWithoutCb = upstreamEdges
+        .map((e) => nodes.find((n) => n.id === e.source))
+        .filter((caller) => caller && !caller.data.circuitBreakerEnabled);
+
+      if (callersWithoutCb.length > 0) {
+        issues.push({
+          id: `ext-api-cb-${api.id}`,
+          severity: 'warning',
+          title: `Cascading Failure Risk: ${api.data.label}`,
+          description: `External API has high failure rate (${failRate}%) but callers lack Circuit Breakers. Failures can exhaust thread pools.`,
+          affectedNodeId: api.id,
+          remediation: `Enable Circuit Breaker on upstream callers to fail-fast when the third-party service degrades.`,
+        });
+      }
+    }
+  });
 
   // Calculate Score
   let score = 100;
