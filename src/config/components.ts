@@ -1,4 +1,4 @@
-import { ComponentMetadata, ComponentTypeId } from '../types/playground';
+import type { ComponentMetadata, ComponentTypeId } from '../types/playground.ts';
 
 export const COMPONENT_CATALOG: Record<ComponentTypeId, ComponentMetadata> = {
   traffic_generator: {

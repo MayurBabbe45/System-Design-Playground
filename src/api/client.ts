@@ -1,5 +1,5 @@
-import { Node, Edge } from '@xyflow/react';
-import { InfrastructureNodeData, EdgeStreamData } from '../types/playground';
+import type { Node, Edge } from '@xyflow/react';
+import type { InfrastructureNodeData, EdgeStreamData } from '../types/playground.ts';
 
 export interface SavedArchitecture {
   id: string;
@@ -79,6 +79,8 @@ async function ensureAuthToken(): Promise<string | null> {
   return token;
 }
 
+const getBaseUrl = (): string => (typeof window !== 'undefined' ? '' : 'http://localhost:4000');
+
 function getHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
   const headers: Record<string, string> = { ...extraHeaders };
   if (typeof window !== 'undefined') {
@@ -95,7 +97,7 @@ export const apiClient = {
 
   async listArchitectures(publicOnly: boolean = false): Promise<SavedArchitecture[]> {
     await ensureAuthToken();
-    const res = await fetch(`/api/architectures${publicOnly ? '?publicOnly=true' : ''}`, {
+    const res = await fetch(`${getBaseUrl()}/api/architectures${publicOnly ? '?publicOnly=true' : ''}`, {
       headers: getHeaders(),
     });
     if (!res.ok) throw new Error(`Failed to list architectures: ${res.statusText}`);
@@ -104,7 +106,7 @@ export const apiClient = {
   },
 
   async getArchitecture(id: string): Promise<SavedArchitecture> {
-    const res = await fetch(`/api/architectures/${id}`, {
+    const res = await fetch(`${getBaseUrl()}/api/architectures/${id}`, {
       headers: getHeaders(),
     });
     if (!res.ok) throw new Error(`Failed to get architecture: ${res.statusText}`);
@@ -123,7 +125,7 @@ export const apiClient = {
     isPublic?: boolean;
   }): Promise<SavedArchitecture> {
     await ensureAuthToken();
-    const res = await fetch('/api/architectures', {
+    const res = await fetch(`${getBaseUrl()}/api/architectures`, {
       method: 'POST',
       headers: getHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(payload),
@@ -146,7 +148,7 @@ export const apiClient = {
       isPublic: boolean;
     }>
   ): Promise<SavedArchitecture> {
-    const res = await fetch(`/api/architectures/${id}`, {
+    const res = await fetch(`${getBaseUrl()}/api/architectures/${id}`, {
       method: 'PUT',
       headers: getHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(payload),

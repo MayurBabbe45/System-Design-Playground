@@ -1,4 +1,4 @@
-import { ArchitecturePreset } from '../types/playground';
+import type { ArchitecturePreset } from '../types/playground.ts';
 
 export const PRESET_ARCHITECTURES: ArchitecturePreset[] = [
   {

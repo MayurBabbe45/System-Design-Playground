@@ -1,8 +1,8 @@
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
-import { Node, Edge } from '@xyflow/react';
-import { InfrastructureNodeData, EdgeStreamData } from '../types/playground';
-import { PeerState, PeerUser, CollabConnectionStatus } from './types';
+import type { Node, Edge } from '@xyflow/react';
+import type { InfrastructureNodeData, EdgeStreamData } from '../types/playground';
+import type { PeerState, PeerUser, CollabConnectionStatus } from './types';
 
 const PEER_NAMES = [
   'CloudArchitect',

@@ -1,5 +1,5 @@
-import { InfrastructureNodeData, EdgeStreamData } from '../types/playground';
-import { Node, Edge } from '@xyflow/react';
+import type { InfrastructureNodeData, EdgeStreamData } from '../types/playground.ts';
+import type { Node, Edge } from '@xyflow/react';
 
 export type IssueSeverity = 'critical' | 'warning' | 'info';
 
