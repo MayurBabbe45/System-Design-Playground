@@ -1,4 +1,4 @@
-import { TrafficProfile } from '../types/playground';
+import type { TrafficProfile } from '../types/playground';
 
 /**
  * Computes dynamic simulated arrival rate based on chosen traffic profile
