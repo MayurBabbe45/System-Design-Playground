@@ -123,6 +123,11 @@ interface PlaygroundState {
   addNodeFromPalette: (typeId: ComponentTypeId, position: { x: number; y: number }) => void;
   appendConnectedNode: (sourceNodeId: string, typeId: ComponentTypeId) => void;
   updateNodeData: (id: string, partialData: Partial<InfrastructureNodeData>) => void;
+  updateNodeDnsSettings: (id: string, mode: 'weighted' | 'failover', weights?: Record<string, number>, primaryTargetId?: string) => void;
+  updateNodeWafSettings: (id: string, rateLimitRps: number, inspectionLatencyMs: number) => void;
+  updateNodeServerlessSettings: (id: string, coldStartLatencyMs: number, warmConcurrency: number) => void;
+  updateNodeQueueSettings: (id: string, maxQueueDepth: number, batchSize?: number, pollIntervalMs?: number) => void;
+  updateNodeExternalApiSettings: (id: string, latencyMs: number, failureRate: number, timeoutThresholdMs?: number) => void;
   toggleNodeKillSwitch: (id: string) => void;
   deleteNode: (id: string) => void;
   deleteEdge: (id: string) => void;
@@ -1057,6 +1062,44 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
       set({ nodes: updatedNodes });
       const target = updatedNodes.find((n) => n.id === id);
       if (target) collabManager.syncSingleNode(target);
+    },
+
+    updateNodeDnsSettings: (id, mode, weights, primaryTargetId) => {
+      get().updateNodeData(id, {
+        dnsRoutingMode: mode,
+        dnsWeights: weights,
+        primaryTargetId,
+      });
+    },
+
+    updateNodeWafSettings: (id, rateLimitRps, inspectionLatencyMs) => {
+      get().updateNodeData(id, {
+        rateLimitRps,
+        inspectionLatencyMs,
+      });
+    },
+
+    updateNodeServerlessSettings: (id, coldStartLatencyMs, warmConcurrency) => {
+      get().updateNodeData(id, {
+        coldStartLatencyMs,
+        warmConcurrency,
+      });
+    },
+
+    updateNodeQueueSettings: (id, maxQueueDepth, batchSize, pollIntervalMs) => {
+      get().updateNodeData(id, {
+        maxQueueDepth,
+        batchSize,
+        pollIntervalMs,
+      });
+    },
+
+    updateNodeExternalApiSettings: (id, latencyMs, failureRate, timeoutThresholdMs) => {
+      get().updateNodeData(id, {
+        latencyMs,
+        failureRate,
+        timeoutThresholdMs,
+      });
     },
 
     toggleNodeKillSwitch: (id) => {

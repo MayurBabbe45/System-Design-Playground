@@ -25,9 +25,15 @@ const ALL_AZS: AvailabilityZone[] = ['us-east-1a', 'us-east-1b', 'us-east-1c'];
 export const Inspector: React.FC = () => {
   const {
     nodes,
+    edges,
     selectedNodeId,
     setSelectedNodeId,
     updateNodeData,
+    updateNodeDnsSettings,
+    updateNodeWafSettings,
+    updateNodeServerlessSettings,
+    updateNodeQueueSettings,
+    updateNodeExternalApiSettings,
     toggleNodeKillSwitch,
     deleteNode,
   } = usePlaygroundStore();
@@ -273,6 +279,279 @@ export const Inspector: React.FC = () => {
                 <option value="least_conn">Least Connections</option>
                 <option value="ip_hash">IP Hash Sticky Session</option>
               </select>
+            </div>
+          </div>
+        )}
+
+        {/* 4. DNS Router (Route 53) Settings */}
+        {data.typeId === 'dns_router' && (
+          <div className="p-3.5 rounded-xl bg-[var(--bg-pill)] border border-sky-500/30 space-y-3">
+            <div className="text-xs font-bold text-sky-500 dark:text-sky-400 flex items-center gap-1.5">
+              <Globe className="w-3.5 h-3.5" />
+              Route 53 DNS Routing Strategy
+            </div>
+
+            <div className="grid grid-cols-2 gap-1.5 bg-[var(--bg-panel)] p-1 rounded-lg border border-[var(--border-subtle)]">
+              <button
+                type="button"
+                onClick={() => updateNodeDnsSettings(selectedNode.id, 'weighted', data.dnsWeights, data.primaryTargetId)}
+                className={`py-1 text-[11px] font-semibold rounded-md transition-colors ${
+                  (data.dnsRoutingMode ?? 'weighted') === 'weighted'
+                    ? 'bg-sky-600 text-white shadow-sm'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                }`}
+              >
+                Weighted Split
+              </button>
+              <button
+                type="button"
+                onClick={() => updateNodeDnsSettings(selectedNode.id, 'failover', data.dnsWeights, data.primaryTargetId)}
+                className={`py-1 text-[11px] font-semibold rounded-md transition-colors ${
+                  data.dnsRoutingMode === 'failover'
+                    ? 'bg-sky-600 text-white shadow-sm'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                }`}
+              >
+                Failover (Active/Passive)
+              </button>
+            </div>
+
+            {data.dnsRoutingMode === 'failover' ? (
+              <div>
+                <label className="text-[11px] text-[var(--text-main)] font-medium block mb-1">Primary Target Node</label>
+                <select
+                  value={data.primaryTargetId ?? ''}
+                  onChange={(e) => updateNodeDnsSettings(selectedNode.id, 'failover', data.dnsWeights, e.target.value)}
+                  className="w-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-2.5 py-1 text-xs text-[var(--text-main)] focus:outline-none"
+                >
+                  <option value="">Auto (First Target)</option>
+                  {edges
+                    .filter((e) => e.source === selectedNode.id)
+                    .map((edge) => {
+                      const targetNode = nodes.find((n) => n.id === edge.target);
+                      return (
+                        <option key={edge.target} value={edge.target}>
+                          {targetNode?.data.label || edge.target}
+                        </option>
+                      );
+                    })}
+                </select>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <span className="text-[11px] text-[var(--text-muted)] block">Target Weight Distribution</span>
+                {edges
+                  .filter((e) => e.source === selectedNode.id)
+                  .map((edge) => {
+                    const targetNode = nodes.find((n) => n.id === edge.target);
+                    const currentWeight = (data.dnsWeights?.[edge.target] ?? 50);
+                    return (
+                      <div key={edge.target}>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="text-[var(--text-main)] truncate max-w-[140px]">{targetNode?.data.label || edge.target}</span>
+                          <span className="font-mono font-bold text-sky-500">{currentWeight}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={currentWeight}
+                          onChange={(e) => {
+                            const newWeights = { ...(data.dnsWeights || {}), [edge.target]: Number(e.target.value) };
+                            updateNodeDnsSettings(selectedNode.id, 'weighted', newWeights, data.primaryTargetId);
+                          }}
+                          className="w-full accent-sky-500 h-1.5 bg-[var(--bg-panel)] rounded-lg cursor-pointer"
+                        />
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 5. WAF Security Parameters */}
+        {data.typeId === 'waf' && (
+          <div className="p-3.5 rounded-xl bg-[var(--bg-pill)] border border-rose-500/30 space-y-3">
+            <div className="text-xs font-bold text-rose-500 dark:text-rose-400 flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              WAF Firewall & Rate Limiting
+            </div>
+
+            <div>
+              <div className="flex justify-between text-xs mb-1">
+                <span className="text-[var(--text-main)] font-medium">Rate Limit Ceiling</span>
+                <span className="font-mono font-bold text-rose-500">{(data.rateLimitRps ?? 20000).toLocaleString()} RPS</span>
+              </div>
+              <input
+                type="range"
+                min="500"
+                max="50000"
+                step="500"
+                value={data.rateLimitRps ?? 20000}
+                onChange={(e) => updateNodeWafSettings(selectedNode.id, Number(e.target.value), data.inspectionLatencyMs ?? 3)}
+                className="w-full accent-rose-500 h-1.5 bg-[var(--bg-panel)] rounded-lg cursor-pointer"
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between text-xs mb-1">
+                <span className="text-[var(--text-main)] font-medium">Inspection Latency</span>
+                <span className="font-mono font-bold text-amber-500">{data.inspectionLatencyMs ?? 3} ms</span>
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="25"
+                value={data.inspectionLatencyMs ?? 3}
+                onChange={(e) => updateNodeWafSettings(selectedNode.id, data.rateLimitRps ?? 20000, Number(e.target.value))}
+                className="w-full accent-amber-500 h-1.5 bg-[var(--bg-panel)] rounded-lg cursor-pointer"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* 6. Serverless Lambda Parameters */}
+        {data.typeId === 'serverless_function' && (
+          <div className="p-3.5 rounded-xl bg-[var(--bg-pill)] border border-orange-500/30 space-y-3">
+            <div className="text-xs font-bold text-orange-500 dark:text-orange-400 flex items-center gap-1.5">
+              <Zap className="w-3.5 h-3.5" />
+              Serverless Concurrency & Cold Starts
+            </div>
+
+            <div>
+              <div className="flex justify-between text-xs mb-1">
+                <span className="text-[var(--text-main)] font-medium">Cold Start Penalty</span>
+                <span className="font-mono font-bold text-orange-500">{data.coldStartLatencyMs ?? 250} ms</span>
+              </div>
+              <input
+                type="range"
+                min="50"
+                max="1500"
+                step="50"
+                value={data.coldStartLatencyMs ?? 250}
+                onChange={(e) => updateNodeServerlessSettings(selectedNode.id, Number(e.target.value), data.warmConcurrency ?? 10)}
+                className="w-full accent-orange-500 h-1.5 bg-[var(--bg-panel)] rounded-lg cursor-pointer"
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between text-xs mb-1">
+                <span className="text-[var(--text-main)] font-medium">Warm Concurrency Pool</span>
+                <span className="font-mono font-bold text-blue-500">{data.warmConcurrency ?? 10} instances</span>
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="100"
+                value={data.warmConcurrency ?? 10}
+                onChange={(e) => updateNodeServerlessSettings(selectedNode.id, data.coldStartLatencyMs ?? 250, Number(e.target.value))}
+                className="w-full accent-blue-500 h-1.5 bg-[var(--bg-panel)] rounded-lg cursor-pointer"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* 7. Background Worker & Queue Settings */}
+        {(data.typeId === 'background_worker' || data.typeId === 'standard_queue') && (
+          <div className="p-3.5 rounded-xl bg-[var(--bg-pill)] border border-emerald-500/30 space-y-3">
+            <div className="text-xs font-bold text-emerald-500 dark:text-emerald-400 flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5" />
+              {data.typeId === 'background_worker' ? 'Worker Consumer Settings' : 'Queue Buffer Parameters'}
+            </div>
+
+            {data.typeId === 'background_worker' && (
+              <>
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-[var(--text-main)] font-medium">Batch Consume Size</span>
+                    <span className="font-mono font-bold text-emerald-500">{data.batchSize ?? 50} tasks</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="1"
+                    max="500"
+                    step="5"
+                    value={data.batchSize ?? 50}
+                    onChange={(e) => updateNodeQueueSettings(selectedNode.id, data.maxQueueDepth, Number(e.target.value), data.pollIntervalMs)}
+                    className="w-full accent-emerald-500 h-1.5 bg-[var(--bg-panel)] rounded-lg cursor-pointer"
+                  />
+                </div>
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-[var(--text-main)] font-medium">Poll Cadence</span>
+                    <span className="font-mono font-bold text-purple-500">{data.pollIntervalMs ?? 100} ms</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="10"
+                    max="1000"
+                    step="10"
+                    value={data.pollIntervalMs ?? 100}
+                    onChange={(e) => updateNodeQueueSettings(selectedNode.id, data.maxQueueDepth, data.batchSize, Number(e.target.value))}
+                    className="w-full accent-purple-500 h-1.5 bg-[var(--bg-panel)] rounded-lg cursor-pointer"
+                  />
+                </div>
+              </>
+            )}
+
+            {data.typeId === 'standard_queue' && (
+              <div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-[var(--text-main)] font-medium">Max FIFO Buffer Depth</span>
+                  <span className="font-mono font-bold text-emerald-500">{(data.maxQueueDepth ?? 10000).toLocaleString()} req</span>
+                </div>
+                <input
+                  type="range"
+                  min="500"
+                  max="50000"
+                  step="500"
+                  value={data.maxQueueDepth ?? 10000}
+                  onChange={(e) => updateNodeQueueSettings(selectedNode.id, Number(e.target.value))}
+                  className="w-full accent-emerald-500 h-1.5 bg-[var(--bg-panel)] rounded-lg cursor-pointer"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 8. External API (Chaos Testing & Timeout) */}
+        {data.typeId === 'external_api' && (
+          <div className="p-3.5 rounded-xl bg-[var(--bg-pill)] border border-slate-500/30 space-y-3">
+            <div className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
+              <Activity className="w-3.5 h-3.5" />
+              Chaos Engineering & 3rd-Party Latency
+            </div>
+
+            <div>
+              <div className="flex justify-between text-xs mb-1">
+                <span className="text-[var(--text-main)] font-medium">Failure Rate (504 Timeout)</span>
+                <span className="font-mono font-bold text-red-500">{data.failureRate ?? 0}%</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={data.failureRate ?? 0}
+                onChange={(e) => updateNodeExternalApiSettings(selectedNode.id, data.latencyMs, Number(e.target.value), data.timeoutThresholdMs)}
+                className="w-full accent-red-500 h-1.5 bg-[var(--bg-panel)] rounded-lg cursor-pointer"
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between text-xs mb-1">
+                <span className="text-[var(--text-main)] font-medium">Timeout Cutoff</span>
+                <span className="font-mono font-bold text-amber-500">{data.timeoutThresholdMs ?? 2000} ms</span>
+              </div>
+              <input
+                type="range"
+                min="500"
+                max="5000"
+                step="100"
+                value={data.timeoutThresholdMs ?? 2000}
+                onChange={(e) => updateNodeExternalApiSettings(selectedNode.id, data.latencyMs, data.failureRate, Number(e.target.value))}
+                className="w-full accent-amber-500 h-1.5 bg-[var(--bg-panel)] rounded-lg cursor-pointer"
+              />
             </div>
           </div>
         )}
