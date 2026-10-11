@@ -335,12 +335,68 @@ self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
             }
           });
         } else {
-          // Standard balanced load split
-          const splitFlow = Math.round(effectiveOutflow / targetsToUse.length);
+          // Intelligent multi-target load distribution:
+          // Check if targets include a mixture of Cache and Database (Read/Write splitting)
+          const targetNodes = targetsToUse.map((edge) => ({
+            edge,
+            node: nodes.find((n) => n.id === edge.target),
+          }));
+
+          const hasCache = targetNodes.some((t) => t.node?.data.typeId === 'cache');
+          const hasDb = targetNodes.some(
+            (t) => t.node?.data.typeId === 'relational_db' || t.node?.data.typeId === 'nosql_db'
+          );
+
+          // Flow allocation map per edge ID
+          const edgeFlowAllocations = new Map<string, number>();
+
+          if (hasCache && hasDb) {
+            // Classical Cache-Aside Read/Write Splitting
+            const readRatio = (currentNode.data.readRatioPercent ?? 80) / 100;
+            const cacheEdges = targetNodes.filter((t) => t.node?.data.typeId === 'cache');
+            const dbEdges = targetNodes.filter(
+              (t) => t.node?.data.typeId === 'relational_db' || t.node?.data.typeId === 'nosql_db'
+            );
+            const otherEdges = targetNodes.filter(
+              (t) => t.node?.data.typeId !== 'cache' && t.node?.data.typeId !== 'relational_db' && t.node?.data.typeId !== 'nosql_db'
+            );
+
+            const totalReadFlow = Math.round(effectiveOutflow * readRatio);
+            const totalWriteFlow = Math.max(0, effectiveOutflow - totalReadFlow);
+
+            // Distribute reads equally among caches
+            const perCache = Math.round(totalReadFlow / Math.max(1, cacheEdges.length));
+            cacheEdges.forEach((c) => edgeFlowAllocations.set(c.edge.id, perCache));
+
+            // Distribute writes equally among DBs
+            const perDb = Math.round(totalWriteFlow / Math.max(1, dbEdges.length));
+            dbEdges.forEach((d) => edgeFlowAllocations.set(d.edge.id, perDb));
+
+            otherEdges.forEach((o) => edgeFlowAllocations.set(o.edge.id, 0));
+          } else {
+            // Weighted Round-Robin by target instance count
+            const totalWeight = targetNodes.reduce((sum, t) => {
+              const inst = Math.max(1, t.node?.data.instanceCount || 1);
+              return sum + inst;
+            }, 0);
+
+            let allocated = 0;
+            targetNodes.forEach((t, idx) => {
+              const inst = Math.max(1, t.node?.data.instanceCount || 1);
+              if (idx === targetNodes.length - 1) {
+                // Exact flow conservation residual
+                edgeFlowAllocations.set(t.edge.id, Math.max(0, effectiveOutflow - allocated));
+              } else {
+                const flow = Math.round((effectiveOutflow * inst) / Math.max(1, totalWeight));
+                allocated += flow;
+                edgeFlowAllocations.set(t.edge.id, flow);
+              }
+            });
+          }
 
           outgoing.forEach((edge) => {
             const isTargetAlive = targetsToUse.some((t) => t.id === edge.id);
-            const flow = isTargetAlive ? splitFlow : 0;
+            const flow = isTargetAlive ? (edgeFlowAllocations.get(edge.id) ?? 0) : 0;
 
             edgeInflows.set(edge.id, flow);
             const existingTargetInflow = incomingRpsMap.get(edge.target) || 0;
@@ -475,10 +531,8 @@ self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
     }
 
     if (node.data.typeId !== 'traffic_generator') {
-      totalProcessedRps += processedRps;
       totalDroppedRps += droppedRps;
       totalActiveQueue += queueDepth;
-      maxP95Latency = Math.max(maxP95Latency, latencyMs);
     }
 
     let status: 'healthy' | 'warning' | 'critical' | 'dead' = 'healthy';
@@ -511,6 +565,36 @@ self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
     }
   }
 
+  // Industry-Standard System Ingress Throughput (Goodput):
+  // Measures client requests successfully serviced across the system boundary
+  const totalIngressOffered = trafficGenerators.length > 0
+    ? trafficGenerators.reduce((sum, tg) => sum + (incomingRpsMap.get(tg.id) || 0), 0)
+    : nodes
+        .filter((n) => (inDegreeMap.get(n.id) || 0) === 0 && !isNodeEffectivelyDead(n))
+        .reduce((sum, n) => sum + (incomingRpsMap.get(n.id) || n.data.currentRps || 0), 0);
+
+  const systemThroughputRps = Math.max(0, totalIngressOffered - totalDroppedRps);
+
+  // Cumulative critical path p95 latency:
+  // Propagate path latencies through DAG to measure end-to-end client round-trip response time
+  const nodeLatencyMap = new Map<string, number>();
+  updatedNodes.forEach((n) => nodeLatencyMap.set(n.id, n.data.currentLatency || 0));
+
+  const pathLatencyMap = new Map<string, number>();
+  // BFS topological order
+  nodes.forEach((n) => {
+    const selfLatency = nodeLatencyMap.get(n.id) || 0;
+    const incomingEdges = edges.filter((e) => e.target === n.id);
+    const maxParentPath = incomingEdges.length > 0
+      ? Math.max(...incomingEdges.map((e) => pathLatencyMap.get(e.source) || 0))
+      : 0;
+    pathLatencyMap.set(n.id, maxParentPath + selfLatency);
+  });
+
+  const cumulativeP95Latency = pathLatencyMap.size > 0
+    ? Math.max(...Array.from(pathLatencyMap.values()))
+    : 0;
+
   const updatedEdges = edges.map((edge) => {
     const flowInfo = edgeFlowMap.get(edge.id) || {
       flowRps: 0,
@@ -542,9 +626,9 @@ self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
   const snapshot: SystemMetricsSnapshot = {
     timestamp: Date.now(),
     totalTargetRps: dynamicRps,
-    totalProcessedRps,
+    totalProcessedRps: systemThroughputRps,
     totalDroppedRps,
-    p95LatencyMs: maxP95Latency,
+    p95LatencyMs: cumulativeP95Latency,
     activeQueueTotal: totalActiveQueue,
     hourlyCost: Number(totalHourlyCost.toFixed(2)),
     avgUtilizationPercent: avgUtilization,

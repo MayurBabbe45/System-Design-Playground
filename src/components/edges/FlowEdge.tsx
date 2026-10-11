@@ -243,10 +243,25 @@ export const FlowEdge: React.FC<EdgeProps> = memo(({
         }}
       />
 
+      {/* SVG Directional Arrowhead Marker matching stroke color */}
+      <defs>
+        <marker
+          id={`arrow-${id}`}
+          viewBox="0 0 10 10"
+          refX="6"
+          refY="5"
+          markerWidth="7"
+          markerHeight="7"
+          orient="auto-start-reverse"
+        >
+          <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill={strokeColor} />
+        </marker>
+      </defs>
+
       {/* Main Visible Edge */}
       <BaseEdge
         path={edgePath}
-        markerEnd={markerEnd}
+        markerEnd={markerEnd || `url(#arrow-${id})`}
         style={{
           ...style,
           stroke: strokeColor,

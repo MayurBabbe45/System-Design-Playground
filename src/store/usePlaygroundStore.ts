@@ -783,9 +783,69 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => {
 
     onConnect: (connection) => {
       get().takeSnapshot();
+      const currentNodes = get().nodes;
+      const sourceNode = currentNodes.find((n) => n.id === connection.source);
+      const targetNode = currentNodes.find((n) => n.id === connection.target);
+
+      let canonicalSource = connection.source;
+      let canonicalTarget = connection.target;
+      let canonicalSourceHandle = connection.sourceHandle;
+      let canonicalTargetHandle = connection.targetHandle;
+
+      if (sourceNode && targetNode) {
+        const getComponentTier = (typeId?: string): number => {
+          switch (typeId) {
+            case 'traffic_generator':
+              return 0; // Ingress Client Origin
+            case 'dns_router':
+            case 'waf':
+            case 'cdn':
+              return 1; // Edge / DNS / Security Ingress
+            case 'api_gateway':
+            case 'load_balancer':
+              return 2; // Gateways / Load Balancers
+            case 'app_server':
+            case 'serverless_function':
+              return 3; // Application Compute Services
+            case 'message_queue':
+            case 'standard_queue':
+            case 'pub_sub':
+              return 4; // Asynchronous Messaging Brokers
+            case 'background_worker':
+              return 5; // Asynchronous Task Consumers
+            case 'cache':
+              return 6; // In-memory Caches
+            case 'relational_db':
+            case 'nosql_db':
+            case 'search_engine':
+            case 'analytics_db':
+            case 'object_storage':
+            case 'external_api':
+              return 7; // Storage & External Datastores
+            default:
+              return 3;
+          }
+        };
+
+        const sourceTier = getComponentTier(sourceNode.data?.typeId);
+        const targetTier = getComponentTier(targetNode.data?.typeId);
+
+        // If connection was created in reverse against standard architectural data flow,
+        // auto-orient it from upstream producer to downstream consumer.
+        if (sourceTier > targetTier) {
+          canonicalSource = connection.target;
+          canonicalTarget = connection.source;
+          canonicalSourceHandle = connection.targetHandle || 'right';
+          canonicalTargetHandle = connection.sourceHandle || 'left';
+        }
+      }
+
       const newEdge: Edge<EdgeStreamData> = {
-        ...connection,
-        id: `e-${connection.source}-${connection.target}-${Date.now()}`,
+        id: `e-${canonicalSource}-${canonicalTarget}-${Date.now()}`,
+        source: canonicalSource,
+        target: canonicalTarget,
+        sourceHandle: canonicalSourceHandle,
+        targetHandle: canonicalTargetHandle,
         type: 'flowEdge',
         data: {
           currentFlowRps: 0,
