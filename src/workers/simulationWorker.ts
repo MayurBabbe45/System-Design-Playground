@@ -1,4 +1,4 @@
-import { 
+import type { 
   InfrastructureNodeData, 
   EdgeStreamData, 
   SystemMetricsSnapshot, 
@@ -6,14 +6,14 @@ import {
   AvailabilityZone,
   CircuitBreakerState,
   SimulationEngineMode
-} from '../types/playground';
+} from '../types/playground.ts';
 import { 
   calculateDynamicTrafficRate, 
   solveKendallMMcK, 
   solvePullQueueDrain, 
   solveServerlessLatency 
-} from '../simulation/queueTheory';
-import { initWasmEngine, isWasmReady, solveKendallMMcKWasm } from '../wasm/wasmEngine';
+} from '../simulation/queueTheory.ts';
+import { initWasmEngine, isWasmReady, solveKendallMMcKWasm } from '../wasm/wasmEngine.ts';
 
 // Pre-initialize WASM engine in background worker
 initWasmEngine().catch((err) => {
@@ -43,7 +43,16 @@ export interface WorkerSimulationOutput {
   computeDurationMs: number;
 }
 
-self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
+// Persistent module-level pooled collections (Zero GC allocations per tick)
+const incomingRpsMap = new Map<string, number>();
+const edgeFlowMap = new Map<string, { flowRps: number; latencyMs: number; errorRate: number }>();
+const inDegreeMap = new Map<string, number>();
+const visitedNodes = new Set<string>();
+const queue: string[] = [];
+const edgeInflows = new Map<string, number>();
+const circuitBreakerUpdates = new Map<string, CircuitBreakerState>();
+
+export function runSimulationTick(input: WorkerSimulationInput): WorkerSimulationOutput {
   const computeStartTime = performance.now();
   const { 
     nodes, 
@@ -55,7 +64,16 @@ self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
     globalInjectedLatencyMs = 0,
     globalPacketDropPercent = 0,
     engineMode = 'wasm'
-  } = e.data;
+  } = input;
+
+  // In-place clear of pooled collections to avoid heap reallocations
+  incomingRpsMap.clear();
+  edgeFlowMap.clear();
+  inDegreeMap.clear();
+  visitedNodes.clear();
+  queue.length = 0;
+  edgeInflows.clear();
+  circuitBreakerUpdates.clear();
 
   // 1. Dynamic arrival rate
   const dynamicRps = calculateDynamicTrafficRate(targetGlobalRps, trafficProfile, tickCount);
@@ -66,9 +84,6 @@ self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
     if (node.data.availabilityZone && killedAzs.includes(node.data.availabilityZone)) return true;
     return false;
   };
-
-  const incomingRpsMap = new Map<string, number>();
-  const edgeFlowMap = new Map<string, { flowRps: number; latencyMs: number; errorRate: number }>();
 
   nodes.forEach((n) => incomingRpsMap.set(n.id, 0));
 
@@ -81,25 +96,18 @@ self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
   });
 
   // Calculate in-degrees
-  const inDegreeMap = new Map<string, number>();
   nodes.forEach((n) => {
     const incomingCount = edges.filter((e) => e.target === n.id).length;
     inDegreeMap.set(n.id, incomingCount);
   });
 
   // Level-by-level BFS traversal with cycle-breaker safety
-  const queue: string[] = [];
-  const visitedNodes = new Set<string>();
-
   nodes.forEach((n) => {
     if ((inDegreeMap.get(n.id) || 0) === 0) {
       queue.push(n.id);
       visitedNodes.add(n.id);
     }
   });
-
-  const edgeInflows = new Map<string, number>();
-  const circuitBreakerUpdates = new Map<string, CircuitBreakerState>();
   let loopSafeguard = 0;
   const maxIterations = Math.max(50, nodes.length * 4);
 
@@ -636,7 +644,7 @@ self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
 
   const computeDurationMs = Math.max(0.01, Number((performance.now() - computeStartTime).toFixed(3)));
 
-  const output: WorkerSimulationOutput = {
+  return {
     updatedNodes,
     updatedEdges,
     snapshot,
@@ -646,6 +654,12 @@ self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
     isWasmReady: isWasmReady(),
     computeDurationMs,
   };
+}
 
-  self.postMessage(output);
-};
+// Wire up Web Worker message handler in Web Worker thread
+if (typeof self !== 'undefined' && 'onmessage' in self) {
+  self.onmessage = (e: MessageEvent<WorkerSimulationInput>) => {
+    const output = runSimulationTick(e.data);
+    self.postMessage(output);
+  };
+}

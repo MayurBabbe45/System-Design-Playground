@@ -1,5 +1,5 @@
-import { WASM_BASE64 } from './build/wasmBytecode';
-import { solveKendallMMcK as solveKendallMMcKJs } from '../simulation/queueTheory';
+import { WASM_BASE64 } from './build/wasmBytecode.ts';
+import { solveKendallMMcK as solveKendallMMcKJs } from '../simulation/queueTheory.ts';
 
 export interface WasmSimulationResult {
   rho: number;
