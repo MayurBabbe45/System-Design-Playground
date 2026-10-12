@@ -307,6 +307,34 @@
       "password_hash": "hash",
       "name": "Attacker",
       "created_at": "2026-10-08T16:17:07.501Z"
+    },
+    {
+      "id": "usr_1cfe7806105686d9",
+      "email": "victim_1791734282704@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-11T15:58:02.706Z"
+    },
+    {
+      "id": "usr_e2977a7a86577a90",
+      "email": "attacker_1791734282727@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-11T15:58:02.728Z"
+    },
+    {
+      "id": "usr_de047e4aecfa81a3",
+      "email": "victim_1791739323133@test.local",
+      "password_hash": "hash",
+      "name": "Victim",
+      "created_at": "2026-10-11T17:22:03.134Z"
+    },
+    {
+      "id": "usr_735e2bf07d5da378",
+      "email": "attacker_1791739323144@test.local",
+      "password_hash": "hash",
+      "name": "Attacker",
+      "created_at": "2026-10-11T17:22:03.145Z"
     }
   ],
   "architectures": [
