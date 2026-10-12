@@ -145,7 +145,7 @@ export const createCanvasSlice: StateCreator<
     }
 
     const newEdge: Edge<EdgeStreamData> = {
-      id: `e-${canonicalSource}-${canonicalTarget}-${Date.now()}`,
+      id: `e-${canonicalSource}-${canonicalTarget}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       source: canonicalSource,
       target: canonicalTarget,
       sourceHandle: canonicalSourceHandle,
@@ -242,7 +242,7 @@ export const createCanvasSlice: StateCreator<
     if (!copiedNode) return;
     get().takeSnapshot();
 
-    const id = `${copiedNode.data.typeId}-${Date.now()}`;
+    const id = `${copiedNode.data.typeId}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     const position = targetPosition || {
       x: copiedNode.position.x + 50,
       y: copiedNode.position.y + 50,
@@ -272,7 +272,7 @@ export const createCanvasSlice: StateCreator<
     if (!target) return;
     get().takeSnapshot();
 
-    const id = `${target.data.typeId}-${Date.now()}`;
+    const id = `${target.data.typeId}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     const cloned = JSON.parse(JSON.stringify(target));
     const newNode: Node<InfrastructureNodeData> = {
       ...cloned,
@@ -298,7 +298,7 @@ export const createCanvasSlice: StateCreator<
     const meta = COMPONENT_CATALOG[typeId];
     if (!meta) return;
 
-    const id = `${typeId}-${Date.now()}`;
+    const id = `${typeId}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     const newNode: Node<InfrastructureNodeData> = {
       id,
       type: 'infrastructure',
